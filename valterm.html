@@ -142,7 +142,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <button class="src-btn" id="src-combo" onclick="setSource('combo')" title="Alpha + IA combinados"><i class="ti ti-layers-intersect"></i> COMBO</button>
   </div>
   <div class="topbar-right">
-    <div class="req-counter" id="reqCounter" title="Peticiones Alpha Vantage usadas hoy (max 25)"><i class="ti ti-api"></i> <span id="reqUsed">0</span>/25 hoy</div>
+    <div class="req-counter" id="reqCounter" title="Peticiones Alpha Vantage usadas hoy (max 25)"><i class="ti ti-api"></i> <span id="reqUsed">0</span>/25 hoy <button onclick="verificarPeticiones()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:10px;padding:0 0 0 4px;opacity:.7" title="Verificar estado real con Alpha Vantage (consume 1 peticion)"><i class="ti ti-refresh"></i></button></div>
     <div class="api-badge">
       <div class="dot" id="apiDot"></div>
       <span id="apiStatusText">Sin API key</span>
@@ -244,9 +244,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
         <div class="card-title"><i class="ti ti-api"></i> Contador de peticiones Alpha Vantage</div>
         <div style="font-size:12px;color:var(--text2);line-height:2">
           Peticiones usadas hoy: <span id="reqUsed2" style="font-family:var(--mono);color:var(--teal)">0</span> / 25<br>
-          Cada busqueda ALPHA o COMBO: 4 peticiones &nbsp;·&nbsp; Reset a medianoche UTC<br>
-          <button class="btn-ghost" style="margin-top:6px;font-size:10px" onclick="resetReqCounter()"><i class="ti ti-refresh"></i> Resetear contador manualmente</button>
+          Cada busqueda ALPHA o COMBO: 4 peticiones &nbsp;·&nbsp; Reset a medianoche UTC
         </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" onclick="verificarPeticiones()"><i class="ti ti-refresh"></i> VERIFICAR ESTADO REAL (1 peticion)</button>
+          <button class="btn-ghost" onclick="resetReqCounter()"><i class="ti ti-trash"></i> Resetear contador local</button>
+        </div>
+        <div id="verifyStatus" style="margin-top:10px;font-size:12px;color:var(--text3);min-height:20px"></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3)">El contador local lleva la cuenta de las peticiones hechas desde esta app. Si has hecho llamadas directas al navegador o desde otras apps, usa "Verificar estado real" para comprobar el estado exacto con Alpha Vantage (consume 1 peticion de tu cuota).</div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Metodos de valoracion</div>
@@ -300,7 +305,7 @@ const fmtB = n=>isNaN(n)||n===0?'N/A':'$'+fmt(n,1)+'B';
 const sign = n=>n>0?'+':'';
 const clrPot = p=>p>15?'var(--teal)':p<-15?'var(--red)':'var(--amber)';
 const toEur = usd=>eurRate?usd*eurRate:null;
-const fmtDual = usd=>{ const e=toEur(usd); return `$${fmt(usd)}${e?` <span style="color:var(--text3)">/ €${fmt(e)}</span>`:'`}`; };
+const fmtDual = usd=>{ const e=toEur(usd); return '$'+fmt(usd)+(e?' / \u20ac'+fmt(e):''); };
 
 function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 
@@ -317,7 +322,32 @@ function updateApiUI(){
   document.getElementById('settingsNote').textContent=live?'API key configurada y activa':'Sin API key — usa modo IA+WEB';
   if(apiKey) document.getElementById('apiKeyInput').value=apiKey;
 }
-function guardarKey(){const v=document.getElementById('apiKeyInput').value.trim();if(!v){toast('Introduce una API key');return;}apiKey=v;localStorage.setItem('valterm_apikey',v);updateApiUI();toast('API key guardada');}
+async function verificarPeticiones(){
+  if(!apiKey){toast('Configura tu API key primero',3000);return;}
+  toast('Verificando estado con Alpha Vantage... (consume 1 peticion)',4000);
+  try{
+    const r=await fetch(`https://www.alphavantage.co/query?function=OVERVIEW&symbol=IBM&apikey=${apiKey}`);
+    const d=await r.json();
+    if(d.Note){
+      // Limite alcanzado
+      toast('LIMITE ALCANZADO — Sin peticiones disponibles hoy. Reset a medianoche UTC.',5000);
+      document.getElementById('reqCounter').className='req-counter danger';
+      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--red)"><i class="ti ti-x"></i> LIMITE ALCANZADO — 0 peticiones disponibles hoy. Reset a medianoche UTC.</span>`;
+    } else if(d['Error Message']){
+      toast('API key invalida o error en Alpha Vantage',4000);
+      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Error: API key invalida o ticker no encontrado.</span>`;
+    } else if(d.Symbol){
+      // Funciona — peticiones disponibles
+      addReq(1);
+      const left=25-getReqUsed();
+      toast(`API activa — aproximadamente ${left} peticiones restantes hoy`,4000);
+      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--teal)"><i class="ti ti-check"></i> API activa y funcionando. Peticiones restantes estimadas: ~${left}/25.</span>`;
+    }
+  }catch(e){
+    toast('Error de red al verificar',3000);
+    document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--amber)"><i class="ti ti-wifi-off"></i> Error de red. Comprueba tu conexion.</span>`;
+  }
+}
 function borrarKey(){apiKey='';localStorage.removeItem('valterm_apikey');document.getElementById('apiKeyInput').value='';updateApiUI();toast('API key eliminada');}
 
 // ─── FUENTE ───────────────────────────────────────────────────────────────────
