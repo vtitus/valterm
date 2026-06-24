@@ -254,6 +254,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
         <div style="margin-top:8px;font-size:11px;color:var(--text3)">El contador local lleva la cuenta de las peticiones hechas desde esta app. Si has hecho llamadas directas al navegador o desde otras apps, usa "Verificar estado real" para comprobar el estado exacto con Alpha Vantage (consume 1 peticion de tu cuota).</div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="ti ti-robot"></i> Claude AI — Analisis con Inteligencia Artificial</div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Cuando configures tu API key de Anthropic, el analisis de cada empresa lo genera Claude con los datos reales: fundamentales, valoracion, earnings, posicion competitiva y riesgos. Si no tienes key, se usa un analisis automatico por plantilla.</p>
+        <p style="font-size:11px;color:var(--text3);margin-top:4px">Clave gratuita (con credito inicial): <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--teal)">console.anthropic.com</a> · Se usa el modelo <span style="font-family:var(--mono)">claude-haiku-4-5</span> (el mas economico, ~$0.001 por analisis)</p>
+        <div class="input-row"><input type="password" class="settings-input" id="claudeKeyInput" placeholder="sk-ant-..."/><button class="btn" onclick="guardarClaudeKey()">GUARDAR</button><button class="btn-ghost" onclick="borrarClaudeKey()">BORRAR</button></div>
+        <div class="status-note"><div class="dot" id="claudeDot"></div><span id="claudeNote">Sin Claude key — analisis por plantilla</span></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Metodos de valoracion</div>
         <div style="font-size:12px;color:var(--text2);line-height:2">
           <span style="color:var(--teal);font-family:var(--mono);font-weight:700">DCF</span> — Descuento de Flujos de Caja a 10 años con WACC y valor terminal Gordon Growth.<br>
@@ -271,12 +278,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <script>
 // ─── ESTADO ───────────────────────────────────────────────────────────────────
 let apiKey = localStorage.getItem('valterm_apikey') || '';
+let claudeKey = localStorage.getItem('valterm_claudekey') || '';
 let currentData = null;
 let currentSource = 'alpha';
 let eurRate = null;
 let earningsMode = 'quarterly';
 const YAHOO_DIRECT = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary';
 const CORS_PROXY = 'https://corsproxy.io/?';
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
 // ─── PETICIONES COUNTER ───────────────────────────────────────────────────────
 function getTodayKey(){ return 'valterm_req_'+new Date().toISOString().slice(0,10); }
@@ -350,7 +359,27 @@ async function verificarPeticiones(){
     document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--amber)"><i class="ti ti-wifi-off"></i> Error de red. Comprueba tu conexion.</span>`;
   }
 }
-function borrarKey(){apiKey='';localStorage.removeItem('valterm_apikey');document.getElementById('apiKeyInput').value='';updateApiUI();toast('API key eliminada');}
+function guardarKey(){
+  const v=document.getElementById('apiKeyInput').value.trim();
+  if(!v){toast('Pega tu API key de Alpha Vantage primero',3000);return;}
+  apiKey=v;localStorage.setItem('valterm_apikey',v);updateApiUI();toast('API key de Alpha Vantage guardada');
+}
+function borrarKey(){apiKey='';localStorage.removeItem('valterm_apikey');document.getElementById('apiKeyInput').value='';updateApiUI();toast('API key de Alpha Vantage eliminada');}
+
+// ─── CLAUDE KEY ───────────────────────────────────────────────────────────────
+function guardarClaudeKey(){
+  const v=document.getElementById('claudeKeyInput').value.trim();
+  if(!v){toast('Pega tu API key de Anthropic primero',3000);return;}
+  claudeKey=v;localStorage.setItem('valterm_claudekey',v);updateClaudeUI();toast('Claude API key guardada');
+}
+function borrarClaudeKey(){claudeKey='';localStorage.removeItem('valterm_claudekey');document.getElementById('claudeKeyInput').value='';updateClaudeUI();toast('Claude API key eliminada');}
+function updateClaudeUI(){
+  const live=!!claudeKey;
+  const dot=document.getElementById('claudeDot');const note=document.getElementById('claudeNote');
+  if(dot)dot.className=live?'dot live':'dot';
+  if(note)note.textContent=live?'Claude API key configurada — analisis IA activo':'Sin Claude key — analisis por plantilla';
+  if(claudeKey&&document.getElementById('claudeKeyInput'))document.getElementById('claudeKeyInput').value=claudeKey;
+}
 
 // ─── FUENTE ───────────────────────────────────────────────────────────────────
 function setSource(src){
@@ -698,8 +727,64 @@ function renderAnalistas(d){
   ].map(l=>`<a href="${l.url}" target="_blank" class="web-link"><i class="ti ${l.icon}"></i>${l.name}</a>`).join('');
 }
 
-// ─── ANALISIS LOCAL (basado en datos reales, sin llamada a API externa) ────────
-function generateLocalAnalysis(d){
+// ─── ANALISIS IA (Claude API) + fallback local ────────────────────────────────
+async function generateLocalAnalysis(d){
+  if(claudeKey) await generateClaudeAnalysis(d);
+  else generateTemplateAnalysis(d);
+}
+
+async function generateClaudeAnalysis(d){
+  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v));
+  const avg=vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+  const pot=avg>0?(avg-d.price)/d.price*100:0;
+  const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
+  const buys=d.analysts.filter(a=>a.rating==='BUY').length;
+  const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
+  const sells=d.analysts.filter(a=>a.rating==='SELL').length;
+  const avgTp=d.analysts.length>0?d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length:0;
+
+  const thinking=`<div class="ai-label"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div> Claude analizando ${d.ticker}...</div>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
+
+  const prompt=`Eres un analista financiero senior de primer nivel. Analiza esta empresa con rigor profesional en español, en 5-6 frases concisas. Texto corrido, sin bullets ni markdown.
+
+Empresa: ${d.name} (${d.ticker}) — Sector: ${d.sector} — Bolsa: ${d.exchange}
+Precio actual: $${fmt(d.price)} | Mkt Cap: $${fmt(d.mktCap,1)}B
+EPS (TTM): $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x
+Earnings beats: ${beats}/${d.quarterly.length} trimestres
+Valor intrinseco medio (4 metodos): $${fmt(avg)} → potencial ${sign(pot)}${fmt(pot,1)}%
+  · DCF: $${fmt(d.dcfVal)} | PER: $${fmt(d.perVal)} | EV/EBITDA: $${fmt(d.evEbVal)} | Graham: $${fmt(d.grahamVal)}
+Analistas: ${buys} BUY · ${holds} HOLD · ${sells} SELL | P.O. medio: $${fmt(avgTp)} | P.O. consenso: $${fmt(d.target)}
+
+Cubre: calidad de los fundamentales, solidez de earnings, valoracion actual vs intrinseca, posicion competitiva, principales riesgos y conclusion de inversion.`;
+
+  try{
+    // Intentamos directo primero, luego con proxy CORS
+    const body=JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:600,messages:[{role:'user',content:prompt}]});
+    const headers={'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01'};
+    let res=null;
+    try{
+      res=await fetch(ANTHROPIC_URL,{method:'POST',headers,body});
+    }catch(corsErr){
+      res=await fetch(CORS_PROXY+encodeURIComponent(ANTHROPIC_URL),{method:'POST',headers,body});
+    }
+    const data=await res.json();
+    if(data.error){throw new Error(data.error.message||'Error API Claude');}
+    const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('')||'';
+    if(!text) throw new Error('Respuesta vacia');
+    const srcBadge=`<span class="source-badge sb-ia" style="background:#7C3AED22;color:#A78BFA">CLAUDE AI</span>`;
+    ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.innerHTML=`<div class="ai-label">${srcBadge} Analisis fundamental — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+    });
+  }catch(e){
+    toast('Claude API: '+e.message+' — usando analisis local',4000);
+    generateTemplateAnalysis(d);
+  }
+}
+
+function generateLocalAnalysis_template(d){ generateTemplateAnalysis(d); }
+function generateTemplateAnalysis(d){
   const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v));
   const avg=vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
   const pot=avg>0?(avg-d.price)/d.price*100:0;
@@ -754,6 +839,7 @@ function generateLocalAnalysis(d){
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 document.getElementById('tickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')buscar();});
 updateApiUI();
+updateClaudeUI();
 updateReqUI();
 fetchEurRate();
 </script>
