@@ -171,6 +171,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .input-row{display:flex;gap:10px;margin-top:12px}
 .status-note{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;color:var(--text3)}
 
+/* ── TICKER DROPDOWN ── */
+.search-wrap{position:relative}
+.ticker-dd{position:absolute;top:calc(100% + 6px);left:0;width:360px;background:linear-gradient(160deg,#111B2C,#0D1520);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:200;max-height:340px;overflow-y:auto;display:none;animation:ddSlide .15s ease}
+@keyframes ddSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ticker-dd-head{padding:8px 14px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;font-weight:700;border-bottom:1px solid var(--border)}
+.ticker-opt{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);transition:all .12s}
+.ticker-opt:last-child{border-bottom:none}
+.ticker-opt:hover,.ticker-opt.focused{background:var(--bg3)}
+.ticker-pill{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--teal);background:var(--teal-dim);border:1px solid var(--teal-glow);padding:4px 10px;border-radius:6px;flex-shrink:0;min-width:68px;text-align:center;letter-spacing:.5px}
+.ticker-opt-name{font-size:13.5px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.ticker-opt-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.ticker-dd-empty{padding:16px 14px;font-size:13px;color:var(--text3);text-align:center}
+.ticker-dd-loading{padding:16px 14px;font-size:13px;color:var(--text3);text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:26px;right:26px;background:var(--bg3);border:1px solid var(--teal);border-radius:var(--r);padding:12px 20px;font-size:13px;color:var(--teal);font-family:var(--mono);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000;font-weight:700;box-shadow:var(--shadow)}
 .toast.show{opacity:1}
@@ -192,9 +206,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v2.0</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v2.1</span></div>
   <div class="search-wrap">
-    <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6" />
+    <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
+    <div id="tickerDropdown" class="ticker-dd"></div>
     <button class="btn" onclick="buscar()"><i class="ti ti-search"></i> BUSCAR</button>
     <button class="btn-ghost" onclick="cargarDemo()">DEMO</button>
   </div>
@@ -1123,8 +1138,69 @@ function renderTemplate(){
   });
 }
 
+// ── BUSQUEDA POR NOMBRE ───────────────────────────────────────────────────────
+let ddTimeout=null, ddIdx=-1;
+
+async function searchSymbol(q){
+  const dd=document.getElementById('tickerDropdown');
+  dd.innerHTML=`<div class="ticker-dd-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Buscando...</span></div>`;
+  dd.style.display='block';
+  try{
+    let results=[];
+    if(fhKey){
+      const r=await fetch(`${FH}/search?q=${encodeURIComponent(q)}&token=${fhKey}`);
+      const d=await r.json();
+      results=(d.result||[]).filter(x=>x.type==='Common Stock'||x.type==='').slice(0,9);
+      results=results.map(x=>({symbol:x.displaySymbol||x.symbol, name:x.description, meta:x.type}));
+    } else if(avKey){
+      const r=await fetch(`${AV}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(q)}&apikey=${avKey}`);
+      const d=await r.json(); addReq(1);
+      results=(d.bestMatches||[]).slice(0,9).map(m=>({symbol:m['1. symbol'],name:m['2. name'],meta:m['3. type']+' · '+m['4. region']}));
+    }
+    if(!results.length){ dd.innerHTML=`<div class="ticker-dd-empty">Sin resultados para "<strong>${q}</strong>"</div>`; return; }
+    dd.innerHTML=`<div class="ticker-dd-head">Resultados para "${q}"</div>`+
+      results.map((r,i)=>`<div class="ticker-opt" data-i="${i}" onmousedown="selectSymbol('${r.symbol.replace(/'/g,"\\'")}')"><span class="ticker-pill">${r.symbol}</span><div><div class="ticker-opt-name">${r.name}</div><div class="ticker-opt-meta">${r.meta}</div></div></div>`).join('');
+    ddIdx=-1;
+  }catch(e){ dd.innerHTML=`<div class="ticker-dd-empty">Error de busqueda</div>`; }
+}
+
+function selectSymbol(sym){
+  document.getElementById('tickerInput').value=sym;
+  closeDD();
+  buscar();
+}
+function closeDD(){
+  const dd=document.getElementById('tickerDropdown');
+  dd.style.display='none'; ddIdx=-1;
+}
+function moveFocus(dir){
+  const opts=document.querySelectorAll('.ticker-opt');
+  if(!opts.length) return;
+  opts[ddIdx]?.classList.remove('focused');
+  ddIdx=Math.max(0,Math.min(opts.length-1,ddIdx+dir));
+  opts[ddIdx].classList.add('focused');
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
-document.getElementById('tickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')buscar();});
+const inp=document.getElementById('tickerInput');
+inp.addEventListener('input',e=>{
+  const v=e.target.value.trim();
+  clearTimeout(ddTimeout);
+  if(v.length<2){ closeDD(); return; }
+  ddTimeout=setTimeout(()=>searchSymbol(v),350);
+});
+inp.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();moveFocus(1);}
+  else if(e.key==='ArrowUp'){e.preventDefault();moveFocus(-1);}
+  else if(e.key==='Escape'){closeDD();}
+  else if(e.key==='Enter'){
+    const f=document.querySelector('.ticker-opt.focused');
+    if(f){ f.dispatchEvent(new MouseEvent('mousedown')); }
+    else { closeDD(); buscar(); }
+  }
+});
+inp.addEventListener('blur',()=>setTimeout(closeDD,150));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDD(); });
 updateKeyUI();
 updateReqUI();
 fetchEurRate();
