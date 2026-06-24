@@ -275,7 +275,8 @@ let currentData = null;
 let currentSource = 'alpha';
 let eurRate = null;
 let earningsMode = 'quarterly';
-const YAHOO_BASE = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary';
+const YAHOO_DIRECT = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary';
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 // ─── PETICIONES COUNTER ───────────────────────────────────────────────────────
 function getTodayKey(){ return 'valterm_req_'+new Date().toISOString().slice(0,10); }
@@ -436,19 +437,26 @@ function buildFromAlpha(ticker,ov,earn,inc,qt,source){
 async function fetchYahoo(ticker){
   toast('Cargando datos de '+ticker+' desde Yahoo Finance...', 5000);
   showDataPanels();
-  try{
-    const mods='price,defaultKeyStatistics,financialData,recommendationTrend,earningsHistory,incomeStatementHistory,assetProfile';
-    const url=`${YAHOO_BASE}/${ticker}?modules=${encodeURIComponent(mods)}&corsDomain=finance.yahoo.com`;
-    const r=await fetch(url,{headers:{'Accept':'application/json'}});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const json=await r.json();
-    const result=json.quoteSummary?.result?.[0];
-    if(!result) throw new Error('Sin datos para '+ticker);
-    currentData=buildFromYahoo(ticker,result);
-    renderAll();
-  }catch(e){
-    showError('No se pudieron cargar datos de Yahoo Finance para <strong>'+ticker+'</strong>.<br>Causa: '+e.message+'<br><br>Prueba con el modo <strong>ALPHA</strong> (requiere API key) o verifica que el ticker sea correcto.');
+  const mods='price,defaultKeyStatistics,financialData,recommendationTrend,earningsHistory,incomeStatementHistory,assetProfile';
+  const yahooUrl=`${YAHOO_DIRECT}/${ticker}?modules=${encodeURIComponent(mods)}`;
+  // Intentamos primero directo, luego con proxy CORS si falla
+  const urls=[
+    yahooUrl,
+    CORS_PROXY+encodeURIComponent(yahooUrl),
+  ];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{headers:{'Accept':'application/json'}});
+      if(!r.ok) continue;
+      const json=await r.json();
+      const result=json.quoteSummary?.result?.[0];
+      if(!result) continue;
+      currentData=buildFromYahoo(ticker,result);
+      renderAll();
+      return;
+    }catch(e){continue;}
   }
+  showError('No se pudieron cargar datos de Yahoo Finance para <strong>'+ticker+'</strong>.<br><br>Prueba con el modo <strong>ALPHA</strong> introduciendo tu API key en la seccion "API Key".');
 }
 
 function buildFromYahoo(ticker,r){
@@ -498,7 +506,7 @@ async function fetchCombo(ticker){
       fetch(`${base}?function=EARNINGS&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
       fetch(`${base}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
       fetch(`${base}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${YAHOO_BASE}/${ticker}?modules=${encodeURIComponent(mods)}&corsDomain=finance.yahoo.com`,{headers:{'Accept':'application/json'}}).then(r=>r.json()).catch(()=>null),
+      fetch(CORS_PROXY+encodeURIComponent(`${YAHOO_DIRECT}/${ticker}?modules=${encodeURIComponent(mods)}`),{headers:{'Accept':'application/json'}}).then(r=>r.json()).catch(()=>null),
     ]);
     addReq(4);
     if(ov.Note){showError('Limite diario de Alpha Vantage alcanzado. Reset a medianoche UTC. Prueba el modo YAHOO.');return;}
