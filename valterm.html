@@ -227,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.0</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.1</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -475,6 +475,7 @@ const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 const OR      = 'https://openrouter.ai/api/v1/chat/completions';
+const OR_MODELS=['google/gemma-2-9b-it:free','mistralai/mistral-7b-instruct:free','qwen/qwen-2-7b-instruct:free','microsoft/phi-3-mini-128k-instruct:free'];
 
 // ── FORMATO ─────────────────────────────────────────────────────────────────
 const fmt  = (n,d=2) => isNaN(n)||n===null||n===undefined ? 'N/A' : Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -1296,40 +1297,42 @@ Historial earnings: ${beats}/${d.quarterly.length} trimestres superando estimaci
 
 Cubre: calidad del negocio, si la valoracion es razonable, margen de seguridad, riesgos principales y conclusion.`;
 
-  try{
-    const res=await fetch(OR,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${orKey}`,'HTTP-Referer':'https://vtitus.github.io/valterm/','X-Title':'VALTERM'},
-      body:JSON.stringify({model:'meta-llama/llama-3.1-8b-instruct:free',messages:[{role:'user',content:prompt}],max_tokens:700})
-    });
-    const json=await res.json();
-    if(json.error){
-      const msg=json.error.message||'';
-      if(msg.includes('quota')||msg.includes('rate')||msg.includes('limit')||msg.includes('RESOURCE')){
-        keyStatus.or={ok:false,msg:'Quota excedida en OpenRouter'};
-      } else if(msg.includes('key')||msg.includes('auth')||msg.includes('Unauthorized')||msg.includes('401')){
-        keyStatus.or={ok:false,msg:'Key invalida — verifica en openrouter.ai/keys'};
-      } else {
-        keyStatus.or={ok:false,msg:msg.slice(0,80)};
+  let text='', usedModel='';
+  for(const model of OR_MODELS){
+    try{
+      const res=await fetch(OR,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${orKey}`,'HTTP-Referer':'https://vtitus.github.io/valterm/','X-Title':'VALTERM'},
+        body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:700})
+      });
+      const json=await res.json();
+      if(json.error){
+        const msg=json.error.message||'';
+        if(msg.includes('key')||msg.includes('auth')||msg.includes('Unauthorized')||msg.includes('401')){
+          keyStatus.or={ok:false,msg:'Key invalida — verifica en openrouter.ai/keys'};
+          renderSourceStatus(); throw new Error(keyStatus.or.msg);
+        }
+        continue; // modelo no disponible, probar el siguiente
       }
-      renderSourceStatus(); throw new Error(keyStatus.or.msg);
-    }
-    const text=json.choices?.[0]?.message?.content||'';
-    if(!text) throw new Error('Respuesta vacia');
-    keyStatus.or={ok:true,msg:'Analisis generado con Llama 3.1 (OpenRouter)'};
+      const t=json.choices?.[0]?.message?.content||'';
+      if(t){ text=t; usedModel=model.split('/')[1]||model; break; }
+    }catch(e){ if(e.message.includes('Key invalida')) throw e; }
+  }
+  if(!text){
+    keyStatus.or={ok:false,msg:'Ningún modelo gratuito disponible — prueba mañana'};
+    renderSourceStatus(); throw new Error('Sin modelos disponibles');
+  }
+  try{
+    keyStatus.or={ok:true,msg:`Análisis generado con ${usedModel} (OpenRouter)`};
     renderSourceStatus();
     const badge=`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`;
     ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
       const el=document.getElementById(id);
-      if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+      if(el) el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
     });
     const sc=document.getElementById('aiSourcesCard'); if(sc) sc.style.display='';
     const sw=document.getElementById('aiSourcesWrap');
-    if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: Llama 3.1 8B (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
-  }catch(e){
-    toast('OpenRouter: '+e.message,4000);
-    throw e;
-  }
+    if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
 }
 
 function renderTemplate(){
