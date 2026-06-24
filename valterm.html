@@ -345,6 +345,7 @@ function guardarGemini(){
   const v=document.getElementById('geminiKeyInput').value.trim();
   if(!v){ toast('Pega tu Gemini key primero'); return; }
   geminiKey=v; localStorage.setItem('valterm_gemini',v); updateKeyUI(); toast('Gemini key guardada — analisis IA activo');
+  if(data) renderAnalysis();
 }
 function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
 
@@ -417,8 +418,8 @@ async function fetchAlpha(ticker){
     ]);
     addReq(4);
 
-    // Detectar limite de peticiones
-    if(ov.Note || qt.Note){
+    // Detectar limite de peticiones (cualquiera de las 4 respuestas puede devolver Note)
+    if(ov.Note || qt.Note || earn.Note || inc.Note){
       showMsg('⚠ Limite diario de Alpha Vantage alcanzado (25 peticiones). Reset a medianoche UTC.', 'warn');
       return;
     }
