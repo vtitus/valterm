@@ -165,7 +165,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v1.5</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v1.6</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6" />
     <button class="btn" onclick="buscar()"><i class="ti ti-search"></i> BUSCAR</button>
@@ -204,6 +204,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       </div>
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header"></div>
+        <div id="sourceStatusBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center"></div>
         <!-- MARGEN DE SEGURIDAD — protagonista -->
         <div class="mos-card" id="mosCard"></div>
         <div class="grid2" style="margin-top:0">
@@ -353,6 +354,7 @@ let geminiKey  = localStorage.getItem('valterm_gemini') || '';
 let eurRate    = null;
 let data       = null;
 let earMode    = 'quarterly';
+let keyStatus  = { av: null, fh: null, gemini: null };
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
@@ -467,10 +469,15 @@ async function buscar(){
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
+  keyStatus = { av: null, fh: null, gemini: null };
   let avData=null, fhData=null;
+  const avLimited = avKey && getReq()>=25;
   const proms=[];
-  if(avKey) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
+  if(avKey && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
+  if(avKey && avLimited) keyStatus.av = {ok:false, msg:'Limite diario alcanzado — reset a las 2:00 AM (UTC)'};
+  if(!avKey) keyStatus.av = {ok:null, msg:'No configurada'};
   if(fhKey) proms.push(fetchFH(ticker).then(d=>{ fhData=d; }).catch(()=>{}));
+  if(!fhKey) keyStatus.fh = {ok:null, msg:'No configurada'};
   await Promise.all(proms);
   if(!avData&&!fhData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Comprueba las keys y el ticker.','error'); return; }
   data = mergeData(ticker, avData, fhData);
@@ -479,45 +486,61 @@ async function buscarConFuentes(ticker){
 
 // ── ALPHA VANTAGE FETCH ──────────────────────────────────────────────────────
 async function fetchAV(ticker){
-  const [ov,earn,inc,qt] = await Promise.all([
-    fetch(`${AV}?function=OVERVIEW&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
-    fetch(`${AV}?function=EARNINGS&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
-    fetch(`${AV}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
-    fetch(`${AV}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
-  ]);
-  addReq(4);
-  const note=ov.Note||ov.Information||qt.Note||qt.Information||earn.Note||earn.Information||inc.Note||inc.Information;
-  if(note){
-    if(note.toLowerCase().includes('api key')||note.toLowerCase().includes('invalid')){
-      showMsg('⚠ API key de Alpha Vantage invalida. Ve a <strong>API Keys</strong>.','warn');
-    } else {
-      showMsg('⚠ Limite diario de Alpha Vantage alcanzado (25 req/dia). Reset a medianoche UTC.','warn');
+  try{
+    const [ov,earn,inc,qt] = await Promise.all([
+      fetch(`${AV}?function=OVERVIEW&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=EARNINGS&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${avKey}`).then(r=>r.json()),
+    ]);
+    addReq(4);
+    const note=ov.Note||ov.Information||qt.Note||qt.Information||earn.Note||earn.Information||inc.Note||inc.Information;
+    if(note){
+      if(note.toLowerCase().includes('api key')||note.toLowerCase().includes('invalid')){
+        keyStatus.av={ok:false,msg:'API key invalida — verifica en alphavantage.co'};
+      } else {
+        keyStatus.av={ok:false,msg:'Limite diario alcanzado (25/dia) — reset a las 2:00 AM UTC'};
+      }
+      throw new Error('AV limit');
     }
-    throw new Error('AV limit');
+    if(ov['Error Message']||!ov.Symbol){
+      keyStatus.av={ok:false,msg:'Ticker no encontrado en Alpha Vantage'};
+      throw new Error('AV not found');
+    }
+    keyStatus.av={ok:true,msg:'Activo — EPS, PER, earnings y revenue cargados'};
+    const gq=(qt['Global Quote'])||{};
+    return { source:'av', ov, earn, inc, gq };
+  }catch(e){
+    if(!keyStatus.av) keyStatus.av={ok:false,msg:'Error de red al conectar con Alpha Vantage'};
+    throw e;
   }
-  if(ov['Error Message']||!ov.Symbol){
-    if(!fhKey) showMsg('Ticker <strong>'+ticker+'</strong> no encontrado en Alpha Vantage.','error');
-    throw new Error('AV not found');
-  }
-  const gq=(qt['Global Quote'])||{};
-  return { source:'av', ov, earn, inc, gq };
 }
 
 // ── FINNHUB FETCH ────────────────────────────────────────────────────────────
 async function fetchFH(ticker){
-  const [profile, quote, metrics, rec, ptarget, earnings] = await Promise.all([
-    fetch(`${FH}/stock/profile2?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
-    fetch(`${FH}/quote?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
-    fetch(`${FH}/stock/metric?symbol=${ticker}&metric=all&token=${fhKey}`).then(r=>r.json()),
-    fetch(`${FH}/stock/recommendation?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
-    fetch(`${FH}/stock/price-target?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
-    fetch(`${FH}/stock/earnings?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
-  ]);
-  if(!profile.name&&!quote.c){
-    if(!avKey) showMsg('Ticker <strong>'+ticker+'</strong> no encontrado en Finnhub.','error');
-    throw new Error('FH not found');
+  try{
+    const [profile, quote, metrics, rec, ptarget, earnings] = await Promise.all([
+      fetch(`${FH}/stock/profile2?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
+      fetch(`${FH}/quote?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
+      fetch(`${FH}/stock/metric?symbol=${ticker}&metric=all&token=${fhKey}`).then(r=>r.json()),
+      fetch(`${FH}/stock/recommendation?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
+      fetch(`${FH}/stock/price-target?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
+      fetch(`${FH}/stock/earnings?symbol=${ticker}&token=${fhKey}`).then(r=>r.json()),
+    ]);
+    if(profile.error||quote.error){
+      keyStatus.fh={ok:false,msg:'API key invalida — verifica en finnhub.io'};
+      throw new Error('FH invalid key');
+    }
+    if(!profile.name&&!quote.c){
+      keyStatus.fh={ok:false,msg:'Ticker no encontrado en Finnhub'};
+      throw new Error('FH not found');
+    }
+    keyStatus.fh={ok:true,msg:'Activo — precio en tiempo real y analistas cargados'};
+    return { source:'fh', profile, quote, metrics, rec, ptarget, earnings };
+  }catch(e){
+    if(!keyStatus.fh) keyStatus.fh={ok:false,msg:'Error de red al conectar con Finnhub'};
+    throw e;
   }
-  return { source:'fh', profile, quote, metrics, rec, ptarget, earnings };
 }
 
 // ── MERGE DATA ────────────────────────────────────────────────────────────────
@@ -692,6 +715,28 @@ function cargarDemo(){
   renderAll();
 }
 
+// ── STATUS BAR ────────────────────────────────────────────────────────────────
+function renderSourceStatus(){
+  const bar=document.getElementById('sourceStatusBar');
+  if(!bar) return;
+  const items=[
+    {label:'Alpha Vantage', key:'av',   color:'#60A5FA'},
+    {label:'Finnhub',       key:'fh',   color:'#C084FC'},
+    {label:'Gemini IA',     key:'gemini',color:'var(--teal)'},
+  ];
+  bar.style.display='flex';
+  bar.innerHTML=items.map(it=>{
+    const s=keyStatus[it.key];
+    const dot = s===null ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`
+      : s.ok===true  ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;flex-shrink:0"></span>`
+      : s.ok===false ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>`
+      :                `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`;
+    const msg = s ? s.msg : 'No configurada';
+    const col = s?.ok===true ? 'var(--text2)' : s?.ok===false ? 'var(--red)' : 'var(--text3)';
+    return `<div style="display:flex;align-items:center;gap:7px;font-size:12px">${dot}<span style="color:${it.color};font-weight:700">${it.label}</span><span style="color:${col}">${msg}</span></div>`;
+  }).join('<span style="color:var(--border2)">|</span>');
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function showMsg(html,type='error'){
   ['overview','earnings','valoracion','analistas','ia'].forEach(id=>{
@@ -713,6 +758,7 @@ function showDataPanels(){
 
 function renderAll(){
   showDataPanels();
+  renderSourceStatus();
   renderOverview();
   renderEarnings();
   renderRevenueTable();
@@ -977,9 +1023,19 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
     const body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:700,temperature:0.5}});
     const res=await fetch(`${GEMINI}?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body});
     const json=await res.json();
-    if(json.error) throw new Error(json.error.message);
+    if(json.error){
+      const msg=json.error.message||'';
+      if(msg.includes('quota')||msg.includes('limit')) keyStatus.gemini={ok:false,msg:'Quota excedida — espera 1 minuto y vuelve a buscar'};
+      else if(msg.includes('API key')||msg.includes('invalid')) keyStatus.gemini={ok:false,msg:'API key de Gemini invalida — verifica en aistudio.google.com'};
+      else if(msg.includes('not found')||msg.includes('not supported')) keyStatus.gemini={ok:false,msg:'Modelo no disponible — contacta soporte'};
+      else keyStatus.gemini={ok:false,msg:'Error Gemini: '+msg.slice(0,80)};
+      renderSourceStatus();
+      throw new Error(msg);
+    }
     const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Respuesta vacia');
+    keyStatus.gemini={ok:true,msg:'Analisis IA generado correctamente'};
+    renderSourceStatus();
     const badge=`<span class="src-badge src-ai">GEMINI AI</span>`;
     ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
       const el=document.getElementById(id);
@@ -996,6 +1052,8 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
 }
 
 function renderTemplate(){
+  if(!keyStatus.gemini) keyStatus.gemini={ok:null,msg:'No configurada — analisis por plantilla automatica'};
+  renderSourceStatus();
   const d=data;
   const avg=avgVal(d);
   const mos=avg>0?(avg-d.price)/avg*100:0;
