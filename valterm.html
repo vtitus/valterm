@@ -196,6 +196,27 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .src-ai{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-glow)}
 .src-demo{background:#64748B15;color:var(--text3);border:1px solid var(--border2)}
 
+/* ── SCORE ── */
+.score-wrap{display:flex;align-items:center;gap:22px}
+.score-ring-outer{position:relative;width:80px;height:80px;flex-shrink:0}
+.score-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.score-bars{flex:1}
+.score-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.score-bar-row:last-child{margin-bottom:0}
+.score-bar-label{font-size:11px;color:var(--text3);width:76px;flex-shrink:0}
+.score-bar-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.score-bar-fill{height:4px;border-radius:2px;transition:width .8s ease}
+.score-bar-pts{font-size:11px;color:var(--text2);font-family:var(--mono);width:36px;text-align:right;flex-shrink:0}
+
+/* ── 52W RANGE ── */
+.range52-wrap{padding:4px 0}
+.range52-bar{position:relative;height:22px;margin:8px 0 4px}
+.range52-track{position:absolute;top:8px;left:0;right:0;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.range52-fill{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--red)15%,var(--amber)55%,var(--teal));opacity:.35}
+.range52-dot{position:absolute;top:4px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bg2);transform:translateX(-50%);box-shadow:0 0 6px currentColor}
+.range52-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+.range52-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+
 /* ── MISC ── */
 .rating-bar-wrap{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:14px;gap:2px}
 .web-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -206,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v2.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.0</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -218,7 +239,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <div class="dots-row">
       <div class="dot-item"><div class="dot" id="dotAV"></div><span>AV</span></div>
       <div class="dot-item"><div class="dot" id="dotFH"></div><span>FH</span></div>
-      <div class="dot-item"><div class="dot" id="dotGM"></div><span>AI</span></div>
+      <div class="dot-item"><div class="dot" id="dotGM"></div><span>GM</span></div>
+      <div class="dot-item"><div class="dot" id="dotOR"></div><span>OR</span></div>
     </div>
     <button class="btn-ghost" onclick="showPanel('settings')" style="padding:4px 8px"><i class="ti ti-settings"></i></button>
   </div>
@@ -231,6 +253,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <div class="sidebar-item"        id="nav-valoracion" onclick="showPanel('valoracion')"><div class="sidebar-icon"><i class="ti ti-calculator"></i></div> Valoracion</div>
     <div class="sidebar-item"        id="nav-analistas"  onclick="showPanel('analistas')"><div class="sidebar-icon"><i class="ti ti-users"></i></div> Analistas</div>
     <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><div class="sidebar-icon"><i class="ti ti-robot"></i></div> Analisis IA</div>
+    <div class="sidebar-section">PRO</div>
+    <div class="sidebar-item" id="nav-watchlist"  onclick="showPanel('watchlist')"><div class="sidebar-icon"><i class="ti ti-star"></i></div> Watchlist <span id="wlBadge" style="display:none;margin-left:auto;background:var(--teal);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
+    <div class="sidebar-item" id="nav-noticias"   onclick="showPanel('noticias');loadNoticias()"><div class="sidebar-icon"><i class="ti ti-news"></i></div> Noticias</div>
+    <div class="sidebar-item" id="nav-comparador" onclick="showPanel('comparador')"><div class="sidebar-icon"><i class="ti ti-scale"></i></div> Comparar</div>
     <div class="sidebar-section">Config</div>
     <div class="sidebar-item"        id="nav-settings"   onclick="showPanel('settings')"><div class="sidebar-icon"><i class="ti ti-key"></i></div> API Keys</div>
   </nav>
@@ -247,6 +273,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header"></div>
         <div id="sourceStatusBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center"></div>
+        <!-- SCORE + 52W -->
+        <div class="grid2" style="margin-top:0">
+          <div class="card"><div class="card-title"><i class="ti ti-gauge"></i> VALTERM Score</div><div id="scoreCard"></div></div>
+          <div class="card"><div class="card-title"><i class="ti ti-arrows-horizontal"></i> Rango 52 semanas</div><div id="range52Card"></div></div>
+        </div>
         <!-- MARGEN DE SEGURIDAD — protagonista -->
         <div class="mos-card" id="mosCard"></div>
         <div class="grid2" style="margin-top:0">
@@ -324,6 +355,38 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       </div>
     </div>
 
+    <!-- WATCHLIST -->
+    <div class="panel" id="panel-watchlist">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-star"></i> Lista de seguimiento
+          <button class="btn" style="margin-left:auto;padding:6px 14px;font-size:12px" onclick="addToWatchlist()"><i class="ti ti-plus"></i> Añadir actual</button>
+        </div>
+        <div id="watchlistWrap"></div>
+      </div>
+    </div>
+
+    <!-- NOTICIAS -->
+    <div class="panel" id="panel-noticias">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-news"></i> Noticias recientes <span id="noticiasTicker" style="color:var(--teal);font-family:var(--mono)"></span></div>
+        <div id="noticiasWrap"><div style="text-align:center;padding:40px;color:var(--text3)">Busca una empresa y abre esta pestaña para ver las noticias.</div></div>
+      </div>
+    </div>
+
+    <!-- COMPARADOR -->
+    <div class="panel" id="panel-comparador">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-scale"></i> Comparar dos acciones</div>
+        <div class="input-row" style="margin-top:0">
+          <input type="text" class="settings-input" id="cmpT1" placeholder="Ticker 1 (ej: META)" style="text-transform:uppercase;letter-spacing:2px" />
+          <input type="text" class="settings-input" id="cmpT2" placeholder="Ticker 2 (ej: GOOGL)" style="text-transform:uppercase;letter-spacing:2px" />
+          <button class="btn" onclick="runComparador()"><i class="ti ti-scale"></i> COMPARAR</button>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px">Nota: consume hasta 8 peticiones de AV (4 por ticker). Recomendado con Finnhub activo.</p>
+        <div id="comparadorWrap" style="margin-top:16px"></div>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="panel" id="panel-settings">
       <div class="card">
@@ -360,6 +423,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div class="status-note"><div class="dot" id="geminiDot"></div><span id="geminiNote">Sin key — analisis por plantilla</span></div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="ti ti-robot"></i> OpenRouter — IA alternativa <span class="source-tag" style="color:var(--amber);border-color:var(--amber)30">OR</span></div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Fallback automático cuando Gemini falla o agota su quota. Usa modelos gratuitos como <strong>Llama 3.1</strong>. Sin limite diario. Key gratuita: <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--amber)">openrouter.ai</a> → Create Key</p>
+        <div class="input-row">
+          <input type="password" class="settings-input" id="orKeyInput" placeholder="sk-or-..." />
+          <button class="btn" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="guardarOR()">GUARDAR</button>
+          <button class="btn-ghost" onclick="borrarOR()">BORRAR</button>
+        </div>
+        <div class="status-note"><div class="dot" id="orDot"></div><span id="orNote">Sin key — fallback IA no disponible</span></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Logica de fuentes</div>
         <div style="font-size:12px;color:var(--text2);line-height:2.2">
           <span style="color:var(--teal)">●</span> <strong>Solo AV:</strong> fundamentales + earnings historicos + analistas de AV<br>
@@ -393,13 +466,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 let avKey      = localStorage.getItem('valterm_av')     || '';
 let fhKey      = localStorage.getItem('valterm_fh')     || '';
 let geminiKey  = localStorage.getItem('valterm_gemini') || '';
+let orKey      = localStorage.getItem('valterm_or')     || '';
 let eurRate    = null;
 let data       = null;
 let earMode    = 'quarterly';
-let keyStatus  = { av: null, fh: null, gemini: null };
+let keyStatus  = { av: null, fh: null, gemini: null, or: null };
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const OR      = 'https://openrouter.ai/api/v1/chat/completions';
 
 // ── FORMATO ─────────────────────────────────────────────────────────────────
 const fmt  = (n,d=2) => isNaN(n)||n===null||n===undefined ? 'N/A' : Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -454,10 +529,18 @@ function guardarGemini(){
   if(data) renderAnalysis();
 }
 function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
+function guardarOR(){
+  const v=document.getElementById('orKeyInput').value.trim();
+  if(!v){toast('Pega tu OpenRouter key primero');return;}
+  orKey=v; localStorage.setItem('valterm_or',v); updateKeyUI(); toast('OpenRouter key guardada — IA alternativa activa');
+  if(data) renderAnalysis();
+}
+function borrarOR(){ orKey=''; localStorage.removeItem('valterm_or'); document.getElementById('orKeyInput').value=''; updateKeyUI(); toast('OpenRouter key eliminada'); }
 
 function updateKeyUI(){
-  const av=!!avKey, fh=!!fhKey, gm=!!geminiKey;
-  set('dotAV', av); set('dotFH', fh); set('dotGM', gm);
+  const av=!!avKey, fh=!!fhKey, gm=!!geminiKey, or_=!!orKey;
+  function set(id,live){ const d=document.getElementById(id); if(d) d.className=live?'dot live':'dot'; }
+  set('dotAV', av); set('dotFH', fh); set('dotGM', gm); set('dotOR', or_);
   document.getElementById('avDot').className  = av?'dot live':'dot';
   document.getElementById('avNote').textContent= av?'API key configurada':'Sin key — ve a alphavantage.co';
   if(av) document.getElementById('avKeyInput').value=avKey;
@@ -467,7 +550,9 @@ function updateKeyUI(){
   document.getElementById('geminiDot').className  = gm?'dot live':'dot';
   document.getElementById('geminiNote').textContent= gm?'Gemini configurado — analisis IA activo':'Sin key — analisis por plantilla automatica';
   if(gm) document.getElementById('geminiKeyInput').value=geminiKey;
-  function set(id,live){ const d=document.getElementById(id); if(d) d.className=live?'dot live':'dot'; }
+  document.getElementById('orDot').className  = or_?'dot live':'dot';
+  document.getElementById('orNote').textContent= or_?'OpenRouter activo — fallback IA disponible':'Sin key — ve a openrouter.ai';
+  if(or_) document.getElementById('orKeyInput').value=orKey;
 }
 
 async function verificarAV(){
@@ -511,7 +596,7 @@ async function buscar(){
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
-  keyStatus = { av: null, fh: null, gemini: null };
+  keyStatus = { av: null, fh: null, gemini: null, or: null };
   let avData=null, fhData=null;
   const avLimited = avKey && getReq()>=25;
   const proms=[];
@@ -720,6 +805,71 @@ function avgVal(d){
   return vals.length>0?vals.reduce((a,b,_,arr)=>a+b/arr.length,0):0;
 }
 
+// ── VALTERM SCORE ─────────────────────────────────────────────────────────────
+function calcScore(d){
+  const avg=avgVal(d);
+  const mos=avg>0?(avg-d.price)/avg*100:0;
+  const mosScore=mos>30?35:mos>20?28:mos>10?20:mos>0?10:0;
+  const total=(d.aBuy||0)+(d.aHold||0)+(d.aSell||0)||1;
+  const analystScore=Math.round((d.aBuy||0)/total*25);
+  const beats=d.quarterly.filter(q=>q.actual>=q.estimated).length;
+  const earningsScore=d.quarterly.length>0?Math.round(beats/d.quarterly.length*25):12;
+  let fundScore=0;
+  if(d.eps>0) fundScore+=7;
+  if(d.per>0&&d.per<40) fundScore+=5;
+  if(d.evEb>0&&d.evEb<30) fundScore+=3;
+  return{total:Math.min(100,mosScore+analystScore+earningsScore+fundScore),mos:mosScore,analyst:analystScore,earnings:earningsScore,fund:fundScore};
+}
+
+function renderScoreCard(d){
+  const sc=calcScore(d);
+  const col=sc.total>=65?'var(--teal)':sc.total>=40?'var(--amber)':'var(--red)';
+  const verdict=sc.total>=65?'FAVORABLE':sc.total>=40?'NEUTRAL':'DESFAVORABLE';
+  const circ=138.2, offset=(1-sc.total/100)*circ;
+  const bars=[
+    {label:'Valor (MdS)',val:sc.mos,max:35,color:'var(--teal)'},
+    {label:'Analistas',val:sc.analyst,max:25,color:'#60A5FA'},
+    {label:'Earnings',val:sc.earnings,max:25,color:'var(--purple)'},
+    {label:'Fundament.',val:sc.fund,max:15,color:'var(--amber)'},
+  ];
+  return`<div class="score-wrap">
+    <div class="score-ring-outer">
+      <svg viewBox="0 0 54 54" width="80" height="80">
+        <circle cx="27" cy="27" r="22" fill="none" stroke="var(--bg4)" stroke-width="5"/>
+        <circle cx="27" cy="27" r="22" fill="none" stroke="${col}" stroke-width="5" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset 1s ease"/>
+      </svg>
+      <div class="score-ring-inner">
+        <div style="font-family:var(--mono);font-size:20px;font-weight:900;color:${col};line-height:1">${sc.total}</div>
+        <div style="font-size:8px;color:var(--text3);margin-top:1px">/100</div>
+      </div>
+    </div>
+    <div class="score-bars">
+      <div style="font-size:12px;font-weight:700;color:${col};margin-bottom:9px;letter-spacing:.5px">${verdict}</div>
+      ${bars.map(b=>`<div class="score-bar-row"><span class="score-bar-label">${b.label}</span><div class="score-bar-track"><div class="score-bar-fill" style="width:${b.val/b.max*100}%;background:${b.color}"></div></div><span class="score-bar-pts">${b.val}/${b.max}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function render52WBar(d){
+  if(!d.high52||!d.low52||d.high52<=d.low52) return'<div style="color:var(--text3);font-size:12px;padding:8px 0">Datos 52W no disponibles</div>';
+  const range=d.high52-d.low52;
+  const pct=v=>Math.min(97,Math.max(3,(v-d.low52)/range*100));
+  const avg=avgVal(d);
+  const dots=[
+    {val:d.price,col:'var(--teal)',label:`Precio $${fmt(d.price)}`},
+    ...(avg>0?[{val:avg,col:'#60A5FA',label:`Intrínseco $${fmt(avg)}`}]:[]),
+    ...(d.targetPrice>0?[{val:d.targetPrice,col:'var(--amber)',label:`P.O. $${fmt(d.targetPrice)}`}]:[]),
+  ];
+  return`<div class="range52-wrap">
+    <div class="range52-bar">
+      <div class="range52-track"><div class="range52-fill" style="width:${pct(d.price)}%"></div></div>
+      ${dots.map(dt=>`<div class="range52-dot" style="left:${pct(dt.val)}%;background:${dt.col};color:${dt.col}"></div>`).join('')}
+    </div>
+    <div class="range52-labels"><span>↓ $${fmt(d.low52)}</span><span>$${fmt(d.high52)} ↑</span></div>
+    <div class="range52-legend">${dots.map(dt=>`<span style="font-size:11px;color:${dt.col}">● ${dt.label}</span>`).join('')}</div>
+  </div>`;
+}
+
 // ── DEMO ─────────────────────────────────────────────────────────────────────
 function cargarDemo(){
   document.getElementById('tickerInput').value='AAPL';
@@ -762,9 +912,10 @@ function renderSourceStatus(){
   const bar=document.getElementById('sourceStatusBar');
   if(!bar) return;
   const items=[
-    {label:'Alpha Vantage', key:'av',   color:'#60A5FA'},
-    {label:'Finnhub',       key:'fh',   color:'#C084FC'},
-    {label:'Gemini IA',     key:'gemini',color:'var(--teal)'},
+    {label:'Alpha Vantage', key:'av',     color:'#60A5FA'},
+    {label:'Finnhub',       key:'fh',     color:'#C084FC'},
+    {label:'Gemini IA',     key:'gemini', color:'var(--teal)'},
+    {label:'OpenRouter',    key:'or',     color:'var(--amber)'},
   ];
   bar.style.display='flex';
   bar.innerHTML=items.map(it=>{
@@ -877,6 +1028,8 @@ function renderOverview(){
     </div>`;
 
   document.getElementById('mosCard').innerHTML = mosHTML(d);
+  document.getElementById('scoreCard').innerHTML = renderScoreCard(d);
+  document.getElementById('range52Card').innerHTML = render52WBar(d);
 
   // Sparkline
   if(d.quarterly.length>0){
@@ -1018,8 +1171,13 @@ function renderAnalistas(){
 
 // ── ANALISIS IA ───────────────────────────────────────────────────────────────
 async function renderAnalysis(){
-  if(geminiKey) await runGemini();
-  else renderTemplate();
+  if(geminiKey){
+    try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){}
+    if(orKey){ toast('Gemini falló — usando OpenRouter...',2500); try{ await runOpenRouter(); return; }catch(e){} }
+  } else if(orKey){
+    try{ await runOpenRouter(); return; }catch(e){}
+  }
+  renderTemplate();
 }
 
 async function runGemini(){
@@ -1099,7 +1257,78 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
     if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: Google Gemini 1.5 Flash<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
   }catch(e){
     toast('Gemini: '+e.message,4000);
-    renderTemplate();
+    throw e;
+  }
+}
+
+async function runOpenRouter(){
+  const d=data;
+  const avg=avgVal(d);
+  const mos=avg>0?(avg-d.price)/avg*100:0;
+  const pot=avg>0?(avg-d.price)/d.price*100:0;
+  const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
+  const buys=d.analysts.filter(a=>a.rating==='BUY').length;
+  const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
+  const sells=d.analysts.filter(a=>a.rating==='SELL').length;
+  const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
+
+  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">OpenRouter analizando ${d.ticker}...</span></div>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
+
+  const prompt=`Eres un analista de inversiones senior. Redacta un analisis fundamental profesional en español de 6-7 frases. Texto corrido, sin listas ni markdown. Sé directo y con criterio propio.
+
+Empresa: ${d.name} (${d.ticker}) | Sector: ${d.sector}
+Precio actual: $${fmt(d.price)} | Mkt Cap: $${fmt(d.mktCap,1)}B
+Fundamentales: EPS $${fmt(d.eps)} | PER ${fmt(d.per,1)}x | EV/EBITDA ${fmt(d.evEb,1)}x
+52 semanas: $${fmt(d.low52)} — $${fmt(d.high52)}
+
+Valoracion intrinseca (4 metodos):
+- DCF 10 años: $${fmt(d.dcfVal)}
+- PER múltiplo: $${fmt(d.perVal)}
+- EV/EBITDA: $${fmt(d.evEbVal)}
+- Graham: $${fmt(d.grahamVal)}
+- MEDIA: $${fmt(avg)} → potencial ${pot>=0?'+':''}${fmt(pot,1)}%
+- Margen de seguridad: ${fmt(mos,1)}% ${mos>25?'(ZONA DE COMPRA)':mos>10?'(moderado)':mos>0?'(minimo)':'(SOBREVALORADA)'}
+
+Analistas: ${buys} BUY · ${holds} HOLD · ${sells} SELL
+Precio objetivo consenso: $${fmt(avgTp)} (upside ${fmt((avgTp-d.price)/d.price*100,1)}%)
+Historial earnings: ${beats}/${d.quarterly.length} trimestres superando estimaciones
+
+Cubre: calidad del negocio, si la valoracion es razonable, margen de seguridad, riesgos principales y conclusion.`;
+
+  try{
+    const res=await fetch(OR,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${orKey}`,'HTTP-Referer':'https://vtitus.github.io/valterm/','X-Title':'VALTERM'},
+      body:JSON.stringify({model:'meta-llama/llama-3.1-8b-instruct:free',messages:[{role:'user',content:prompt}],max_tokens:700})
+    });
+    const json=await res.json();
+    if(json.error){
+      const msg=json.error.message||'';
+      if(msg.includes('quota')||msg.includes('rate')||msg.includes('limit')||msg.includes('RESOURCE')){
+        keyStatus.or={ok:false,msg:'Quota excedida en OpenRouter'};
+      } else if(msg.includes('key')||msg.includes('auth')||msg.includes('Unauthorized')||msg.includes('401')){
+        keyStatus.or={ok:false,msg:'Key invalida — verifica en openrouter.ai/keys'};
+      } else {
+        keyStatus.or={ok:false,msg:msg.slice(0,80)};
+      }
+      renderSourceStatus(); throw new Error(keyStatus.or.msg);
+    }
+    const text=json.choices?.[0]?.message?.content||'';
+    if(!text) throw new Error('Respuesta vacia');
+    keyStatus.or={ok:true,msg:'Analisis generado con Llama 3.1 (OpenRouter)'};
+    renderSourceStatus();
+    const badge=`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`;
+    ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+    });
+    const sc=document.getElementById('aiSourcesCard'); if(sc) sc.style.display='';
+    const sw=document.getElementById('aiSourcesWrap');
+    if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: Llama 3.1 8B (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
+  }catch(e){
+    toast('OpenRouter: '+e.message,4000);
+    throw e;
   }
 }
 
@@ -1136,6 +1365,147 @@ function renderTemplate(){
     const el=document.getElementById(id);
     if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis automatico — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
   });
+}
+
+// ── WATCHLIST ─────────────────────────────────────────────────────────────────
+let watchlist=JSON.parse(localStorage.getItem('valterm_watchlist')||'[]');
+let wlCache=JSON.parse(localStorage.getItem('valterm_wl_cache')||'{}');
+
+function addToWatchlist(){
+  if(!data){toast('Busca una empresa primero');return;}
+  const t=data.ticker;
+  if(!watchlist.includes(t)){ watchlist.push(t); toast(`${t} añadido a watchlist`); }
+  else{ toast(`${t} ya está en watchlist`); }
+  wlCache[t]={name:data.name,price:data.price,changePct:data.changePct};
+  localStorage.setItem('valterm_watchlist',JSON.stringify(watchlist));
+  localStorage.setItem('valterm_wl_cache',JSON.stringify(wlCache));
+  renderWatchlist();
+}
+
+function removeFromWatchlist(t){
+  watchlist=watchlist.filter(x=>x!==t);
+  localStorage.setItem('valterm_watchlist',JSON.stringify(watchlist));
+  renderWatchlist();
+}
+
+function renderWatchlist(){
+  const badge=document.getElementById('wlBadge');
+  if(badge){ badge.textContent=watchlist.length||''; badge.style.display=watchlist.length?'':'none'; }
+  const wrap=document.getElementById('watchlistWrap');
+  if(!wrap) return;
+  if(watchlist.length===0){
+    wrap.innerHTML=`<div style="text-align:center;padding:48px 20px;color:var(--text3)"><i class="ti ti-star" style="font-size:36px;display:block;margin-bottom:14px;opacity:.25"></i>Tu watchlist está vacía.<br>Busca una empresa y pulsa <strong>Añadir actual</strong>.</div>`;
+    return;
+  }
+  wrap.innerHTML=watchlist.map(t=>{
+    const c=wlCache[t]||{};
+    const chg=c.changePct||0;
+    const chgCol=chg>=0?'var(--teal)':'var(--red)';
+    return`<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:6px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="document.getElementById('tickerInput').value='${t}';showPanel('overview');buscar()">
+      <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);width:58px;flex-shrink:0">${t}</span>
+      <span style="flex:1;font-size:13px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</span>
+      ${c.price?`<span style="font-family:var(--mono);font-size:13px;color:var(--text);flex-shrink:0">$${fmt(c.price)}</span>`:''}
+      ${c.changePct!==undefined?`<span style="font-family:var(--mono);font-size:12px;color:${chgCol};width:56px;text-align:right;flex-shrink:0">${chg>=0?'+':''}${fmt(chg,2)}%</span>`:''}
+      <button onclick="event.stopPropagation();removeFromWatchlist('${t}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px 6px;font-size:14px;border-radius:4px;transition:all .15s;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── NOTICIAS ──────────────────────────────────────────────────────────────────
+async function loadNoticias(){
+  const wrap=document.getElementById('noticiasWrap');
+  const tickEl=document.getElementById('noticiasTicker');
+  if(!data){ if(wrap) wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Busca una empresa primero.</div>'; return; }
+  if(!fhKey){ if(wrap) wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Noticias requieren <strong>Finnhub key</strong> configurada.</div>'; return; }
+  if(tickEl) tickEl.textContent=data.ticker;
+  if(wrap) wrap.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)">Cargando noticias...</div>';
+  try{
+    const to=new Date().toISOString().slice(0,10);
+    const from=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
+    const r=await fetch(`${FH}/company-news?symbol=${data.ticker}&from=${from}&to=${to}&token=${fhKey}`);
+    const news=await r.json();
+    if(!Array.isArray(news)||news.length===0){ wrap.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text3)">Sin noticias recientes para ${data.ticker}.</div>`; return; }
+    wrap.innerHTML=news.slice(0,12).map(n=>{
+      const dt=new Date(n.datetime*1000).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return`<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+        <a href="${n.url}" target="_blank" style="font-size:14px;color:var(--text);text-decoration:none;line-height:1.6;font-weight:500;display:block;margin-bottom:5px;transition:color .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--text)'">${n.headline}</a>
+        <div style="font-size:11px;color:var(--text3)">${n.source||''} · ${dt}</div>
+        ${n.summary?`<div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.7">${n.summary.slice(0,180)}${n.summary.length>180?'…':''}</div>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){ wrap.innerHTML='<div style="color:var(--red);padding:20px;text-align:center">Error cargando noticias.</div>'; }
+}
+
+// ── COMPARADOR ────────────────────────────────────────────────────────────────
+async function runComparador(){
+  const t1=document.getElementById('cmpT1').value.trim().toUpperCase();
+  const t2=document.getElementById('cmpT2').value.trim().toUpperCase();
+  if(!t1||!t2){toast('Introduce dos tickers');return;}
+  if(!avKey&&!fhKey){toast('Configura al menos una API key');return;}
+  const wrap=document.getElementById('comparadorWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Cargando datos...</div>';
+  try{
+    let d1=null,d2=null;
+    const p1=[], p2=[];
+    if(fhKey){ p1.push(fetchFH(t1).catch(()=>null)); p2.push(fetchFH(t2).catch(()=>null)); }
+    const [fh1,fh2]=fhKey?await Promise.all([p1[0],p2[0]]):[null,null];
+    let av1=null,av2=null;
+    if(avKey&&getReq()<24){
+      try{ av1=await fetchAV(t1); }catch(e){}
+      if(avKey&&getReq()<24){ try{ av2=await fetchAV(t2); }catch(e){} }
+    }
+    if(!fh1&&!av1){ wrap.innerHTML=`<div style="color:var(--red);padding:20px">No se pudo cargar datos de ${t1}.</div>`; return; }
+    if(!fh2&&!av2){ wrap.innerHTML=`<div style="color:var(--red);padding:20px">No se pudo cargar datos de ${t2}.</div>`; return; }
+    d1=mergeData(t1,av1,fh1); d2=mergeData(t2,av2,fh2);
+    renderComparacion(d1,d2);
+  }catch(e){ wrap.innerHTML=`<div style="color:var(--red);padding:20px">Error: ${e.message}</div>`; }
+}
+
+function renderComparacion(d1,d2){
+  const wrap=document.getElementById('comparadorWrap');
+  const avg1=avgVal(d1),avg2=avgVal(d2);
+  const mos1=avg1>0?(avg1-d1.price)/avg1*100:0;
+  const mos2=avg2>0?(avg2-d2.price)/avg2*100:0;
+  const sc1=calcScore(d1),sc2=calcScore(d2);
+  const up1=d1.targetPrice?(d1.targetPrice-d1.price)/d1.price*100:0;
+  const up2=d2.targetPrice?(d2.targetPrice-d2.price)/d2.price*100:0;
+  const rows=[
+    {label:'Precio',v1:'$'+fmt(d1.price),v2:'$'+fmt(d2.price),b:null},
+    {label:'Mkt Cap',v1:fmtB(d1.mktCap),v2:fmtB(d2.mktCap),b:null},
+    {label:'EPS',v1:'$'+fmt(d1.eps),v2:'$'+fmt(d2.eps),b:d1.eps>d2.eps?1:2},
+    {label:'PER',v1:fmt(d1.per,1)+'x',v2:fmt(d2.per,1)+'x',b:d1.per<d2.per&&d1.per>0?1:2},
+    {label:'EV/EBITDA',v1:fmt(d1.evEb,1)+'x',v2:fmt(d2.evEb,1)+'x',b:d1.evEb<d2.evEb&&d1.evEb>0?1:2},
+    {label:'Val. Intrínseca',v1:'$'+fmt(avg1),v2:'$'+fmt(avg2),b:null},
+    {label:'Margen Seg.',v1:fmt(mos1,1)+'%',v2:fmt(mos2,1)+'%',b:mos1>mos2?1:2,c1:mos1>10?'var(--teal)':mos1>0?'var(--amber)':'var(--red)',c2:mos2>10?'var(--teal)':mos2>0?'var(--amber)':'var(--red)'},
+    {label:'VALTERM Score',v1:sc1.total+'/100',v2:sc2.total+'/100',b:sc1.total>sc2.total?1:2},
+    {label:'P.O. Analistas',v1:'$'+fmt(d1.targetPrice),v2:'$'+fmt(d2.targetPrice),b:null},
+    {label:'Upside P.O.',v1:(up1>=0?'+':'')+fmt(up1,1)+'%',v2:(up2>=0?'+':'')+fmt(up2,1)+'%',b:up1>up2?1:2,c1:up1>=0?'var(--teal)':'var(--red)',c2:up2>=0?'var(--teal)':'var(--red)'},
+    {label:'Analistas BUY',v1:d1.aBuy+' ('+fmt(d1.aBuy/(d1.aBuy+d1.aHold+d1.aSell||1)*100,0)+'%)',v2:d2.aBuy+' ('+fmt(d2.aBuy/(d2.aBuy+d2.aHold+d2.aSell||1)*100,0)+'%)',b:d1.aBuy/(d1.aBuy+d1.aHold+d1.aSell||1)>d2.aBuy/(d2.aBuy+d2.aHold+d2.aSell||1)?1:2},
+  ];
+  wrap.innerHTML=`
+    <div style="display:grid;grid-template-columns:130px 1fr 36px 1fr;margin-top:8px">
+      <div></div>
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border2);border-bottom:none">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--teal)">${d1.ticker}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${d1.name}</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text3)">VS</div>
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border2);border-bottom:none">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--purple)">${d2.ticker}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${d2.name}</div>
+      </div>
+    </div>
+    ${rows.map((r,i)=>{
+      const bg=i%2===0?'var(--bg2)':'var(--bg3)';
+      const c1=r.c1||(r.b===1?'var(--teal)':r.b===2?'var(--text2)':'var(--text)');
+      const c2=r.c2||(r.b===2?'var(--teal)':r.b===1?'var(--text2)':'var(--text)');
+      return`<div style="display:grid;grid-template-columns:130px 1fr 36px 1fr;background:${bg};border:1px solid var(--border);border-top:none">
+        <div style="padding:10px 12px;font-size:12px;color:var(--text3);display:flex;align-items:center">${r.label}</div>
+        <div style="padding:10px;font-family:var(--mono);font-size:13px;font-weight:600;color:${c1};text-align:center;display:flex;align-items:center;justify-content:center">${r.v1}</div>
+        <div></div>
+        <div style="padding:10px;font-family:var(--mono);font-size:13px;font-weight:600;color:${c2};text-align:center;display:flex;align-items:center;justify-content:center">${r.v2}</div>
+      </div>`;
+    }).join('')}`;
 }
 
 // ── BUSQUEDA POR NOMBRE ───────────────────────────────────────────────────────
@@ -1204,6 +1574,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDD(); });
 updateKeyUI();
 updateReqUI();
 fetchEurRate();
+renderWatchlist();
 </script>
 </body>
 </html>
