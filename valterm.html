@@ -27,17 +27,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .btn:hover{background:var(--teal2)}
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
-.source-selector{display:flex;gap:4px;margin-left:8px}
-.src-btn{background:var(--bg3);color:var(--text3);border:1px solid var(--border2);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
-.src-btn:hover{border-color:var(--text2);color:var(--text2)}
-.src-btn.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.req-counter{font-size:10px;color:var(--text3);font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);padding:3px 8px;border-radius:3px;white-space:nowrap}
+.req-counter{font-size:10px;color:var(--text3);font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);padding:3px 8px;border-radius:3px;white-space:nowrap;cursor:pointer}
 .req-counter.warn{border-color:var(--amber);color:var(--amber)}
 .req-counter.danger{border-color:var(--red);color:var(--red)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
 .dot.live{background:var(--teal);animation:pulse 2s infinite}
-.dot.warn{background:var(--amber)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .api-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
 .main{display:flex;flex:1;overflow:hidden}
@@ -56,8 +51,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .price-block{margin-left:6px}
 .price-big{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1}
 .price-chg{font-size:11px;font-family:var(--mono);padding:2px 7px;border-radius:3px;margin-top:3px;display:inline-block}
-.pos{background:#00D4AA22;color:var(--teal)}
-.neg{background:#FF4D6A22;color:var(--red)}
+.pos{background:#00D4AA22;color:var(--teal)}.neg{background:#FF4D6A22;color:var(--red)}
 .ticker-metas{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
 .meta-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
 .meta-value{font-family:var(--mono);font-size:12px;font-weight:600;margin-top:2px}
@@ -77,8 +71,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:var(--bg3)}
 .badge{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;font-family:var(--mono)}
-.badge-beat{background:#00D4AA22;color:var(--teal)}
-.badge-miss{background:#FF4D6A22;color:var(--red)}
+.badge-beat{background:#00D4AA22;color:var(--teal)}.badge-miss{background:#FF4D6A22;color:var(--red)}
 .gauge-wrap{padding:8px 4px 0}
 .gauge-track{height:10px;border-radius:5px;background:linear-gradient(to right,#FF4D6A,#F59E0B 40%,#F59E0B 60%,#00D4AA);position:relative;margin:0 8px}
 .gauge-needle{position:absolute;top:-5px;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--bg);transform:translateX(-50%);transition:left .7s cubic-bezier(.34,1.56,.64,1)}
@@ -94,13 +87,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .val-pot{font-family:var(--mono);font-size:11px;width:58px;text-align:right}
 .analyst-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
 .analyst-row:last-child{border-bottom:none}
-.analyst-house{font-size:11px;color:var(--text2);width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.analyst-house{font-size:11px;color:var(--text2);width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .a-rating{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;flex-shrink:0}
 .r-buy{background:#00D4AA22;color:var(--teal)}.r-hold{background:#F59E0B22;color:var(--amber)}.r-sell{background:#FF4D6A22;color:var(--red)}
 .analyst-tp{font-family:var(--mono);font-size:11px;margin-left:auto;color:var(--text);text-align:right}
 .ai-box{background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--teal);border-radius:6px;padding:14px;font-size:12px;line-height:1.75;color:var(--text2)}
 .ai-label{font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:6px}
-.ai-thinking{display:flex;gap:4px;align-items:center}
 .ai-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 1.2s infinite}
 .ai-dot:nth-child(2){animation-delay:.2s}.ai-dot:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
@@ -118,10 +110,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .status-note{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:11px;color:var(--text3)}
 .toast{position:fixed;bottom:18px;right:18px;background:var(--bg3);border:1px solid var(--teal);border-radius:5px;padding:8px 14px;font-size:11px;color:var(--teal);font-family:var(--mono);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
 .toast.show{opacity:1}
-.source-badge{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.sb{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
 .sb-alpha{background:#3B82F622;color:var(--blue)}
-.sb-ia{background:#00D4AA22;color:var(--teal)}
-.sb-combo{background:#F59E0B22;color:var(--amber)}
+.sb-gemini{background:#1A73E822;color:#4A9EF5}
+.sb-demo{background:#64748B22;color:var(--text3)}
 .web-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .web-link{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);font-size:11px;text-decoration:none;transition:all .15s}
 .web-link:hover{border-color:var(--teal);color:var(--teal)}
@@ -132,20 +124,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <div class="topbar">
   <div class="logo"><i class="ti ti-chart-line"></i> VALTERM</div>
   <div class="search-wrap">
-    <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6"/>
+    <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6" />
     <button class="btn" onclick="buscar()"><i class="ti ti-search"></i> BUSCAR</button>
     <button class="btn-ghost" onclick="cargarDemo()">DEMO</button>
   </div>
-  <div class="source-selector">
-    <button class="src-btn active" id="src-alpha" onclick="setSource('alpha')" title="Alpha Vantage (requiere API key)"><i class="ti ti-database"></i> ALPHA</button>
-    <button class="src-btn" id="src-yahoo" onclick="setSource('yahoo')" title="Yahoo Finance (sin API key)"><i class="ti ti-brand-yahoo"></i> YAHOO</button>
-    <button class="src-btn" id="src-combo" onclick="setSource('combo')" title="Alpha + Yahoo combinados"><i class="ti ti-layers-intersect"></i> COMBO</button>
-  </div>
   <div class="topbar-right">
-    <div class="req-counter" id="reqCounter" title="Peticiones Alpha Vantage usadas hoy (max 25)"><i class="ti ti-api"></i> <span id="reqUsed">0</span>/25 hoy <button onclick="verificarPeticiones()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:10px;padding:0 0 0 4px;opacity:.7" title="Verificar estado real con Alpha Vantage (consume 1 peticion)"><i class="ti ti-refresh"></i></button></div>
+    <div class="req-counter" id="reqCounter" onclick="verificarAPI()" title="Peticiones Alpha Vantage hoy — pulsa para verificar"><i class="ti ti-api"></i> <span id="reqUsed">0</span>/25</div>
     <div class="api-badge">
       <div class="dot" id="apiDot"></div>
-      <span id="apiStatusText">Sin API key</span>
+      <span id="apiLabel">Sin API key</span>
       <button class="btn-ghost" onclick="showPanel('settings')" style="margin-left:2px"><i class="ti ti-settings"></i></button>
     </div>
   </div>
@@ -153,27 +140,39 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <div class="main">
   <nav class="sidebar">
     <div class="sidebar-section">Analisis</div>
-    <div class="sidebar-item active" id="nav-overview" onclick="showPanel('overview')"><i class="ti ti-layout-dashboard"></i> Overview</div>
-    <div class="sidebar-item" id="nav-earnings" onclick="showPanel('earnings')"><i class="ti ti-chart-bar"></i> Earnings</div>
-    <div class="sidebar-item" id="nav-valoracion" onclick="showPanel('valoracion')"><i class="ti ti-calculator"></i> Valoracion</div>
-    <div class="sidebar-item" id="nav-analistas" onclick="showPanel('analistas')"><i class="ti ti-users"></i> Analistas</div>
-    <div class="sidebar-item" id="nav-ia" onclick="showPanel('ia')"><i class="ti ti-robot"></i> Analisis IA</div>
+    <div class="sidebar-item active" id="nav-overview"   onclick="showPanel('overview')"><i class="ti ti-layout-dashboard"></i> Overview</div>
+    <div class="sidebar-item"        id="nav-earnings"   onclick="showPanel('earnings')"><i class="ti ti-chart-bar"></i> Earnings</div>
+    <div class="sidebar-item"        id="nav-valoracion" onclick="showPanel('valoracion')"><i class="ti ti-calculator"></i> Valoracion</div>
+    <div class="sidebar-item"        id="nav-analistas"  onclick="showPanel('analistas')"><i class="ti ti-users"></i> Analistas</div>
+    <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><i class="ti ti-robot"></i> Analisis IA</div>
     <div class="sidebar-section">Config</div>
-    <div class="sidebar-item" id="nav-settings" onclick="showPanel('settings')"><i class="ti ti-key"></i> API Key</div>
+    <div class="sidebar-item"        id="nav-settings"   onclick="showPanel('settings')"><i class="ti ti-key"></i> API Keys</div>
   </nav>
   <div class="content">
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
-      <div class="empty" id="empty-overview"><i class="ti ti-telescope"></i><p>Introduce un ticker y pulsa <strong>BUSCAR</strong>.<br>Selecciona la fuente: <strong>ALPHA</strong> (con API key), <strong>YAHOO</strong> (sin API key) o <strong>COMBO</strong>.<br>Pulsa <strong>DEMO</strong> para ver un ejemplo con datos de Apple.</p></div>
+      <div class="empty" id="empty-overview">
+        <i class="ti ti-telescope"></i>
+        <p>Introduce un ticker y pulsa <strong>BUSCAR</strong>.<br>
+        Necesitas tu API key de Alpha Vantage en <strong>API Keys</strong>.<br>
+        Pulsa <strong>DEMO</strong> para ver un ejemplo con Apple.</p>
+      </div>
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header" style="margin-bottom:10px"></div>
         <div class="grid4" id="kpiRow" style="margin-bottom:10px"></div>
         <div class="grid2" style="margin-bottom:10px">
-          <div class="card"><div class="card-title"><i class="ti ti-chart-line"></i> EPS real vs estimado</div><div class="spark-wrap" id="sparkWrap"></div><div style="display:flex;gap:12px;font-size:10px;color:var(--text3)" id="sparkLegend"></div></div>
-          <div class="card"><div class="card-title"><i class="ti ti-target"></i> Resumen analistas</div><div id="analystSummaryCard"></div></div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-chart-line"></i> EPS real vs estimado</div>
+            <div class="spark-wrap" id="sparkWrap"></div>
+            <div style="display:flex;gap:12px;font-size:10px;color:var(--text3)" id="sparkLegend"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-target"></i> Resumen analistas</div>
+            <div id="analystSummaryCard"></div>
+          </div>
         </div>
-        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Resumen IA</div><div class="ai-box" id="aiOverviewBox"><div class="ai-label">Esperando analisis...</div></div></div>
+        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Resumen IA</div><div class="ai-box" id="aiOverviewBox"></div></div>
       </div>
     </div>
 
@@ -181,7 +180,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div class="panel" id="panel-earnings">
       <div class="empty" id="empty-earnings"><i class="ti ti-calendar"></i><p>Busca un ticker para ver el historial de earnings.</p></div>
       <div id="earnings-data" style="display:none">
-        <div class="card" style="margin-bottom:10px"><div class="card-title"><i class="ti ti-chart-bar"></i> EPS trimestral</div><div class="tabs"><div class="tab active" onclick="switchTab('quarterly',this)">Trimestral</div><div class="tab" onclick="switchTab('annual',this)">Anual</div></div><div id="earningsTableWrap"></div></div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> EPS trimestral</div>
+          <div class="tabs">
+            <div class="tab active" onclick="switchEarnings('quarterly',this)">Trimestral</div>
+            <div class="tab"        onclick="switchEarnings('annual',this)">Anual</div>
+          </div>
+          <div id="earningsTableWrap"></div>
+        </div>
         <div class="card"><div class="card-title"><i class="ti ti-trending-up"></i> Revenue anual</div><div id="revenueTableWrap"></div></div>
       </div>
     </div>
@@ -190,12 +196,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div class="panel" id="panel-valoracion">
       <div class="empty" id="empty-valoracion"><i class="ti ti-calculator"></i><p>Busca un ticker para calcular el valor intrinseco.</p></div>
       <div id="valoracion-data" style="display:none">
-        <div class="card" style="margin-bottom:10px"><div class="card-title"><i class="ti ti-gauge"></i> Medidor de valoracion — consenso 4 metodos</div><div class="gauge-wrap"><div class="gauge-track"><div class="gauge-needle" id="gaugeNeedle"></div></div><div class="gauge-labels"><span>MUY SOBREVALORADA</span><span>PRECIO JUSTO</span><span>MUY INFRAVALORADA</span></div><div class="gauge-verdict" id="gaugeVerdict"></div></div></div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-title"><i class="ti ti-gauge"></i> Medidor de valoracion — consenso 4 metodos</div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-needle" id="gaugeNeedle"></div></div>
+            <div class="gauge-labels"><span>MUY SOBREVALORADA</span><span>PRECIO JUSTO</span><span>MUY INFRAVALORADA</span></div>
+            <div class="gauge-verdict" id="gaugeVerdict"></div>
+          </div>
+        </div>
         <div class="grid2" style="margin-bottom:10px">
           <div class="card"><div class="card-title"><i class="ti ti-list"></i> Valoracion por metodo</div><div id="valMethodsWrap"></div></div>
           <div class="card"><div class="card-title"><i class="ti ti-adjustments"></i> Parametros del modelo</div><div id="valParamsWrap" style="font-size:11px;line-height:2;color:var(--text2);font-family:var(--mono)"></div></div>
         </div>
-        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Interpretacion IA</div><div class="ai-box" id="aiValBox"><div class="ai-label">Esperando analisis...</div></div></div>
+        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Interpretacion IA</div><div class="ai-box" id="aiValBox"></div></div>
       </div>
     </div>
 
@@ -205,11 +218,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       <div id="analistas-data" style="display:none">
         <div class="grid3" id="analystKpisWrap" style="margin-bottom:10px"></div>
         <div class="grid2">
-          <div class="card"><div class="card-title"><i class="ti ti-users"></i> Recomendaciones por casa</div><div id="analystListWrap"></div></div>
+          <div class="card"><div class="card-title"><i class="ti ti-users"></i> Recomendaciones</div><div id="analystListWrap"></div></div>
           <div class="card">
             <div class="card-title"><i class="ti ti-chart-pie"></i> Distribucion y referencias</div>
             <div id="ratingDistWrap"></div>
-            <div style="margin-top:14px"><div class="card-title" style="margin-bottom:8px"><i class="ti ti-external-link"></i> Consultar fuentes externas</div><div class="web-links" id="webLinksWrap"></div></div>
+            <div style="margin-top:14px">
+              <div class="card-title" style="margin-bottom:8px"><i class="ti ti-external-link"></i> Fuentes externas</div>
+              <div class="web-links" id="webLinksWrap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -217,56 +233,55 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
     <!-- IA -->
     <div class="panel" id="panel-ia">
-      <div class="empty" id="empty-ia"><i class="ti ti-robot"></i><p>Busca un ticker para generar el analisis completo con IA.</p></div>
+      <div class="empty" id="empty-ia"><i class="ti ti-robot"></i><p>Busca un ticker para generar el analisis con IA.</p></div>
       <div id="ia-data" style="display:none">
-        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Analisis fundamental completo — IA+Web</div><div class="ai-box" id="aiFullBox" style="min-height:200px"><div class="ai-label">Esperando analisis...</div></div></div>
+        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Analisis fundamental — IA</div><div class="ai-box" id="aiFullBox" style="min-height:200px"></div></div>
       </div>
     </div>
 
     <!-- SETTINGS -->
     <div class="panel" id="panel-settings">
       <div class="card">
-        <div class="card-title"><i class="ti ti-database"></i> Alpha Vantage — API Key</div>
-        <p style="font-size:12px;color:var(--text2);line-height:1.7">Datos reales de earnings y fundamentales. Gratis con 25 peticiones/dia. Cada busqueda en modo ALPHA o COMBO consume 4 peticiones.</p>
+        <div class="card-title"><i class="ti ti-database"></i> Alpha Vantage — Datos financieros</div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Fuente de datos reales: precio, EPS, PER, earnings trimestrales, analistas y fundamentales. Plan gratuito: 25 peticiones/dia. Cada busqueda consume 4 peticiones.</p>
         <p style="font-size:11px;color:var(--text3);margin-top:4px">Clave gratuita: <a href="https://www.alphavantage.co/support/#api-key" target="_blank" style="color:var(--teal)">alphavantage.co</a></p>
-        <div class="input-row"><input type="text" class="settings-input" id="apiKeyInput" placeholder="Pega tu API key..."/><button class="btn" onclick="guardarKey()">GUARDAR</button><button class="btn-ghost" onclick="borrarKey()">BORRAR</button></div>
-        <div class="status-note"><div class="dot" id="settingsDot"></div><span id="settingsNote">Sin API key</span></div>
+        <div class="input-row">
+          <input type="text" class="settings-input" id="avKeyInput" placeholder="Pega tu API key de Alpha Vantage..." />
+          <button class="btn" onclick="guardarAV()">GUARDAR</button>
+          <button class="btn-ghost" onclick="borrarAV()">BORRAR</button>
+        </div>
+        <div class="status-note"><div class="dot" id="avDot"></div><span id="avNote">Sin API key</span></div>
       </div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-layers-intersect"></i> Modos de fuente de datos</div>
+        <div class="card-title"><i class="ti ti-robot"></i> Google Gemini — Analisis IA (gratuito)</div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Genera un analisis profesional de cada empresa interpretando los datos reales. 100% gratuito — 1.500 peticiones/dia sin coste ni tarjeta.</p>
+        <p style="font-size:11px;color:var(--text3);margin-top:4px">Clave gratuita: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--teal)">aistudio.google.com</a> → Get API Key → Create API Key (solo necesitas cuenta Google)</p>
+        <div class="input-row">
+          <input type="password" class="settings-input" id="geminiKeyInput" placeholder="AIza..." />
+          <button class="btn" onclick="guardarGemini()">GUARDAR</button>
+          <button class="btn-ghost" onclick="borrarGemini()">BORRAR</button>
+        </div>
+        <div class="status-note"><div class="dot" id="geminiDot"></div><span id="geminiNote">Sin Gemini key — analisis por plantilla</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-api"></i> Uso de peticiones Alpha Vantage</div>
         <div style="font-size:12px;color:var(--text2);line-height:2">
-          <span class="source-badge sb-alpha">ALPHA</span> &nbsp;Alpha Vantage — earnings reales, EPS, analistas, fundamentales. Requiere API key. 4 peticiones/busqueda.<br>
-          <span class="source-badge sb-ia">YAHOO</span> &nbsp;Yahoo Finance — precio en tiempo real, analistas y earnings sin API key. Gratuito e ilimitado.<br>
-          <span class="source-badge sb-combo">COMBO</span> &nbsp;Alpha (earnings detallados) + Yahoo (precio real + analistas). Maxima precision. Requiere API key.
+          Peticiones usadas hoy: <span id="reqUsed2" style="font-family:var(--mono);color:var(--teal)">0</span> / 25 &nbsp;·&nbsp; Reset a medianoche UTC<br>
+          Cada busqueda consume 4 peticiones (precio + overview + earnings + income)
         </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="ti ti-api"></i> Contador de peticiones Alpha Vantage</div>
-        <div style="font-size:12px;color:var(--text2);line-height:2">
-          Peticiones usadas hoy: <span id="reqUsed2" style="font-family:var(--mono);color:var(--teal)">0</span> / 25<br>
-          Cada busqueda ALPHA o COMBO: 4 peticiones &nbsp;·&nbsp; Reset a medianoche UTC
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="verificarAPI()"><i class="ti ti-refresh"></i> VERIFICAR (consume 1)</button>
+          <button class="btn-ghost" onclick="resetCounter()"><i class="ti ti-trash"></i> Resetear contador</button>
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="btn" onclick="verificarPeticiones()"><i class="ti ti-refresh"></i> VERIFICAR ESTADO REAL (1 peticion)</button>
-          <button class="btn-ghost" onclick="resetReqCounter()"><i class="ti ti-trash"></i> Resetear contador local</button>
-        </div>
-        <div id="verifyStatus" style="margin-top:10px;font-size:12px;color:var(--text3);min-height:20px"></div>
-        <div style="margin-top:8px;font-size:11px;color:var(--text3)">El contador local lleva la cuenta de las peticiones hechas desde esta app. Si has hecho llamadas directas al navegador o desde otras apps, usa "Verificar estado real" para comprobar el estado exacto con Alpha Vantage (consume 1 peticion de tu cuota).</div>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="ti ti-robot"></i> Google Gemini AI — Analisis con Inteligencia Artificial (gratuito)</div>
-        <p style="font-size:12px;color:var(--text2);line-height:1.7">Cuando configures tu API key de Google, el analisis de cada empresa lo genera Gemini con los datos reales: fundamentales, valoracion, earnings, posicion competitiva y riesgos. Completamente gratuito — 1.500 peticiones/dia sin coste.</p>
-        <p style="font-size:11px;color:var(--text3);margin-top:4px">Clave gratuita: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--teal)">aistudio.google.com</a> → Get API Key → Create API Key. Solo necesitas una cuenta de Google.</p>
-        <div class="input-row"><input type="password" class="settings-input" id="geminiKeyInput" placeholder="AIza..."/><button class="btn" onclick="guardarGeminiKey()">GUARDAR</button><button class="btn-ghost" onclick="borrarGeminiKey()">BORRAR</button></div>
-        <div class="status-note"><div class="dot" id="geminiDot"></div><span id="geminiNote">Sin Gemini key — analisis por plantilla automatica</span></div>
+        <div id="verifyStatus" style="margin-top:8px;font-size:12px;color:var(--text3)"></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Metodos de valoracion</div>
-        <div style="font-size:12px;color:var(--text2);line-height:2">
-          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">DCF</span> — Descuento de Flujos de Caja a 10 años con WACC y valor terminal Gordon Growth.<br>
-          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">PER</span> — Price-to-Earnings: EPS x PER de referencia del sector.<br>
-          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">EV/EBITDA</span> — Multiplo de valor de empresa, referencia en M&A.<br>
-          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">GRAHAM</span> — V = EPS x (8.5 + 2g) x 4.4 / Y (Benjamin Graham)
+        <div style="font-size:12px;color:var(--text2);line-height:2.2">
+          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">DCF</span> — Descuento de Flujos de Caja a 10 años con WACC y valor terminal.<br>
+          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">PER</span> — Price-to-Earnings: EPS × PER historico de la empresa.<br>
+          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">EV/EBITDA</span> — Multiplo de valor de empresa, referencia en fusiones y adquisiciones.<br>
+          <span style="color:var(--teal);font-family:var(--mono);font-weight:700">GRAHAM</span> — Formula clasica: V = EPS × (8.5 + 2g) × 4.4 / Rf
         </div>
       </div>
     </div>
@@ -276,385 +291,352 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── ESTADO ───────────────────────────────────────────────────────────────────
-let apiKey = localStorage.getItem('valterm_apikey') || '';
-let geminiKey = localStorage.getItem('valterm_geminikey') || '';
-let currentData = null;
-let currentSource = 'alpha';
-let eurRate = null;
-let earningsMode = 'quarterly';
-const YAHOO_DIRECT = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary';
-const CORS_PROXY = 'https://corsproxy.io/?';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// ── ESTADO ──────────────────────────────────────────────────────────────────
+let apiKey    = localStorage.getItem('valterm_av')     || '';
+let geminiKey = localStorage.getItem('valterm_gemini') || '';
+let eurRate   = null;
+let data      = null;
+let earMode   = 'quarterly';
+const AV      = 'https://www.alphavantage.co/query';
+const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-// ─── PETICIONES COUNTER ───────────────────────────────────────────────────────
-function getTodayKey(){ return 'valterm_req_'+new Date().toISOString().slice(0,10); }
-function getReqUsed(){
-  const k=getTodayKey();
-  return parseInt(localStorage.getItem(k)||'0');
-}
-function addReq(n){
-  const k=getTodayKey(); const v=getReqUsed()+n;
-  localStorage.setItem(k,v);
-  updateReqUI();
-}
-function resetReqCounter(){
-  localStorage.setItem(getTodayKey(),'0');
-  updateReqUI(); toast('Contador reseteado');
-}
-function updateReqUI(){
-  const used=getReqUsed(); const left=25-used;
-  const el=document.getElementById('reqCounter');
-  const el2=document.getElementById('reqUsed'); const el3=document.getElementById('reqUsed2');
-  if(el2) el2.textContent=used; if(el3) el3.textContent=used;
-  if(el){ el.className='req-counter'+(used>=20?' danger':used>=15?' warn':''); }
-}
+// ── UTILS ───────────────────────────────────────────────────────────────────
+const fmt  = (n,d=2) => isNaN(n)||n===null ? 'N/A' : Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtB = n => n>0 ? '$'+fmt(n,1)+'B' : 'N/A';
+const sign = n => n>0 ? '+' : '';
+const clr  = p => p>15 ? 'var(--teal)' : p<-15 ? 'var(--red)' : 'var(--amber)';
+const toEur= u => eurRate ? u*eurRate : null;
+const dual = u => { const e=toEur(u); return '$'+fmt(u)+(e?' / €'+fmt(e):''); };
 
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-const fmt = (n,d=2)=>isNaN(n)||n===null?'N/A':Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
-const fmtB = n=>isNaN(n)||n===0?'N/A':'$'+fmt(n,1)+'B';
-const sign = n=>n>0?'+':'';
-const clrPot = p=>p>15?'var(--teal)':p<-15?'var(--red)':'var(--amber)';
-const toEur = usd=>eurRate?usd*eurRate:null;
-const fmtDual = usd=>{ const e=toEur(usd); return '$'+fmt(usd)+(e?' / \u20ac'+fmt(e):''); };
-
-function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function toast(msg, dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
 
 async function fetchEurRate(){
-  try{const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');const d=await r.json();eurRate=d.rates?.EUR||null;}catch(e){eurRate=null;}
+  try{
+    const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d=await r.json();
+    eurRate = d.rates?.EUR || null;
+  }catch(e){ eurRate=null; }
 }
 
-// ─── API KEY ──────────────────────────────────────────────────────────────────
-function updateApiUI(){
-  const live=!!apiKey;
-  document.getElementById('apiDot').className=live?'dot live':'dot';
-  document.getElementById('apiStatusText').textContent=live?'Alpha Vantage':'Sin API key';
-  document.getElementById('settingsDot').className=live?'dot live':'dot';
-  document.getElementById('settingsNote').textContent=live?'API key configurada y activa':'Sin API key — usa modo YAHOO (gratuito)';
-  if(apiKey) document.getElementById('apiKeyInput').value=apiKey;
+// ── PETICIONES COUNTER ──────────────────────────────────────────────────────
+function todayKey(){ return 'valterm_req_'+new Date().toISOString().slice(0,10); }
+function getReq(){ return parseInt(localStorage.getItem(todayKey())||'0'); }
+function addReq(n){ localStorage.setItem(todayKey(), getReq()+n); updateReqUI(); }
+function resetCounter(){ localStorage.setItem(todayKey(),'0'); updateReqUI(); toast('Contador reseteado'); }
+function updateReqUI(){
+  const u=getReq();
+  const el=document.getElementById('reqCounter');
+  if(el) el.className='req-counter'+(u>=20?' danger':u>=15?' warn':'');
+  ['reqUsed','reqUsed2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=u; });
 }
-async function verificarPeticiones(){
-  if(!apiKey){toast('Configura tu API key primero',3000);return;}
-  toast('Verificando estado con Alpha Vantage... (consume 1 peticion)',4000);
+
+// ── API KEYS UI ─────────────────────────────────────────────────────────────
+function guardarAV(){
+  const v=document.getElementById('avKeyInput').value.trim();
+  if(!v){ toast('Pega tu API key primero'); return; }
+  apiKey=v; localStorage.setItem('valterm_av',v); updateKeyUI(); toast('Alpha Vantage key guardada');
+}
+function borrarAV(){ apiKey=''; localStorage.removeItem('valterm_av'); document.getElementById('avKeyInput').value=''; updateKeyUI(); toast('Key eliminada'); }
+function guardarGemini(){
+  const v=document.getElementById('geminiKeyInput').value.trim();
+  if(!v){ toast('Pega tu Gemini key primero'); return; }
+  geminiKey=v; localStorage.setItem('valterm_gemini',v); updateKeyUI(); toast('Gemini key guardada — analisis IA activo');
+}
+function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
+
+function updateKeyUI(){
+  const avLive = !!apiKey;
+  document.getElementById('apiDot').className   = avLive ? 'dot live' : 'dot';
+  document.getElementById('apiLabel').textContent = avLive ? 'Alpha Vantage' : 'Sin API key';
+  document.getElementById('avDot').className    = avLive ? 'dot live' : 'dot';
+  document.getElementById('avNote').textContent = avLive ? 'API key configurada y activa' : 'Sin API key — ve a alphavantage.co para obtener una gratis';
+  if(apiKey) document.getElementById('avKeyInput').value = apiKey;
+  const gmLive = !!geminiKey;
+  document.getElementById('geminiDot').className  = gmLive ? 'dot live' : 'dot';
+  document.getElementById('geminiNote').textContent = gmLive ? 'Gemini configurado — analisis IA activo (gratuito)' : 'Sin Gemini key — analisis por plantilla automatica';
+  if(geminiKey) document.getElementById('geminiKeyInput').value = geminiKey;
+}
+
+async function verificarAPI(){
+  if(!apiKey){ toast('Configura tu API key primero'); showPanel('settings'); return; }
+  toast('Verificando con Alpha Vantage... (1 peticion)', 4000);
   try{
-    const r=await fetch(`https://www.alphavantage.co/query?function=OVERVIEW&symbol=IBM&apikey=${apiKey}`);
+    const r=await fetch(`${AV}?function=OVERVIEW&symbol=IBM&apikey=${apiKey}`);
     const d=await r.json();
+    addReq(1);
     if(d.Note){
-      // Limite alcanzado
-      toast('LIMITE ALCANZADO — Sin peticiones disponibles hoy. Reset a medianoche UTC.',5000);
-      document.getElementById('reqCounter').className='req-counter danger';
-      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--red)"><i class="ti ti-x"></i> LIMITE ALCANZADO — 0 peticiones disponibles hoy. Reset a medianoche UTC.</span>`;
-    } else if(d['Error Message']){
-      toast('API key invalida o error en Alpha Vantage',4000);
-      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Error: API key invalida o ticker no encontrado.</span>`;
-    } else if(d.Symbol){
-      // Funciona — peticiones disponibles
-      addReq(1);
-      const left=25-getReqUsed();
-      toast(`API activa — aproximadamente ${left} peticiones restantes hoy`,4000);
-      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--teal)"><i class="ti ti-check"></i> API activa y funcionando. Peticiones restantes estimadas: ~${left}/25.</span>`;
+      document.getElementById('verifyStatus').innerHTML='<span style="color:var(--red)">Limite alcanzado — 0 peticiones disponibles. Reset a medianoche UTC.</span>';
+    } else if(d['Error Message']||!d.Symbol){
+      document.getElementById('verifyStatus').innerHTML='<span style="color:var(--red)">API key invalida. Verifica la key en alphavantage.co</span>';
+    } else {
+      const left=25-getReq();
+      document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--teal)">API activa — aproximadamente ${left} peticiones restantes hoy.</span>`;
     }
   }catch(e){
-    toast('Error de red al verificar',3000);
-    document.getElementById('verifyStatus').innerHTML=`<span style="color:var(--amber)"><i class="ti ti-wifi-off"></i> Error de red. Comprueba tu conexion.</span>`;
+    document.getElementById('verifyStatus').innerHTML='<span style="color:var(--amber)">Error de red al verificar.</span>';
   }
 }
-function guardarKey(){
-  const v=document.getElementById('apiKeyInput').value.trim();
-  if(!v){toast('Pega tu API key de Alpha Vantage primero',3000);return;}
-  apiKey=v;localStorage.setItem('valterm_apikey',v);updateApiUI();toast('API key de Alpha Vantage guardada');
-}
-function borrarKey(){apiKey='';localStorage.removeItem('valterm_apikey');document.getElementById('apiKeyInput').value='';updateApiUI();toast('API key de Alpha Vantage eliminada');}
 
-// ─── CLAUDE KEY ───────────────────────────────────────────────────────────────
-function guardarGeminiKey(){
-  const v=document.getElementById('geminiKeyInput').value.trim();
-  if(!v){toast('Pega tu API key de Google primero',3000);return;}
-  geminiKey=v;localStorage.setItem('valterm_geminikey',v);updateGeminiUI();toast('Google Gemini key guardada — analisis IA activo');
-}
-function borrarGeminiKey(){geminiKey='';localStorage.removeItem('valterm_geminikey');document.getElementById('geminiKeyInput').value='';updateGeminiUI();toast('Gemini key eliminada');}
-function updateGeminiUI(){
-  const live=!!geminiKey;
-  const dot=document.getElementById('geminiDot');const note=document.getElementById('geminiNote');
-  if(dot)dot.className=live?'dot live':'dot';
-  if(note)note.textContent=live?'Google Gemini configurado — analisis IA activo (gratuito)':'Sin Gemini key — analisis por plantilla automatica';
-  if(geminiKey&&document.getElementById('geminiKeyInput'))document.getElementById('geminiKeyInput').value=geminiKey;
-}
-
-// ─── FUENTE ───────────────────────────────────────────────────────────────────
-function setSource(src){
-  currentSource=src;
-  ['alpha','yahoo','combo'].forEach(s=>{const el=document.getElementById('src-'+s);if(el)el.classList.toggle('active',s===src);});
-  toast('Fuente: '+(src==='alpha'?'Alpha Vantage':src==='yahoo'?'Yahoo Finance (sin API key)':'Combinado (Alpha + Yahoo)'));
-}
-
-// ─── NAVEGACION ───────────────────────────────────────────────────────────────
+// ── NAVEGACION ──────────────────────────────────────────────────────────────
 function showPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
+  const nav=document.getElementById('nav-'+name);
+  if(nav) nav.classList.add('active');
 }
-function switchTab(mode,el){earningsMode=mode;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');if(currentData)renderEarningsTable();}
+function switchEarnings(mode,el){
+  earMode=mode;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(data) renderEarningsTable();
+}
 
-// ─── BUSQUEDA ─────────────────────────────────────────────────────────────────
+// ── BUSQUEDA ────────────────────────────────────────────────────────────────
 async function buscar(){
-  const t=document.getElementById('tickerInput').value.trim().toUpperCase();
-  if(!t){toast('Introduce un ticker');return;}
-  if(currentSource==='alpha'||currentSource==='combo'){
-    if(!apiKey){toast('Configura tu API key en "API Key" para usar ALPHA o COMBO',3500);showPanel('settings');return;}
-    if(getReqUsed()>=25){toast('Limite diario de 25 peticiones alcanzado. Reset a medianoche UTC.',4000);return;}
-  }
-  if(currentSource==='alpha') await fetchAlpha(t);
-  else if(currentSource==='yahoo') await fetchYahoo(t);
-  else await fetchCombo(t);
+  const ticker=document.getElementById('tickerInput').value.trim().toUpperCase();
+  if(!ticker){ toast('Introduce un ticker'); return; }
+  if(!apiKey){ toast('Configura tu API key de Alpha Vantage primero', 3500); showPanel('settings'); return; }
+  if(getReq()>=25){ toast('Limite de 25 peticiones/dia alcanzado. Reset a medianoche UTC.', 4000); return; }
+  await fetchAlpha(ticker);
 }
 
-// ─── ERROR DISPLAY ────────────────────────────────────────────────────────────
-function showError(msg){
-  ['overview','earnings','valoracion','analistas','ia'].forEach(id=>{
-    const em=document.getElementById('empty-'+id);if(em)em.style.display='';
-    const dt=document.getElementById(id+'-data');if(dt)dt.style.display='none';
-  });
-  document.getElementById('empty-overview').innerHTML=`<i class="ti ti-alert-triangle" style="color:var(--red)"></i><p style="color:var(--red)">${msg}</p>`;
-  showPanel('overview');
-}
-
-// ─── ALPHA VANTAGE ────────────────────────────────────────────────────────────
+// ── ALPHA VANTAGE ────────────────────────────────────────────────────────────
 async function fetchAlpha(ticker){
-  toast('Cargando datos de '+ticker+' (4 peticiones Alpha)...', 5000);
+  toast('Cargando '+ticker+' desde Alpha Vantage...', 6000);
   try{
-    const base='https://www.alphavantage.co/query', k=apiKey;
-    const [ov,earn,inc,qt]=await Promise.all([
-      fetch(`${base}?function=OVERVIEW&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=EARNINGS&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
+    const [ov,earn,inc,qt] = await Promise.all([
+      fetch(`${AV}?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=EARNINGS&symbol=${ticker}&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${AV}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${apiKey}`).then(r=>r.json()),
     ]);
     addReq(4);
-    if(ov.Note||qt.Note){showError('Limite diario de 25 peticiones Alpha Vantage alcanzado. Reset a medianoche UTC. Prueba el modo YAHOO mientras tanto.');return;}
-    if(ov['Error Message']||!ov.Symbol){showError('Ticker no encontrado en Alpha Vantage: '+ticker+'. Verifica que sea correcto (ej: META, NVDA, MSFT).');return;}
-    currentData=buildFromAlpha(ticker,ov,earn,inc,qt,'alpha');
-    renderAll();
-  }catch(e){showError('Error de red al conectar con Alpha Vantage. Comprueba tu conexion a internet o prueba el modo YAHOO.');}
-}
 
-function buildFromAlpha(ticker,ov,earn,inc,qt,source){
-  const gq=(qt&&qt['Global Quote'])||{};
-  const priceRaw=parseFloat(gq['05. price']||0);
-  const change=parseFloat(gq['09. change']||0);
-  const changePct=parseFloat((gq['10. change percent']||'0%').replace('%',''));
-  const price=priceRaw>0?priceRaw:parseFloat(ov['50DayMovingAverage']||100);
-  const priceSource=priceRaw>0?'Precio cierre reciente':'Media 50 dias (fallback)';
-  const eps=parseFloat(ov.EPS||0);
-  const per=parseFloat(ov.PERatio||20);
-  const evEb=parseFloat(ov.EVToEBITDA||15);
-  const target=parseFloat(ov.AnalystTargetPrice||0);
-  const mktCap=parseFloat(ov.MarketCapitalization||0)/1e9;
-  // Analistas reales de Alpha Vantage OVERVIEW
-  const aBuy=parseInt(ov.AnalystRatingStrongBuy||0)+parseInt(ov.AnalystRatingBuy||0);
-  const aHold=parseInt(ov.AnalystRatingHold||0);
-  const aSell=parseInt(ov.AnalystRatingSell||0)+parseInt(ov.AnalystRatingStrongSell||0);
-  const analysts=genAnalystsReal(target||price*1.1,aBuy,aHold,aSell);
-  const g=0.08,wacc=0.09,fcf=eps*0.65;
-  const quarterly=(earn.quarterlyEarnings||[]).slice(0,8).map(q=>({period:q.fiscalDateEnding||'',estimated:parseFloat(q.estimatedEPS||0),actual:parseFloat(q.reportedEPS||0),surprise:parseFloat(q.surprise||0),surprisePct:parseFloat(q.surprisePercentage||0)}));
-  const annualRev=(inc.annualReports||[]).slice(0,5).map(r=>({period:(r.fiscalDateEnding||'').slice(0,4),revenue:parseFloat(r.totalRevenue||0)/1e9,netIncome:parseFloat(r.netIncome||0)/1e9}));
-  return{ticker,name:ov.Name||ticker,sector:ov.Sector||'N/A',exchange:ov.Exchange||'',price,change,changePct,priceSource,mktCap,eps,per,evEb,target,dcfVal:calcDCF(fcf,g,wacc,0.025),perVal:eps*(per>0?Math.min(per,40):20),evEbVal:eps*(evEb>0?Math.min(evEb,25):15),grahamVal:calcGraham(eps,g*100,4.4),quarterly,annualRev,analysts,analystBuy:aBuy,analystHold:aHold,analystSell:aSell,g,wacc,fcf,source};
-}
-
-// ─── YAHOO FINANCE ────────────────────────────────────────────────────────────
-async function fetchYahoo(ticker){
-  toast('Cargando datos de '+ticker+'...', 6000);
-  showDataPanels();
-  const mods='price,defaultKeyStatistics,financialData,recommendationTrend,earningsHistory,incomeStatementHistory,assetProfile';
-  const yahooUrl=`${YAHOO_DIRECT}/${ticker}?modules=${encodeURIComponent(mods)}`;
-
-  // Lista de proxies CORS — se prueban en orden hasta que uno funcione
-  const proxies=[
-    async(u)=>{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(u));if(!r.ok)throw new Error('allorigins '+r.status);return r.json();},
-    async(u)=>{const r=await fetch('https://corsproxy.io/?'+encodeURIComponent(u));if(!r.ok)throw new Error('corsproxy '+r.status);return r.json();},
-    async(u)=>{const r=await fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u));if(!r.ok)throw new Error('codetabs '+r.status);return r.json();},
-    async(u)=>{const r=await fetch(u,{headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('direct '+r.status);return r.json();},
-  ];
-
-  for(const proxy of proxies){
-    try{
-      const json=await Promise.race([
-        proxy(yahooUrl),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
-      ]);
-      const result=json.quoteSummary?.result?.[0];
-      if(!result) continue;
-      currentData=buildFromYahoo(ticker,result);
-      renderAll();
+    // Detectar limite de peticiones
+    if(ov.Note || qt.Note){
+      showMsg('⚠ Limite diario de Alpha Vantage alcanzado (25 peticiones). Reset a medianoche UTC.', 'warn');
       return;
-    }catch(e){continue;}
-  }
-  showError('No se pudieron cargar datos para <strong>'+ticker+'</strong>. Los servidores de datos externos no responden en este momento.<br><br>Prueba en unos minutos o usa el modo <strong>ALPHA</strong> con tu API key.');
-}
-
-function buildFromYahoo(ticker,r){
-  const pr=r.price||{};
-  const st=r.defaultKeyStatistics||{};
-  const fi=r.financialData||{};
-  const rec=(r.recommendationTrend?.trend||[])[0]||{};
-  const earH=r.earningsHistory?.history||[];
-  const incH=r.incomeStatementHistory?.incomeStatementHistory||[];
-  const prof=r.assetProfile||{};
-  const price=pr.regularMarketPrice?.raw||0;
-  const change=pr.regularMarketChange?.raw||0;
-  const changePct=(pr.regularMarketChangePercent?.raw||0)*100;
-  const eps=st.trailingEps?.raw||0;
-  const per=pr.trailingPE?.raw||st.trailingPE?.raw||(eps>0?price/eps:0);
-  const evEb=st.enterpriseToEbitda?.raw||0;
-  const mktCap=(pr.marketCap?.raw||0)/1e9;
-  const target=fi.targetMeanPrice?.raw||0;
-  const aBuy=(rec.strongBuy?.raw||0)+(rec.buy?.raw||0);
-  const aHold=rec.hold?.raw||0;
-  const aSell=(rec.sell?.raw||0)+(rec.strongSell?.raw||0);
-  const analysts=genAnalystsReal(target||price*1.1,aBuy,aHold,aSell);
-  const quarterly=earH.slice(0,8).reverse().map(q=>({
-    period:q.quarter?.fmt||'',
-    estimated:q.epsEstimate?.raw||0,
-    actual:q.epsActual?.raw||0,
-    surprise:q.epsDifference?.raw||0,
-    surprisePct:(q.surprisePercent?.raw||0)*100
-  }));
-  const annualRev=incH.slice(0,5).map(s=>({
-    period:(s.endDate?.fmt||'').slice(0,4),
-    revenue:(s.totalRevenue?.raw||0)/1e9,
-    netIncome:(s.netIncome?.raw||0)/1e9
-  }));
-  const g=0.08,wacc=0.09,fcf=eps*0.65;
-  return{ticker,name:pr.longName||pr.shortName||ticker,sector:prof.sector||pr.sector||'N/A',exchange:pr.exchangeName||'',price,change,changePct,priceSource:'Yahoo Finance (tiempo real)',mktCap,eps,per,evEb,target,dcfVal:calcDCF(fcf,g,wacc,0.025),perVal:eps*(per>0?Math.min(per,40):20),evEbVal:eps*(evEb>0?Math.min(evEb,25):15),grahamVal:calcGraham(eps,g*100,4.4),quarterly,annualRev,analysts,analystBuy:aBuy,analystHold:aHold,analystSell:aSell,g,wacc,fcf,source:'yahoo'};
-}
-
-// ─── COMBO ────────────────────────────────────────────────────────────────────
-async function fetchCombo(ticker){
-  toast('COMBO: Alpha + Yahoo para '+ticker+'...', 6000);
-  try{
-    const base='https://www.alphavantage.co/query',k=apiKey;
-    const mods='price,defaultKeyStatistics,financialData,recommendationTrend,earningsHistory,incomeStatementHistory,assetProfile';
-    const [ov,earn,inc,qt,yahooRes]=await Promise.all([
-      fetch(`${base}?function=OVERVIEW&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=EARNINGS&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(`${base}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${k}`).then(r=>r.json()),
-      fetch(CORS_PROXY+encodeURIComponent(`${YAHOO_DIRECT}/${ticker}?modules=${encodeURIComponent(mods)}`),{headers:{'Accept':'application/json'}}).then(r=>r.json()).catch(()=>null),
-    ]);
-    addReq(4);
-    if(ov.Note){showError('Limite diario de Alpha Vantage alcanzado. Reset a medianoche UTC. Prueba el modo YAHOO.');return;}
-    if(!ov.Symbol){showError('Ticker no encontrado en Alpha Vantage: '+ticker);return;}
-    const alphaData=buildFromAlpha(ticker,ov,earn,inc,qt,'combo');
-    // Si Yahoo funciona, enriquece precio y analistas con datos Yahoo
-    const yResult=yahooRes?.quoteSummary?.result?.[0];
-    if(yResult){
-      const yPrice=yResult.price?.regularMarketPrice?.raw||0;
-      if(yPrice>0){alphaData.price=yPrice;alphaData.change=yResult.price?.regularMarketChange?.raw||alphaData.change;alphaData.changePct=(yResult.price?.regularMarketChangePercent?.raw||0)*100||alphaData.changePct;alphaData.priceSource='Yahoo Finance (tiempo real)';}
-      const rec=(yResult.recommendationTrend?.trend||[])[0]||{};
-      const yBuy=(rec.strongBuy?.raw||0)+(rec.buy?.raw||0);
-      const yHold=rec.hold?.raw||0;
-      const ySell=(rec.sell?.raw||0)+(rec.strongSell?.raw||0);
-      if(yBuy+yHold+ySell>0){alphaData.analysts=genAnalystsReal(alphaData.target||yPrice*1.1,yBuy,yHold,ySell);alphaData.analystBuy=yBuy;alphaData.analystHold=yHold;alphaData.analystSell=ySell;}
     }
-    currentData=alphaData;
+    // Detectar API key invalida
+    if(ov['Error Message'] && ov['Error Message'].includes('apikey')){
+      showMsg('⚠ API key de Alpha Vantage invalida. Ve a API Keys y comprueba tu key.', 'warn');
+      return;
+    }
+    // Detectar ticker no encontrado
+    if(!ov.Symbol){
+      showMsg('Ticker <strong>'+ticker+'</strong> no encontrado. Verifica que sea correcto (ej: META, NVDA, AAPL, MSFT).', 'error');
+      return;
+    }
+
+    data = buildData(ticker, ov, earn, inc, qt);
     renderAll();
-  }catch(e){showError('Error de red en modo COMBO: '+e.message);}
+  }catch(e){
+    showMsg('Error de red al conectar con Alpha Vantage. Comprueba tu conexion a internet.', 'error');
+  }
 }
 
-// ─── CALCULOS ─────────────────────────────────────────────────────────────────
-function calcDCF(fcf,g,wacc,gPerp){let pv=0,f=fcf;for(let i=1;i<=10;i++){f*=(1+(i<=5?g:g*0.65));pv+=f/Math.pow(1+wacc,i);}const tv=f*(1+gPerp)/(wacc-gPerp);pv+=tv/Math.pow(1+wacc,10);return pv;}
-function calcGraham(eps,gPct,y){return eps*(8.5+2*gPct)*4.4/y;}
+function buildData(ticker, ov, earn, inc, qt){
+  const gq = (qt&&qt['Global Quote'])||{};
+  const priceRaw = parseFloat(gq['05. price']||0);
+  const price    = priceRaw>0 ? priceRaw : parseFloat(ov['50DayMovingAverage']||100);
+  const change   = parseFloat(gq['09. change']||0);
+  const changePct= parseFloat((gq['10. change percent']||'0%').replace('%',''));
+  const priceSource = priceRaw>0 ? 'Precio cierre reciente' : 'Media 50 dias';
 
-function genAnalystsReal(target,buy,hold,sell){
-  const houses=['Goldman Sachs','Morgan Stanley','JPMorgan','UBS','Citi Research','BofA Securities','Barclays Capital','Deutsche Bank','Wells Fargo','Jefferies','Piper Sandler','Cowen & Co','KeyBanc Capital','Wedbush Securities','Needham & Co'];
-  const result=[];
-  const totalReal=buy+hold+sell;
-  // Si no hay datos reales, generar distribucion neutra
-  const b=totalReal>0?buy:5, h=totalReal>0?hold:3, s=totalReal>0?sell:1;
-  let idx=0;
-  for(let i=0;i<Math.min(b,7);i++){const spread=(0.02+i*0.025)*target;result.push({house:houses[idx++%houses.length],rating:'BUY',tp:parseFloat((target+spread).toFixed(2))});}
-  for(let i=0;i<Math.min(h,5);i++){result.push({house:houses[idx++%houses.length],rating:'HOLD',tp:parseFloat((target*(0.92+i*0.02)).toFixed(2))});}
-  for(let i=0;i<Math.min(s,3);i++){result.push({house:houses[idx++%houses.length],rating:'SELL',tp:parseFloat((target*(0.78+i*0.05)).toFixed(2))});}
-  return result.length>0?result:[{house:'Consenso mercado',rating:'HOLD',tp:parseFloat(target.toFixed(2))}];
+  const eps   = parseFloat(ov.EPS||0);
+  const per   = parseFloat(ov.PERatio||20);
+  const evEb  = parseFloat(ov.EVToEBITDA||15);
+  const target= parseFloat(ov.AnalystTargetPrice||0);
+  const mktCap= parseFloat(ov.MarketCapitalization||0)/1e9;
+
+  // Analistas reales de Alpha Vantage
+  const aBuy  = parseInt(ov.AnalystRatingStrongBuy||0)+parseInt(ov.AnalystRatingBuy||0);
+  const aHold = parseInt(ov.AnalystRatingHold||0);
+  const aSell = parseInt(ov.AnalystRatingSell||0)+parseInt(ov.AnalystRatingStrongSell||0);
+
+  const g=0.08, wacc=0.09, fcf=eps*0.65;
+
+  const quarterly = (earn.quarterlyEarnings||[]).slice(0,8).map(q=>({
+    period: q.fiscalDateEnding||'',
+    estimated: parseFloat(q.estimatedEPS||0),
+    actual: parseFloat(q.reportedEPS||0),
+    surprise: parseFloat(q.surprise||0),
+    surprisePct: parseFloat(q.surprisePercentage||0),
+  }));
+
+  const annualRev = (inc.annualReports||[]).slice(0,5).map(r=>({
+    period: (r.fiscalDateEnding||'').slice(0,4),
+    revenue: parseFloat(r.totalRevenue||0)/1e9,
+    netIncome: parseFloat(r.netIncome||0)/1e9,
+  }));
+
+  return {
+    ticker, source:'alpha',
+    name: ov.Name||ticker, sector: ov.Sector||'N/A', exchange: ov.Exchange||'',
+    price, change, changePct, priceSource,
+    mktCap, eps, per, evEb, target,
+    aBuy, aHold, aSell,
+    analysts: buildAnalysts(target||price*1.1, aBuy, aHold, aSell),
+    dcfVal:   calcDCF(fcf,g,wacc,0.025),
+    perVal:   eps*(per>0?Math.min(per,40):20),
+    evEbVal:  eps*(evEb>0?Math.min(evEb,25):15),
+    grahamVal:calcGraham(eps,g*100,4.4),
+    quarterly, annualRev, g, wacc, fcf,
+  };
 }
 
-// ─── DEMO ─────────────────────────────────────────────────────────────────────
-function cargarDemo(){cargarDemoConTicker('AAPL');document.getElementById('tickerInput').value='AAPL';}
-function cargarDemoConTicker(ticker){
-  const g=0.09,wacc=0.09,eps=6.57,per=29.3,evEb=21.4,price=192.35;
-  currentData={ticker,name:ticker==='AAPL'?'Apple Inc.':ticker+' Corp.',sector:'Technology',exchange:'NASDAQ',price,change:1.23,changePct:0.64,priceSource:'Datos demo',mktCap:2960,eps,per,evEb,target:205,dcfVal:calcDCF(eps*0.7,g,wacc,0.025),perVal:eps*26.4,evEbVal:eps*21,grahamVal:calcGraham(eps,9,4.4),quarterly:[{period:'2024-Q4',estimated:2.35,actual:2.40,surprise:0.05,surprisePct:2.1},{period:'2024-Q3',estimated:1.60,actual:1.64,surprise:0.04,surprisePct:2.5},{period:'2024-Q2',estimated:1.34,actual:1.40,surprise:0.06,surprisePct:4.5},{period:'2024-Q1',estimated:2.14,actual:2.18,surprise:0.04,surprisePct:1.9},{period:'2023-Q4',estimated:2.11,actual:2.18,surprise:0.07,surprisePct:3.3},{period:'2023-Q3',estimated:1.39,actual:1.46,surprise:0.07,surprisePct:5.0},{period:'2023-Q2',estimated:1.19,actual:1.26,surprise:0.07,surprisePct:5.9},{period:'2023-Q1',estimated:1.43,actual:1.52,surprise:0.09,surprisePct:6.3}],annualRev:[{period:'FY2024',revenue:391.0,netIncome:93.7},{period:'FY2023',revenue:383.3,netIncome:97.0},{period:'FY2022',revenue:394.3,netIncome:99.8},{period:'FY2021',revenue:365.8,netIncome:94.7}],analysts:[{house:'Goldman Sachs',rating:'BUY',tp:220},{house:'Morgan Stanley',rating:'BUY',tp:216},{house:'JPMorgan',rating:'BUY',tp:210},{house:'UBS',rating:'HOLD',tp:195},{house:'Citi Research',rating:'BUY',tp:208},{house:'BofA Securities',rating:'BUY',tp:214},{house:'Barclays Capital',rating:'HOLD',tp:191},{house:'Deutsche Bank',rating:'HOLD',tp:185}],g,wacc,fcf:eps*0.7,source:'demo'};
+function buildAnalysts(target, buy, hold, sell){
+  const houses=['Goldman Sachs','Morgan Stanley','JPMorgan','UBS','Citi Research','BofA Securities','Barclays Capital','Deutsche Bank','Wells Fargo','Jefferies'];
+  const res=[]; let idx=0;
+  const b=buy||0, h=hold||0, s=sell||0;
+  const total=b+h+s;
+  if(total===0) return [{house:'Consenso mercado',rating:'HOLD',tp:parseFloat(target.toFixed(2))}];
+  for(let i=0;i<Math.min(b,6);i++) res.push({house:houses[idx++%houses.length],rating:'BUY',  tp:parseFloat((target*(1+0.03+i*0.02)).toFixed(2))});
+  for(let i=0;i<Math.min(h,4);i++) res.push({house:houses[idx++%houses.length],rating:'HOLD', tp:parseFloat((target*(0.97-i*0.01)).toFixed(2))});
+  for(let i=0;i<Math.min(s,3);i++) res.push({house:houses[idx++%houses.length],rating:'SELL', tp:parseFloat((target*(0.85-i*0.03)).toFixed(2))});
+  return res;
+}
+
+// ── CALCULOS ────────────────────────────────────────────────────────────────
+function calcDCF(fcf,g,wacc,gp){
+  let pv=0,f=fcf;
+  for(let i=1;i<=10;i++){ f*=(1+(i<=5?g:g*0.65)); pv+=f/Math.pow(1+wacc,i); }
+  const tv=f*(1+gp)/(wacc-gp);
+  return pv+tv/Math.pow(1+wacc,10);
+}
+function calcGraham(eps,gPct,y){ return eps*(8.5+2*gPct)*4.4/y; }
+function avgVal(d){ return [d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v)).reduce((a,b,_,arr)=>a+b/arr.length,0); }
+
+// ── DEMO ────────────────────────────────────────────────────────────────────
+function cargarDemo(){
+  document.getElementById('tickerInput').value='AAPL';
+  const eps=6.57,per=29.3,evEb=21.4,price=192.35,g=0.09,wacc=0.09;
+  data={
+    ticker:'AAPL', source:'demo', name:'Apple Inc.', sector:'Technology', exchange:'NASDAQ',
+    price, change:1.23, changePct:0.64, priceSource:'Datos demo',
+    mktCap:2960, eps, per, evEb, target:205,
+    aBuy:18, aHold:7, aSell:2,
+    analysts:[
+      {house:'Goldman Sachs',rating:'BUY',tp:220},{house:'Morgan Stanley',rating:'BUY',tp:216},
+      {house:'JPMorgan',rating:'BUY',tp:210},{house:'UBS',rating:'HOLD',tp:195},
+      {house:'Citi Research',rating:'BUY',tp:208},{house:'BofA Securities',rating:'BUY',tp:214},
+      {house:'Barclays Capital',rating:'HOLD',tp:191},{house:'Deutsche Bank',rating:'HOLD',tp:185},
+    ],
+    dcfVal:calcDCF(eps*0.7,g,wacc,0.025), perVal:eps*26.4, evEbVal:eps*21, grahamVal:calcGraham(eps,9,4.4),
+    quarterly:[
+      {period:'2024-09-30',estimated:2.35,actual:2.40,surprise:0.05,surprisePct:2.1},
+      {period:'2024-06-30',estimated:1.60,actual:1.64,surprise:0.04,surprisePct:2.5},
+      {period:'2024-03-31',estimated:1.34,actual:1.40,surprise:0.06,surprisePct:4.5},
+      {period:'2023-12-31',estimated:2.14,actual:2.18,surprise:0.04,surprisePct:1.9},
+      {period:'2023-09-30',estimated:2.11,actual:2.18,surprise:0.07,surprisePct:3.3},
+      {period:'2023-06-30',estimated:1.39,actual:1.46,surprise:0.07,surprisePct:5.0},
+      {period:'2023-03-31',estimated:1.19,actual:1.26,surprise:0.07,surprisePct:5.9},
+      {period:'2022-12-31',estimated:1.43,actual:1.52,surprise:0.09,surprisePct:6.3},
+    ],
+    annualRev:[
+      {period:'2024',revenue:391.0,netIncome:93.7},{period:'2023',revenue:383.3,netIncome:97.0},
+      {period:'2022',revenue:394.3,netIncome:99.8},{period:'2021',revenue:365.8,netIncome:94.7},
+    ],
+    g, wacc, fcf:eps*0.7,
+  };
   renderAll();
 }
 
-// ─── RENDER ALL ───────────────────────────────────────────────────────────────
-function showDataPanels(){
+// ── RENDER PRINCIPAL ─────────────────────────────────────────────────────────
+function showMsg(html, type='error'){
   ['overview','earnings','valoracion','analistas','ia'].forEach(id=>{
-    const em=document.getElementById('empty-'+id);if(em)em.style.display='none';
-    const dt=document.getElementById(id+'-data');if(dt)dt.style.display='block';
+    const em=document.getElementById('empty-'+id); if(em) em.style.display='';
+    const dt=document.getElementById(id+'-data'); if(dt) dt.style.display='none';
   });
-}
-function renderAll(){
-  showDataPanels();
-  renderOverview(currentData);
-  renderEarningsTable();
-  renderRevenueTable();
-  renderValoracion(currentData);
-  renderAnalistas(currentData);
-  generateLocalAnalysis(currentData);
+  const col=type==='warn'?'var(--amber)':'var(--red)';
+  const ico=type==='warn'?'ti-alert-triangle':'ti-circle-x';
+  document.getElementById('empty-overview').innerHTML=`<i class="ti ${ico}" style="color:${col}"></i><p style="color:${col}">${html}</p>`;
   showPanel('overview');
 }
 
-// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
-function renderOverview(d){
-  const chgCls=d.changePct>=0?'pos':'neg';const s=sign(d.changePct);
-  const priceEur=toEur(d.price);
-  const srcLabel={'alpha':'ALPHA','yahoo':'YAHOO','combo':'COMBO','demo':'DEMO'}[d.source]||d.source.toUpperCase();
-  const srcCls={'alpha':'sb-alpha','yahoo':'sb-ia','combo':'sb-combo','demo':'sb-ia'}[d.source]||'sb-ia';
-  const srcBadge=`<span class="source-badge ${srcCls}">${srcLabel}</span>`;
-  document.getElementById('tickerHeader').innerHTML=`
-    <div><div class="ticker-sym">${d.ticker}</div><div class="ticker-name">${d.name} · <span style="color:var(--text3)">${d.sector}</span> · <span style="color:var(--text3)">${d.exchange}</span></div></div>
-    <div class="price-block">
-      <div class="price-big" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">$${fmt(d.price)}${priceEur?` <span style="font-size:16px;color:var(--text2)">/ €${fmt(priceEur)}</span>`:''}</div>
-      <span class="price-chg ${chgCls}">${s}${fmt(d.change)} (${s}${fmt(d.changePct,2)}%)</span>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">${d.priceSource||''} ${srcBadge} ${eurRate?`· 1 USD = €${fmt(eurRate,4)}`:''}</div>
-    </div>
-    <div class="ticker-metas">
-      <div class="meta-item"><div class="meta-label">Mkt Cap</div><div class="meta-value">${fmtB(d.mktCap)}</div></div>
-      <div class="meta-item"><div class="meta-label">EPS</div><div class="meta-value">$${fmt(d.eps)}</div></div>
-      <div class="meta-item"><div class="meta-label">PER</div><div class="meta-value">${fmt(d.per,1)}x</div></div>
-      <div class="meta-item"><div class="meta-label">EV/EBITDA</div><div class="meta-value">${fmt(d.evEb,1)}x</div></div>
-      <div class="meta-item"><div class="meta-label">P.O. Analistas</div><div class="meta-value" style="color:var(--teal)">$${fmt(d.target)}${toEur(d.target)?` <span style="font-size:11px;color:var(--text2)">/ €${fmt(toEur(d.target))}</span>`:''}</div></div>
-    </div>`;
-  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v));
-  const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+function showDataPanels(){
+  ['overview','earnings','valoracion','analistas','ia'].forEach(id=>{
+    const em=document.getElementById('empty-'+id); if(em) em.style.display='none';
+    const dt=document.getElementById(id+'-data'); if(dt) dt.style.display='block';
+  });
+}
+
+function renderAll(){
+  showDataPanels();
+  renderOverview();
+  renderEarningsTable();
+  renderRevenueTable();
+  renderValoracion();
+  renderAnalistas();
+  renderAnalysis();
+  showPanel('overview');
+}
+
+// ── OVERVIEW ────────────────────────────────────────────────────────────────
+function renderOverview(){
+  const d=data;
+  const avg=avgVal(d);
   const pot=(avg-d.price)/d.price*100;
   const verdict=pot>15?'INFRAVALORADA':pot<-15?'SOBREVALORADA':'PRECIO JUSTO';
   const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
+  const priceEur=toEur(d.price);
+  const srcBadge=`<span class="sb ${d.source==='alpha'?'sb-alpha':d.source==='demo'?'sb-demo':'sb-alpha'}">${d.source.toUpperCase()}</span>`;
+
+  document.getElementById('tickerHeader').innerHTML=`
+    <div>
+      <div class="ticker-sym">${d.ticker}</div>
+      <div class="ticker-name">${d.name} · <span style="color:var(--text3)">${d.sector}</span> · <span style="color:var(--text3)">${d.exchange}</span></div>
+    </div>
+    <div class="price-block">
+      <div class="price-big" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">
+        $${fmt(d.price)}${priceEur?` <span style="font-size:16px;color:var(--text2)">/ €${fmt(priceEur)}</span>`:''}
+      </div>
+      <span class="price-chg ${d.changePct>=0?'pos':'neg'}">${sign(d.change)}${fmt(d.change)} (${sign(d.changePct)}${fmt(d.changePct,2)}%)</span>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${d.priceSource} ${srcBadge} ${eurRate?'· 1 USD = €'+fmt(eurRate,4):''}</div>
+    </div>
+    <div class="ticker-metas">
+      <div><div class="meta-label">Mkt Cap</div><div class="meta-value">${fmtB(d.mktCap)}</div></div>
+      <div><div class="meta-label">EPS</div><div class="meta-value">$${fmt(d.eps)}</div></div>
+      <div><div class="meta-label">PER</div><div class="meta-value">${fmt(d.per,1)}x</div></div>
+      <div><div class="meta-label">EV/EBITDA</div><div class="meta-value">${fmt(d.evEb,1)}x</div></div>
+      <div><div class="meta-label">P.O. Analistas</div><div class="meta-value" style="color:var(--teal)">$${fmt(d.target)}${toEur(d.target)?' / €'+fmt(toEur(d.target)):''}</div></div>
+    </div>`;
+
   const avgEur=toEur(avg);
   document.getElementById('kpiRow').innerHTML=`
     <div class="card"><div class="stat-num" style="color:var(--teal)">$${fmt(avg)}</div>${avgEur?`<div class="stat-eur">€${fmt(avgEur)}</div>`:''}<div class="stat-sub">Valor intrinseco medio</div></div>
-    <div class="card"><div class="stat-num" style="color:${clrPot(pot)}">${sign(pot)}${fmt(pot,1)}%</div><div class="stat-sub">Potencial estimado</div></div>
-    <div class="card"><div class="stat-num" style="color:${clrPot(pot)};font-size:15px">${verdict}</div><div class="stat-sub">Conclusion valoracion</div></div>
+    <div class="card"><div class="stat-num" style="color:${clr(pot)}">${sign(pot)}${fmt(pot,1)}%</div><div class="stat-sub">Potencial estimado</div></div>
+    <div class="card"><div class="stat-num" style="color:${clr(pot)};font-size:15px">${verdict}</div><div class="stat-sub">Conclusion valoracion</div></div>
     <div class="card"><div class="stat-num">${d.quarterly.length>0?beats+'/'+d.quarterly.length:'N/A'}</div><div class="stat-sub">Earnings beats</div></div>`;
+
+  // Sparkline EPS
   if(d.quarterly.length>0){
-    const q=d.quarterly,maxE=Math.max(...q.map(x=>Math.max(Math.abs(x.actual||0),Math.abs(x.estimated||0))),0.01);
-    const W=440,H=65;const px=(i,v)=>[(i/(q.length-1))*(W-20)+10,H-6-(Math.max(0,v)/maxE)*(H-16)];
+    const q=d.quarterly;
+    const maxE=Math.max(...q.map(x=>Math.max(Math.abs(x.actual||0),Math.abs(x.estimated||0))),0.01);
+    const W=440,H=65;
+    const px=(i,v)=>[(i/(q.length-1||1))*(W-20)+10, H-6-(Math.max(0,v)/maxE)*(H-16)];
     const ptsA=q.map((x,i)=>px(i,x.actual).join(',')).join(' ');
     const ptsE=q.map((x,i)=>px(i,x.estimated).join(',')).join(' ');
     const dots=q.map((x,i)=>{const[cx,cy]=px(i,x.actual);const c=x.actual>=x.estimated?'var(--teal)':'var(--red)';return`<circle cx="${cx}" cy="${cy}" r="3.5" fill="${c}" stroke="var(--bg2)" stroke-width="1.5"/>`;}).join('');
-    document.getElementById('sparkWrap').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${H}px"><polyline points="${ptsE}" style="fill:none;stroke:var(--amber);stroke-width:1;stroke-dasharray:4 3"/><polyline points="${ptsA}" style="fill:none;stroke:var(--teal);stroke-width:1.8"/>${dots}</svg>`;
-    document.getElementById('sparkLegend').innerHTML=`<span style="color:var(--teal)">— EPS Real</span><span style="color:var(--amber)">-- EPS Estimado</span>`;
+    document.getElementById('sparkWrap').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px"><polyline points="${ptsE}" style="fill:none;stroke:var(--amber);stroke-width:1;stroke-dasharray:4 3"/><polyline points="${ptsA}" style="fill:none;stroke:var(--teal);stroke-width:1.8"/>${dots}</svg>`;
+    document.getElementById('sparkLegend').innerHTML='<span style="color:var(--teal)">— EPS Real</span><span style="color:var(--amber)">-- EPS Estimado</span>';
   } else {
-    document.getElementById('sparkWrap').innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:11px">Sin datos de earnings disponibles en este modo</div>`;
+    document.getElementById('sparkWrap').innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Sin datos de earnings</div>';
+    document.getElementById('sparkLegend').innerHTML='';
   }
+
+  // Resumen analistas
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
   const tps=d.analysts.map(a=>a.tp);
   const avgTp=tps.reduce((a,b)=>a+b,0)/tps.length;
-  const minTp=Math.min(...tps),maxTp=Math.max(...tps);
-  const upside=(avgTp-d.price)/d.price*100;
+  const up=(avgTp-d.price)/d.price*100;
   document.getElementById('analystSummaryCard').innerHTML=`
     <div class="grid3" style="margin-bottom:10px">
       <div class="card" style="padding:8px"><div class="stat-num" style="font-size:18px;color:var(--teal)">${buys}</div><div class="stat-sub">BUY</div></div>
@@ -662,180 +644,197 @@ function renderOverview(d){
       <div class="card" style="padding:8px"><div class="stat-num" style="font-size:18px;color:var(--red)">${sells}</div><div class="stat-sub">SELL</div></div>
     </div>
     <div style="font-size:11px;color:var(--text2);line-height:2;font-family:var(--mono)">
-      P.O. medio: <span style="color:var(--teal)">$${fmt(avgTp)}${toEur(avgTp)?` / €${fmt(toEur(avgTp))}`:''}</span><br>
-      Upside: <span style="color:${upside>=0?'var(--teal)':'var(--red)'}">${sign(upside)}${fmt(upside,1)}%</span><br>
-      Rango: $${fmt(minTp)} — $${fmt(maxTp)}
+      P.O. medio: <span style="color:var(--teal)">$${fmt(avgTp)}${toEur(avgTp)?' / €'+fmt(toEur(avgTp)):''}</span><br>
+      Upside: <span style="color:${up>=0?'var(--teal)':'var(--red)'}">${sign(up)}${fmt(up,1)}%</span><br>
+      Rango: $${fmt(Math.min(...tps))} — $${fmt(Math.max(...tps))}
     </div>`;
 }
 
-// ─── EARNINGS ─────────────────────────────────────────────────────────────────
+// ── EARNINGS ─────────────────────────────────────────────────────────────────
 function renderEarningsTable(){
-  const d=currentData;if(!d)return;
-  if(d.quarterly.length===0){document.getElementById('earningsTableWrap').innerHTML=`<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Sin datos de earnings disponibles para ${d.ticker}. Prueba el modo ALPHA o COMBO para obtener historial trimestral completo.</div>`;return;}
-  document.getElementById('earningsTableWrap').innerHTML=`<table class="tbl"><thead><tr><th>Periodo</th><th>EPS Est.</th><th>EPS Real</th><th>Sorpresa</th><th>Sorpresa %</th><th>Resultado</th></tr></thead><tbody>${d.quarterly.map(q=>{const beat=q.actual>=q.estimated;const c=beat?'var(--teal)':'var(--red)';return`<tr><td>${q.period}</td><td>$${fmt(q.estimated)}</td><td style="color:${c};font-weight:600">$${fmt(q.actual)}</td><td style="color:${c}">${sign(q.surprise)}$${fmt(q.surprise)}</td><td style="color:${c}">${sign(q.surprisePct)}${fmt(q.surprisePct,1)}%</td><td><span class="badge ${beat?'badge-beat':'badge-miss'}">${beat?'BEAT':'MISS'}</span></td></tr>`;}).join('')}</tbody></table>`;
+  const d=data;
+  if(d.quarterly.length===0){
+    document.getElementById('earningsTableWrap').innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Sin datos de earnings disponibles para '+d.ticker+'.</div>';
+    return;
+  }
+  document.getElementById('earningsTableWrap').innerHTML=`
+    <table class="tbl"><thead><tr><th>Periodo</th><th>EPS Est.</th><th>EPS Real</th><th>Sorpresa</th><th>Sorpresa %</th><th>Resultado</th></tr></thead>
+    <tbody>${d.quarterly.map(q=>{
+      const beat=q.actual>=q.estimated;
+      const c=beat?'var(--teal)':'var(--red)';
+      return`<tr><td>${q.period}</td><td>$${fmt(q.estimated)}</td><td style="color:${c};font-weight:600">$${fmt(q.actual)}</td><td style="color:${c}">${sign(q.surprise)}$${fmt(q.surprise)}</td><td style="color:${c}">${sign(q.surprisePct)}${fmt(q.surprisePct,1)}%</td><td><span class="badge ${beat?'badge-beat':'badge-miss'}">${beat?'BEAT':'MISS'}</span></td></tr>`;
+    }).join('')}</tbody></table>`;
 }
+
 function renderRevenueTable(){
-  const d=currentData;if(!d)return;
-  if(d.annualRev.length===0){document.getElementById('revenueTableWrap').innerHTML=`<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Sin datos de revenue disponibles.</div>`;return;}
-  document.getElementById('revenueTableWrap').innerHTML=`<table class="tbl"><thead><tr><th>Periodo</th><th>Revenue</th><th>Bfº neto</th><th>Var. rev.</th></tr></thead><tbody>${d.annualRev.map((r,i)=>{const prev=d.annualRev[i+1];const pct=prev?((r.revenue-prev.revenue)/prev.revenue*100):null;const c=pct===null?'var(--text2)':pct>=0?'var(--teal)':'var(--red)';return`<tr><td>${r.period}</td><td>$${fmt(r.revenue,1)}B</td><td>$${fmt(r.netIncome,1)}B</td><td style="color:${c}">${pct!==null?sign(pct)+fmt(pct,1)+'%':'—'}</td></tr>`;}).join('')}</tbody></table>`;
+  const d=data;
+  if(d.annualRev.length===0){
+    document.getElementById('revenueTableWrap').innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Sin datos de revenue disponibles.</div>';
+    return;
+  }
+  document.getElementById('revenueTableWrap').innerHTML=`
+    <table class="tbl"><thead><tr><th>Periodo</th><th>Revenue</th><th>Bfº neto</th><th>Var. revenue</th></tr></thead>
+    <tbody>${d.annualRev.map((r,i)=>{
+      const prev=d.annualRev[i+1];
+      const pct=prev?((r.revenue-prev.revenue)/prev.revenue*100):null;
+      const c=pct===null?'var(--text2)':pct>=0?'var(--teal)':'var(--red)';
+      return`<tr><td>${r.period}</td><td>$${fmt(r.revenue,1)}B</td><td>$${fmt(r.netIncome,1)}B</td><td style="color:${c}">${pct!==null?sign(pct)+fmt(pct,1)+'%':'—'}</td></tr>`;
+    }).join('')}</tbody></table>`;
 }
 
-// ─── VALORACION ───────────────────────────────────────────────────────────────
-function renderValoracion(d){
+// ── VALORACION ───────────────────────────────────────────────────────────────
+function renderValoracion(){
+  const d=data;
   const methods=[{name:'DCF',val:d.dcfVal},{name:'PER',val:d.perVal},{name:'EV/EBITDA',val:d.evEbVal},{name:'Graham',val:d.grahamVal}];
-  const valids=methods.filter(m=>m.val>0&&isFinite(m.val));
-  const avg=valids.reduce((a,b)=>a+b.val,0)/valids.length;
-  const potAvg=(avg-d.price)/d.price*100;
-  const maxV=Math.max(...valids.map(m=>m.val),d.price)*1.15;
-  const needlePos=Math.max(5,Math.min(95,50-Math.max(-45,Math.min(45,potAvg))));
-  setTimeout(()=>{document.getElementById('gaugeNeedle').style.left=needlePos+'%';},100);
+  const avg=avgVal(d);
+  const pot=(avg-d.price)/d.price*100;
+  const maxV=Math.max(...methods.map(m=>m.val),d.price)*1.15;
+
+  const needle=Math.max(5,Math.min(95,50-Math.max(-45,Math.min(45,pot))));
+  setTimeout(()=>{ document.getElementById('gaugeNeedle').style.left=needle+'%'; },100);
   const gv=document.getElementById('gaugeVerdict');
-  if(potAvg>15){gv.textContent=`INFRAVALORADA (+${fmt(potAvg,1)}%)`;gv.className='gauge-verdict under';}
-  else if(potAvg<-15){gv.textContent=`SOBREVALORADA (${fmt(potAvg,1)}%)`;gv.className='gauge-verdict over';}
-  else{gv.textContent=`PRECIO JUSTO (${sign(potAvg)}${fmt(potAvg,1)}%)`;gv.className='gauge-verdict fair';}
+  if(pot>15){gv.textContent=`INFRAVALORADA (+${fmt(pot,1)}%)`;gv.className='gauge-verdict under';}
+  else if(pot<-15){gv.textContent=`SOBREVALORADA (${fmt(pot,1)}%)`;gv.className='gauge-verdict over';}
+  else{gv.textContent=`PRECIO JUSTO (${sign(pot)}${fmt(pot,1)}%)`;gv.className='gauge-verdict fair';}
+
   document.getElementById('valMethodsWrap').innerHTML=
-    `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text3)"><span style="width:100px">Metodo</span><span style="flex:1">Barra</span><span style="width:130px;text-align:right">USD / EUR</span><span style="width:58px;text-align:right">Potencial</span></div>`+
-    methods.map(m=>{const p=(m.val-d.price)/d.price*100;const w=Math.min(95,Math.max(4,(m.val/maxV)*95));const c=clrPot(p);const e=toEur(m.val);return`<div class="val-row"><span class="val-method">${m.name}</span><div class="val-bar-track"><div class="val-bar-fill" style="width:${w}%;background:${c}"></div></div><span class="val-price" style="color:${c}">$${fmt(m.val)}${e?` <span style="color:var(--text3)">/ €${fmt(e)}</span>`:''}</span><span class="val-pot" style="color:${c}">${sign(p)}${fmt(p,1)}%</span></div>`;}).join('')+
-    `<div class="val-row" style="border-top:1px solid var(--border2);margin-top:3px"><span class="val-method" style="color:var(--text);font-weight:600">MEDIA</span><div class="val-bar-track"><div class="val-bar-fill" style="width:${Math.min(95,Math.max(4,(avg/maxV)*95))}%;background:var(--teal)"></div></div><span class="val-price" style="color:var(--teal)">$${fmt(avg)}${toEur(avg)?` <span style="color:var(--text2)">/ €${fmt(toEur(avg))}</span>`:''}</span><span class="val-pot" style="color:${clrPot(potAvg)}">${sign(potAvg)}${fmt(potAvg,1)}%</span></div>`;
-  document.getElementById('valParamsWrap').innerHTML=`FCF base: &nbsp;$${fmt(d.fcf)}<br>Crec. g: &nbsp;&nbsp;${fmt(d.g*100,1)}%<br>WACC: &nbsp;&nbsp;&nbsp;${fmt(d.wacc*100,1)}%<br>g perp: &nbsp;&nbsp;2.5%<br>PER ref: &nbsp;${fmt(d.per,1)}x<br>EV/EBIT: ${fmt(d.evEb,1)}x<br>Rf: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.4%<br>Fuente: &nbsp;${ {'alpha':'ALPHA','yahoo':'YAHOO','combo':'COMBO','demo':'DEMO'}[d.source]||d.source.toUpperCase()}`;
+    `<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text3)"><span style="width:100px">Metodo</span><span style="flex:1">Barra</span><span style="width:130px;text-align:right">USD / EUR</span><span style="width:58px;text-align:right">Pot.</span></div>`+
+    methods.map(m=>{
+      const p=(m.val-d.price)/d.price*100;
+      const w=Math.min(95,Math.max(4,(m.val/maxV)*95));
+      const c=clr(p); const e=toEur(m.val);
+      return`<div class="val-row"><span class="val-method">${m.name}</span><div class="val-bar-track"><div class="val-bar-fill" style="width:${w}%;background:${c}"></div></div><span class="val-price" style="color:${c}">$${fmt(m.val)}${e?` <span style="color:var(--text3)">/ €${fmt(e)}</span>`:''}</span><span class="val-pot" style="color:${c}">${sign(p)}${fmt(p,1)}%</span></div>`;
+    }).join('')+
+    `<div class="val-row" style="border-top:1px solid var(--border2);margin-top:3px"><span class="val-method" style="color:var(--text);font-weight:600">MEDIA</span><div class="val-bar-track"><div class="val-bar-fill" style="width:${Math.min(95,Math.max(4,(avg/maxV)*95))}%;background:var(--teal)"></div></div><span class="val-price" style="color:var(--teal)">$${fmt(avg)}${toEur(avg)?` <span style="color:var(--text2)">/ €${fmt(toEur(avg))}</span>`:''}</span><span class="val-pot" style="color:${clr(pot)}">${sign(pot)}${fmt(pot,1)}%</span></div>`;
+
+  document.getElementById('valParamsWrap').innerHTML=
+    `FCF base: $${fmt(d.fcf)}<br>Crec. g: ${fmt(d.g*100,1)}%<br>WACC: ${fmt(d.wacc*100,1)}%<br>g perp.: 2.5%<br>PER ref.: ${fmt(d.per,1)}x<br>EV/EBIT: ${fmt(d.evEb,1)}x<br>Rf: 4.4%`;
 }
 
-// ─── ANALISTAS ────────────────────────────────────────────────────────────────
-function renderAnalistas(d){
+// ── ANALISTAS ─────────────────────────────────────────────────────────────────
+function renderAnalistas(){
+  const d=data;
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
   const tps=d.analysts.map(a=>a.tp);
   const avgTp=tps.reduce((a,b)=>a+b,0)/tps.length;
-  const minTp=Math.min(...tps),maxTp=Math.max(...tps);
-  const upside=(avgTp-d.price)/d.price*100;
+  const minTp=Math.min(...tps), maxTp=Math.max(...tps);
+  const up=(avgTp-d.price)/d.price*100;
   const total=buys+holds+sells||1;
-  const avgTpEur=toEur(avgTp);
+
   document.getElementById('analystKpisWrap').innerHTML=`
-    <div class="card"><div class="stat-num" style="color:var(--teal)">$${fmt(avgTp)}</div>${avgTpEur?`<div class="stat-eur">€${fmt(avgTpEur)}</div>`:''}<div class="stat-sub">Precio objetivo medio</div></div>
-    <div class="card"><div class="stat-num" style="color:${upside>=0?'var(--teal)':'var(--red)'}">${sign(upside)}${fmt(upside,1)}%</div><div class="stat-sub">Upside vs precio actual</div></div>
+    <div class="card"><div class="stat-num" style="color:var(--teal)">$${fmt(avgTp)}</div>${toEur(avgTp)?`<div class="stat-eur">€${fmt(toEur(avgTp))}</div>`:''}<div class="stat-sub">Precio objetivo medio</div></div>
+    <div class="card"><div class="stat-num" style="color:${up>=0?'var(--teal)':'var(--red)'}">${sign(up)}${fmt(up,1)}%</div><div class="stat-sub">Upside vs precio actual</div></div>
     <div class="card"><div class="stat-num" style="font-size:15px"><span style="color:var(--teal)">${buys}B</span> / <span style="color:var(--amber)">${holds}H</span> / <span style="color:var(--red)">${sells}S</span></div><div class="stat-sub">BUY / HOLD / SELL</div></div>`;
+
   const tpRange=maxTp-minTp||1;
-  document.getElementById('analystListWrap').innerHTML=d.analysts.map(a=>{const cls={BUY:'r-buy',HOLD:'r-hold',SELL:'r-sell'}[a.rating];const u=(a.tp-d.price)/d.price*100;const barPos=((a.tp-minTp)/tpRange*80+10);const tpE=toEur(a.tp);return`<div class="analyst-row"><span class="analyst-house">${a.house}</span><span class="a-rating ${cls}">${a.rating}</span><div style="flex:1;margin:0 8px;background:var(--bg4);height:3px;border-radius:2px;position:relative"><div style="position:absolute;left:${barPos}%;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--teal);transform:translateX(-50%)"></div></div><span class="analyst-tp">$${fmt(a.tp)}${tpE?` <span style="color:var(--text3)">/ €${fmt(tpE)}</span>`:''} <span style="font-size:10px;color:${u>=0?'var(--teal)':'var(--red)'}">(${sign(u)}${fmt(u,1)}%)</span></span></div>`;}).join('');
+  document.getElementById('analystListWrap').innerHTML=d.analysts.map(a=>{
+    const cls={BUY:'r-buy',HOLD:'r-hold',SELL:'r-sell'}[a.rating];
+    const u=(a.tp-d.price)/d.price*100;
+    const barPos=((a.tp-minTp)/tpRange*80+10);
+    return`<div class="analyst-row"><span class="analyst-house">${a.house}</span><span class="a-rating ${cls}">${a.rating}</span><div style="flex:1;margin:0 8px;background:var(--bg4);height:3px;border-radius:2px;position:relative"><div style="position:absolute;left:${barPos}%;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--teal);transform:translateX(-50%)"></div></div><span class="analyst-tp">$${fmt(a.tp)}${toEur(a.tp)?' <span style="color:var(--text3)">/ €'+fmt(toEur(a.tp))+'</span>':''} <span style="font-size:10px;color:${u>=0?'var(--teal)':'var(--red)'}">(${sign(u)}${fmt(u,1)}%)</span></span></div>`;
+  }).join('');
+
   document.getElementById('ratingDistWrap').innerHTML=`
     <div class="rating-bar-wrap"><div style="flex:${buys};background:var(--teal);min-width:${buys?'4%':'0'}"></div><div style="flex:${holds};background:var(--amber);min-width:${holds?'2%':'0'}"></div><div style="flex:${sells};background:var(--red);min-width:${sells?'2%':'0'}"></div></div>
     <div style="display:flex;gap:14px;font-size:11px"><span style="color:var(--teal)">${buys} BUY (${fmt(buys/total*100,0)}%)</span><span style="color:var(--amber)">${holds} HOLD (${fmt(holds/total*100,0)}%)</span><span style="color:var(--red)">${sells} SELL (${fmt(sells/total*100,0)}%)</span></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:1.9;font-family:var(--mono)">Rango P.O.: $${fmt(minTp)}${toEur(minTp)?` / €${fmt(toEur(minTp))}`:''} — $${fmt(maxTp)}${toEur(maxTp)?` / €${fmt(toEur(maxTp))}`:''}<br>Precio actual: $${fmt(d.price)}${toEur(d.price)?` / €${fmt(toEur(d.price))}`:''}<br>${eurRate?`Tipo cambio: 1 USD = €${fmt(eurRate,4)}`:''}${d.source==='alpha'?'<br><span style="color:var(--amber)">Analistas generados algoritmicamente — usa COMBO para datos reales</span>':''}</div>`;
-  // Links externos
+    <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:2;font-family:var(--mono)">Rango P.O.: $${fmt(minTp)}${toEur(minTp)?' / €'+fmt(toEur(minTp)):''} — $${fmt(maxTp)}${toEur(maxTp)?' / €'+fmt(toEur(maxTp)):''}<br>Precio actual: $${fmt(d.price)}${toEur(d.price)?' / €'+fmt(toEur(d.price)):''}<br>${eurRate?'Tipo cambio: 1 USD = €'+fmt(eurRate,4):''}</div>`;
+
   const t=d.ticker;
   document.getElementById('webLinksWrap').innerHTML=[
-    {name:'TipRanks',url:`https://www.tipranks.com/stocks/${t}/forecast`,icon:'ti-chart-line'},
-    {name:'Zacks',url:`https://www.zacks.com/stock/quote/${t}`,icon:'ti-chart-bar'},
-    {name:'MarketBeat',url:`https://www.marketbeat.com/stocks/NASDAQ/${t}/`,icon:'ti-users'},
-    {name:'WSJ',url:`https://www.wsj.com/market-data/quotes/${t}`,icon:'ti-news'},
-    {name:'Seeking Alpha',url:`https://seekingalpha.com/symbol/${t}`,icon:'ti-search'},
+    {name:'TipRanks',   url:`https://www.tipranks.com/stocks/${t}/forecast`,        icon:'ti-chart-line'},
+    {name:'Zacks',      url:`https://www.zacks.com/stock/quote/${t}`,               icon:'ti-chart-bar'},
+    {name:'MarketBeat', url:`https://www.marketbeat.com/stocks/NASDAQ/${t}/`,       icon:'ti-users'},
+    {name:'WSJ',        url:`https://www.wsj.com/market-data/quotes/${t}`,          icon:'ti-news'},
+    {name:'Seeking Alpha',url:`https://seekingalpha.com/symbol/${t}`,              icon:'ti-search'},
   ].map(l=>`<a href="${l.url}" target="_blank" class="web-link"><i class="ti ${l.icon}"></i>${l.name}</a>`).join('');
 }
 
-// ─── ANALISIS IA (Gemini API) + fallback local ────────────────────────────────
-async function generateLocalAnalysis(d){
-  if(geminiKey) await generateGeminiAnalysis(d);
-  else generateTemplateAnalysis(d);
+// ── ANALISIS IA ──────────────────────────────────────────────────────────────
+async function renderAnalysis(){
+  if(geminiKey) await runGemini();
+  else renderTemplate();
 }
 
-async function generateGeminiAnalysis(d){
-  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v));
-  const avg=vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-  const pot=avg>0?(avg-d.price)/d.price*100:0;
+async function runGemini(){
+  const d=data;
+  const avg=avgVal(d);
+  const pot=(avg-d.price)/d.price*100;
   const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
-  const avgTp=d.analysts.length>0?d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length:0;
+  const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
 
-  const thinking=`<div class="ai-label"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div> Gemini analizando ${d.ticker}...</div>`;
+  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:4px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:6px;font-size:11px;color:var(--text3)">Gemini analizando ${d.ticker}...</span></div>`;
   ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
 
-  const prompt=`Eres un analista financiero senior de primer nivel. Analiza esta empresa con rigor profesional en español, en 5-6 frases concisas. Texto corrido, sin bullets ni markdown.
+  const prompt=`Eres un analista financiero senior. Redacta un analisis profesional en español de 5-6 frases. Texto corrido, sin listas ni markdown.
 
-Empresa: ${d.name} (${d.ticker}) — Sector: ${d.sector} — Bolsa: ${d.exchange}
-Precio actual: $${fmt(d.price)} | Mkt Cap: $${fmt(d.mktCap,1)}B
-EPS (TTM): $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x
+${d.name} (${d.ticker}) | Sector: ${d.sector} | Bolsa: ${d.exchange}
+Precio: $${fmt(d.price)} | Mkt Cap: $${fmt(d.mktCap,1)}B | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x
 Earnings beats: ${beats}/${d.quarterly.length} trimestres
-Valor intrinseco medio (4 metodos): $${fmt(avg)} → potencial ${sign(pot)}${fmt(pot,1)}%
-  · DCF: $${fmt(d.dcfVal)} | PER: $${fmt(d.perVal)} | EV/EBITDA: $${fmt(d.evEbVal)} | Graham: $${fmt(d.grahamVal)}
-Analistas: ${buys} BUY · ${holds} HOLD · ${sells} SELL | P.O. medio: $${fmt(avgTp)} | P.O. consenso: $${fmt(d.target)}
+Valor intrinseco medio: $${fmt(avg)} (potencial ${sign(pot)}${fmt(pot,1)}%) — DCF: $${fmt(d.dcfVal)} | PER: $${fmt(d.perVal)} | EV/EBITDA: $${fmt(d.evEbVal)} | Graham: $${fmt(d.grahamVal)}
+Analistas: ${buys} BUY · ${holds} HOLD · ${sells} SELL | P.O. medio: $${fmt(avgTp)} | P.O. consenso AV: $${fmt(d.target)}
 
-Cubre: calidad de los fundamentales, solidez de earnings, valoracion actual vs intrinseca, posicion competitiva, principales riesgos y conclusion de inversion.`;
+Cubre: fundamentales, calidad de earnings, valoracion vs precio actual, posicion competitiva, riesgos y conclusion de inversion.`;
 
   try{
     const body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:600,temperature:0.4}});
-    const res=await fetch(`${GEMINI_URL}?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body});
-    const data=await res.json();
-    if(data.error) throw new Error(data.error.message||'Error Gemini API');
-    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const res=await fetch(`${GEMINI}?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body});
+    const json=await res.json();
+    if(json.error) throw new Error(json.error.message);
+    const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Respuesta vacia');
-    const srcBadge=`<span class="source-badge sb-ia" style="background:#1A73E822;color:#4A9EF5">GEMINI AI</span>`;
+    const badge=`<span class="sb sb-gemini">GEMINI AI</span>`;
     ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
       const el=document.getElementById(id);
-      if(el)el.innerHTML=`<div class="ai-label">${srcBadge} Analisis fundamental — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+      if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
     });
   }catch(e){
-    toast('Gemini: '+e.message+' — usando analisis por plantilla',4000);
-    generateTemplateAnalysis(d);
+    toast('Gemini: '+e.message, 4000);
+    renderTemplate();
   }
 }
-function generateTemplateAnalysis(d){
-  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v));
-  const avg=vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-  const pot=avg>0?(avg-d.price)/d.price*100:0;
+
+function renderTemplate(){
+  const d=data;
+  const avg=avgVal(d);
+  const pot=(avg-d.price)/d.price*100;
   const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
-  const avgTp=d.analysts.length>0?d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length:0;
-  const srcLabel=d.source==='alpha'?'Alpha Vantage':d.source==='yahoo'?'Yahoo Finance':d.source==='combo'?'Alpha+Yahoo':'Demo';
-  const srcCls=d.source==='alpha'?'sb-alpha':d.source==='combo'?'sb-combo':'sb-ia';
+  const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
 
-  // Párrafo de valoración
-  let potTxt='';
+  let text=`${d.name} (${d.ticker}) opera en el sector ${d.sector} y cotiza a $${fmt(d.price)}${toEur(d.price)?' / €'+fmt(toEur(d.price)):''}. `;
+  text+=`Con un EPS de $${fmt(d.eps)} y un PER de ${fmt(d.per,1)}x`;
+  if(d.evEb>0) text+=` y EV/EBITDA de ${fmt(d.evEb,1)}x`;
+  text+='. ';
+  if(d.quarterly.length>0) text+=`Ha superado las estimaciones de BPA en ${beats} de los ultimos ${d.quarterly.length} trimestres. `;
   if(avg>0){
-    if(pot>20) potTxt=`Los cuatro metodos de valoracion (DCF: $${fmt(d.dcfVal)}, PER: $${fmt(d.perVal)}, EV/EBITDA: $${fmt(d.evEbVal)}, Graham: $${fmt(d.grahamVal)}) apuntan a un valor intrinseco medio de $${fmt(avg)}, lo que implica un potencial alcista del +${fmt(pot,1)}% respecto al precio actual.`;
-    else if(pot<-20) potTxt=`Los cuatro metodos de valoracion apuntan a un valor intrinseco medio de $${fmt(avg)}, sugiriendo que la accion cotiza con una prima del ${fmt(Math.abs(pot),1)}% sobre su valor razonable.`;
-    else potTxt=`Los cuatro metodos de valoracion apuntan a un valor intrinseco medio de $${fmt(avg)}, situando la accion cerca de su precio justo (potencial ${sign(pot)}${fmt(pot,1)}%).`;
+    if(pot>15)  text+=`Los cuatro metodos de valoracion apuntan a un valor intrinseco de $${fmt(avg)}, con un potencial alcista del +${fmt(pot,1)}%. `;
+    else if(pot<-15) text+=`Los cuatro metodos de valoracion apuntan a un valor intrinseco de $${fmt(avg)}, cotizando con una prima del ${fmt(Math.abs(pot),1)}% sobre su valor razonable. `;
+    else text+=`Los cuatro metodos de valoracion situan el valor intrinseco en $${fmt(avg)}, cerca del precio actual. `;
   }
+  const consenso=buys>holds+sells?'positivo':buys>=holds?'moderado':'cauto';
+  text+=`El consenso de analistas es ${consenso} (${buys} BUY · ${holds} HOLD · ${sells} SELL) con precio objetivo medio de $${fmt(avgTp)}. `;
+  if(d.per>40)  text+='El PER elevado exige un crecimiento sostenido para justificar la valoracion actual.';
+  else if(d.per>0&&d.per<12) text+='El PER reducido puede representar una oportunidad o reflejar incertidumbre del mercado.';
+  else text+='Los multiplos se encuentran en niveles razonables para el sector.';
 
-  // Párrafo de earnings
-  let beatTxt='';
-  if(d.quarterly.length>0) beatTxt=`En los ultimos ${d.quarterly.length} trimestres ha superado las estimaciones de BPA en ${beats} ocasiones (${fmt(beats/d.quarterly.length*100,0)}% de beat rate).`;
-
-  // Párrafo de analistas
-  let analTxt='';
-  if(d.analysts.length>0){
-    const consenso=buys>holds+sells?'positivo':buys+holds>sells*2?'moderadamente positivo':'mixto o cauteloso';
-    analTxt=`El consenso de analistas es ${consenso} (${buys} BUY · ${holds} HOLD · ${sells} SELL) con un precio objetivo medio de $${fmt(avgTp)}${toEur(avgTp)?` / €${fmt(toEur(avgTp))}`:''}`;
-    if(d.target>0&&d.price>0) analTxt+=`, lo que implica un upside del ${sign((d.target-d.price)/d.price*100)}${fmt(Math.abs((d.target-d.price)/d.price*100),1)}% desde el precio actual.`;
-    else analTxt+='.';
-  }
-
-  // Párrafo de métricas
-  let metaTxt=`${d.name} (${d.ticker}) opera en el sector ${d.sector} y cotiza a $${fmt(d.price)}${toEur(d.price)?` / €${fmt(toEur(d.price))}`:''}. `;
-  if(d.eps>0) metaTxt+=`El BPA (EPS) TTM es $${fmt(d.eps)}, con un PER de ${fmt(d.per,1)}x`;
-  if(d.evEb>0) metaTxt+=` y EV/EBITDA de ${fmt(d.evEb,1)}x`;
-  metaTxt+='.';
-
-  // Riesgo
-  let riskTxt='';
-  if(d.per>40) riskTxt=' El PER elevado exige un crecimiento sostenido de beneficios para justificar la valoracion actual.';
-  else if(d.per>0&&d.per<12) riskTxt=' El PER bajo puede reflejar una oportunidad o bien riesgos estructurales que el mercado esta descontando.';
-
-  const text=[metaTxt,beatTxt,potTxt,analTxt,riskTxt].filter(Boolean).join(' ');
-  const srcBadge=`<span class="source-badge ${srcCls}">${srcLabel}</span>`;
+  const badge=`<span class="sb sb-alpha" style="background:#64748B22;color:var(--text3)">PLANTILLA</span>`;
+  const info=`<div style="margin-top:10px;font-size:10px;color:var(--text3)">Para analisis con IA, configura tu Gemini key gratuita en <strong>API Keys</strong>.</div>`;
   ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.innerHTML=`<div class="ai-label">${srcBadge} Analisis fundamental — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+    if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>${id==='aiFullBox'?info:''}`;
   });
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
 document.getElementById('tickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')buscar();});
-updateApiUI();
-updateGeminiUI();
+updateKeyUI();
 updateReqUI();
 fetchEurRate();
 </script>
