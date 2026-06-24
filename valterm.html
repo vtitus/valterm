@@ -227,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.2</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1322,17 +1322,16 @@ Cubre: calidad del negocio, si la valoracion es razonable, margen de seguridad, 
     keyStatus.or={ok:false,msg:'Ningún modelo gratuito disponible — prueba mañana'};
     renderSourceStatus(); throw new Error('Sin modelos disponibles');
   }
-  try{
-    keyStatus.or={ok:true,msg:`Análisis generado con ${usedModel} (OpenRouter)`};
-    renderSourceStatus();
-    const badge=`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`;
-    ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
-    });
-    const sc=document.getElementById('aiSourcesCard'); if(sc) sc.style.display='';
-    const sw=document.getElementById('aiSourcesWrap');
-    if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
+  keyStatus.or={ok:true,msg:`Análisis generado con ${usedModel} (OpenRouter)`};
+  renderSourceStatus();
+  const badge=`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+  });
+  const sc=document.getElementById('aiSourcesCard'); if(sc) sc.style.display='';
+  const sw=document.getElementById('aiSourcesWrap');
+  if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
 }
 
 function renderTemplate(){
