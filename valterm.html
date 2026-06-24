@@ -322,7 +322,7 @@ let data       = null;
 let earMode    = 'quarterly';
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
-const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // ── FORMATO ─────────────────────────────────────────────────────────────────
 const fmt  = (n,d=2) => isNaN(n)||n===null||n===undefined ? 'N/A' : Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
