@@ -34,11 +34,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .search-wrap input{background:var(--bg3);border:1.5px solid var(--border3);color:var(--text);padding:9px 16px;border-radius:var(--r);font-family:var(--mono);font-size:14px;text-transform:uppercase;width:150px;letter-spacing:3px;outline:none;transition:all .2s}
 .search-wrap input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim);background:var(--bg4)}
 .search-wrap input::placeholder{text-transform:none;letter-spacing:0;color:var(--text3);font-size:13px}
-.btn{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#000;border:none;padding:9px 20px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .2s;font-family:var(--sans);letter-spacing:.3px}
-.btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 12px var(--teal-glow)}
-.btn:active{transform:translateY(0)}
-.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border3);padding:8px 16px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .2s;font-family:var(--sans)}
-.btn-ghost:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+.btn{background:linear-gradient(135deg,#00D4AA,#00A882);color:#000;border:none;padding:10px 22px;border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:all .22s cubic-bezier(.4,0,.2,1);font-family:var(--sans);letter-spacing:.3px;position:relative;overflow:hidden;box-shadow:0 2px 8px #00D4AA30}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px #00D4AA50;filter:brightness(1.08)}
+.btn:hover::after{opacity:1}
+.btn:active{transform:translateY(0);box-shadow:0 2px 8px #00D4AA30}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1.5px solid var(--border3);padding:9px 18px;border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:all .22s cubic-bezier(.4,0,.2,1);font-family:var(--sans);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim);transform:translateY(-1px);box-shadow:0 4px 12px var(--teal-glow)}
+.btn-ghost:active{transform:translateY(0)}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px}
 .dots-row{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;border-radius:20px}
 .dot-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text3)}
@@ -53,14 +56,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 
 /* ── LAYOUT ── */
 .main{display:flex;flex:1;overflow:hidden}
-.sidebar{width:260px;background:linear-gradient(180deg,#0F1828 0%,#0B1220 100%);border-right:1px solid var(--border2);padding:16px 0;flex-shrink:0;overflow-y:auto}
-.sidebar-section{padding:22px 22px 8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:3px;font-weight:800}
-.sidebar-item{padding:13px 22px;cursor:pointer;display:flex;align-items:center;gap:14px;font-size:15px;color:var(--text2);border-left:3px solid transparent;transition:all .18s;margin:2px 0;font-weight:500;border-radius:0 8px 8px 0;margin-right:12px}
-.sidebar-item:hover{background:var(--bg3);color:var(--text);padding-left:26px}
-.sidebar-item.active{background:linear-gradient(90deg,#00D4AA20,#00D4AA08);border-left-color:var(--teal);color:var(--teal);font-weight:700;padding-left:26px}
-.sidebar-item i{font-size:20px;width:22px;text-align:center;opacity:.75;flex-shrink:0}
-.sidebar-item:hover i{opacity:1}
-.sidebar-item.active i{opacity:1;filter:drop-shadow(0 0 6px var(--teal-glow))}
+.sidebar{width:265px;background:linear-gradient(180deg,#0C1424 0%,#080E1C 100%);border-right:1px solid var(--border2);padding:16px 12px;flex-shrink:0;overflow-y:auto}
+.sidebar-section{padding:20px 10px 8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:3px;font-weight:800}
+.sidebar-item{padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;font-size:15px;color:var(--text2);border:1px solid transparent;transition:all .2s cubic-bezier(.4,0,.2,1);margin:3px 0;font-weight:500;border-radius:12px;position:relative;overflow:hidden}
+.sidebar-item::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--teal-dim),transparent);opacity:0;transition:opacity .2s;border-radius:12px}
+.sidebar-item:hover{background:var(--bg3);color:var(--text);border-color:var(--border2);transform:translateX(3px)}
+.sidebar-item:hover::before{opacity:.5}
+.sidebar-item.active{background:linear-gradient(135deg,#00D4AA18,#00D4AA08);border-color:var(--teal-glow);color:var(--teal);font-weight:700;transform:translateX(3px)}
+.sidebar-item.active::before{opacity:1}
+.sidebar-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg4);transition:all .2s;border:1px solid var(--border2)}
+.sidebar-item:hover .sidebar-icon{background:var(--bg5);border-color:var(--border3)}
+.sidebar-item.active .sidebar-icon{background:linear-gradient(135deg,var(--teal-glow),#00D4AA15);border-color:var(--teal);box-shadow:0 0 12px var(--teal-glow)}
+.sidebar-item i{font-size:18px;color:var(--text3);transition:all .2s}
+.sidebar-item:hover i{color:var(--text)}
+.sidebar-item.active i{color:var(--teal);filter:drop-shadow(0 0 4px var(--teal))}
 .content{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px;display:flex;flex-direction:column;gap:18px}
 .panel{display:none;flex-direction:column;gap:16px}
 .panel.active{display:flex}
@@ -183,7 +192,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v1.9</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v2.0</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6" />
     <button class="btn" onclick="buscar()"><i class="ti ti-search"></i> BUSCAR</button>
@@ -202,13 +211,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 <div class="main">
   <nav class="sidebar">
     <div class="sidebar-section">Analisis</div>
-    <div class="sidebar-item active" id="nav-overview"   onclick="showPanel('overview')"><i class="ti ti-layout-dashboard"></i> Overview</div>
-    <div class="sidebar-item"        id="nav-earnings"   onclick="showPanel('earnings')"><i class="ti ti-chart-bar"></i> Earnings</div>
-    <div class="sidebar-item"        id="nav-valoracion" onclick="showPanel('valoracion')"><i class="ti ti-calculator"></i> Valoracion</div>
-    <div class="sidebar-item"        id="nav-analistas"  onclick="showPanel('analistas')"><i class="ti ti-users"></i> Analistas</div>
-    <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><i class="ti ti-robot"></i> Analisis IA</div>
+    <div class="sidebar-item active" id="nav-overview"   onclick="showPanel('overview')"><div class="sidebar-icon"><i class="ti ti-layout-dashboard"></i></div> Overview</div>
+    <div class="sidebar-item"        id="nav-earnings"   onclick="showPanel('earnings')"><div class="sidebar-icon"><i class="ti ti-chart-bar"></i></div> Earnings</div>
+    <div class="sidebar-item"        id="nav-valoracion" onclick="showPanel('valoracion')"><div class="sidebar-icon"><i class="ti ti-calculator"></i></div> Valoracion</div>
+    <div class="sidebar-item"        id="nav-analistas"  onclick="showPanel('analistas')"><div class="sidebar-icon"><i class="ti ti-users"></i></div> Analistas</div>
+    <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><div class="sidebar-icon"><i class="ti ti-robot"></i></div> Analisis IA</div>
     <div class="sidebar-section">Config</div>
-    <div class="sidebar-item"        id="nav-settings"   onclick="showPanel('settings')"><i class="ti ti-key"></i> API Keys</div>
+    <div class="sidebar-item"        id="nav-settings"   onclick="showPanel('settings')"><div class="sidebar-icon"><i class="ti ti-key"></i></div> API Keys</div>
   </nav>
   <div class="content">
 
