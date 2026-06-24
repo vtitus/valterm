@@ -53,14 +53,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 
 /* ── LAYOUT ── */
 .main{display:flex;flex:1;overflow:hidden}
-.sidebar{width:230px;background:linear-gradient(180deg,#0F1828 0%,#0B1220 100%);border-right:1px solid var(--border2);padding:12px 0;flex-shrink:0;overflow-y:auto}
-.sidebar-section{padding:18px 20px 6px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2.5px;font-weight:700}
-.sidebar-item{padding:11px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--text2);border-left:3px solid transparent;transition:all .15s;margin:1px 0;font-weight:500}
-.sidebar-item:hover{background:var(--bg3);color:var(--text)}
-.sidebar-item.active{background:linear-gradient(90deg,var(--teal-dim),transparent);border-left-color:var(--teal);color:var(--teal);font-weight:700}
-.sidebar-item i{font-size:17px;width:20px;text-align:center;opacity:.8}
-.sidebar-item.active i{opacity:1;filter:drop-shadow(0 0 4px var(--teal-glow))}
-.content{flex:1;overflow-y:auto;background:var(--bg);padding:22px 24px;display:flex;flex-direction:column;gap:16px}
+.sidebar{width:260px;background:linear-gradient(180deg,#0F1828 0%,#0B1220 100%);border-right:1px solid var(--border2);padding:16px 0;flex-shrink:0;overflow-y:auto}
+.sidebar-section{padding:22px 22px 8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:3px;font-weight:800}
+.sidebar-item{padding:13px 22px;cursor:pointer;display:flex;align-items:center;gap:14px;font-size:15px;color:var(--text2);border-left:3px solid transparent;transition:all .18s;margin:2px 0;font-weight:500;border-radius:0 8px 8px 0;margin-right:12px}
+.sidebar-item:hover{background:var(--bg3);color:var(--text);padding-left:26px}
+.sidebar-item.active{background:linear-gradient(90deg,#00D4AA20,#00D4AA08);border-left-color:var(--teal);color:var(--teal);font-weight:700;padding-left:26px}
+.sidebar-item i{font-size:20px;width:22px;text-align:center;opacity:.75;flex-shrink:0}
+.sidebar-item:hover i{opacity:1}
+.sidebar-item.active i{opacity:1;filter:drop-shadow(0 0 6px var(--teal-glow))}
+.content{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px;display:flex;flex-direction:column;gap:18px}
 .panel{display:none;flex-direction:column;gap:16px}
 .panel.active{display:flex}
 
@@ -101,12 +102,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 
 /* ── CARDS ── */
-.card{background:linear-gradient(180deg,var(--bg2) 0%,#0E1522 100%);border:1px solid var(--border);border-radius:var(--r2);padding:20px 22px;box-shadow:var(--shadow-sm)}
-.card-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-weight:700}
-.card-title i{font-size:16px;color:var(--teal);opacity:.7}
-.stat-num{font-family:var(--mono);font-size:28px;font-weight:800;letter-spacing:-1px}
-.stat-eur{font-family:var(--mono);font-size:16px;color:var(--text2);margin-top:3px}
-.stat-sub{font-size:12px;color:var(--text3);margin-top:5px;font-weight:500}
+.card{background:linear-gradient(160deg,#111B2C 0%,#0D1520 100%);border:1px solid var(--border2);border-top:1px solid var(--border3);border-radius:var(--r2);padding:22px 24px;box-shadow:var(--shadow-sm)}
+.card-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:9px;font-weight:800;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title i{font-size:16px;color:var(--teal);opacity:.8}
+.stat-num{font-family:var(--mono);font-size:30px;font-weight:800;letter-spacing:-1px}
+.stat-eur{font-family:var(--mono);font-size:17px;color:var(--text2);margin-top:4px}
+.stat-sub{font-size:13px;color:var(--text3);margin-top:6px;font-weight:500}
 
 /* ── TABLAS ── */
 .tbl{width:100%;border-collapse:collapse}
@@ -182,7 +183,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v1.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v1.9</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="6" />
     <button class="btn" onclick="buscar()"><i class="ti ti-search"></i> BUSCAR</button>
@@ -1042,12 +1043,22 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
     const json=await res.json();
     if(json.error){
       const msg=json.error.message||'';
-      if(msg.includes('quota')||msg.includes('limit')) keyStatus.gemini={ok:false,msg:'Quota excedida — espera 1 minuto y vuelve a buscar'};
-      else if(msg.includes('API key')||msg.includes('invalid')) keyStatus.gemini={ok:false,msg:'API key de Gemini invalida — verifica en aistudio.google.com'};
-      else if(msg.includes('not found')||msg.includes('not supported')) keyStatus.gemini={ok:false,msg:'Modelo no disponible — contacta soporte'};
-      else keyStatus.gemini={ok:false,msg:'Error Gemini: '+msg.slice(0,80)};
+      let shortMsg;
+      if(msg.includes('quota')||msg.includes('limit')||msg.includes('RESOURCE_EXHAUSTED')){
+        keyStatus.gemini={ok:false,msg:'Quota excedida — crea una nueva key en aistudio.google.com (cuenta Google personal)'};
+        shortMsg='Gemini: quota excedida';
+      } else if(msg.includes('API key')||msg.includes('invalid')||msg.includes('API_KEY')){
+        keyStatus.gemini={ok:false,msg:'Key invalida — crea una nueva en aistudio.google.com'};
+        shortMsg='Gemini: key invalida';
+      } else if(msg.includes('not found')||msg.includes('not supported')){
+        keyStatus.gemini={ok:false,msg:'Modelo no disponible'};
+        shortMsg='Gemini: modelo no disponible';
+      } else {
+        keyStatus.gemini={ok:false,msg:msg.slice(0,100)};
+        shortMsg='Gemini: error';
+      }
       renderSourceStatus();
-      throw new Error(msg);
+      throw new Error(shortMsg);
     }
     const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Respuesta vacia');
