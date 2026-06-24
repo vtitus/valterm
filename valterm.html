@@ -227,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.2</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.3</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -241,6 +241,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       <div class="dot-item"><div class="dot" id="dotFH"></div><span>FH</span></div>
       <div class="dot-item"><div class="dot" id="dotGM"></div><span>GM</span></div>
       <div class="dot-item"><div class="dot" id="dotOR"></div><span>OR</span></div>
+      <div class="dot-item"><div class="dot" id="dotGQ"></div><span>GQ</span></div>
     </div>
     <button class="btn-ghost" onclick="showPanel('settings')" style="padding:4px 8px"><i class="ti ti-settings"></i></button>
   </div>
@@ -423,6 +424,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div class="status-note"><div class="dot" id="geminiDot"></div><span id="geminiNote">Sin key — analisis por plantilla</span></div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="ti ti-bolt"></i> Groq — IA gratuita y rápida <span class="source-tag" style="color:#F97316;border-color:#F9731630">GQ</span></div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Alternativa gratuita a Gemini. Muy rápido (Llama, Gemma, Mixtral). Sin límite diario estricto. Key gratuita: <a href="https://console.groq.com/keys" target="_blank" style="color:#F97316">console.groq.com</a> → Create API Key</p>
+        <div class="input-row">
+          <input type="password" class="settings-input" id="groqKeyInput" placeholder="gsk_..." />
+          <button class="btn" style="background:linear-gradient(135deg,#F97316,#EA580C)" onclick="guardarGroq()">GUARDAR</button>
+          <button class="btn-ghost" onclick="borrarGroq()">BORRAR</button>
+        </div>
+        <div class="status-note"><div class="dot" id="groqDot"></div><span id="groqNote">Sin key — ve a console.groq.com</span></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="ti ti-robot"></i> OpenRouter — IA alternativa <span class="source-tag" style="color:var(--amber);border-color:var(--amber)30">OR</span></div>
         <p style="font-size:12px;color:var(--text2);line-height:1.7">Fallback automático cuando Gemini falla o agota su quota. Usa modelos gratuitos como <strong>Llama 3.1</strong>. Sin limite diario. Key gratuita: <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--amber)">openrouter.ai</a> → Create Key</p>
         <div class="input-row">
@@ -467,15 +478,18 @@ let avKey      = localStorage.getItem('valterm_av')     || '';
 let fhKey      = localStorage.getItem('valterm_fh')     || '';
 let geminiKey  = localStorage.getItem('valterm_gemini') || '';
 let orKey      = localStorage.getItem('valterm_or')     || '';
+let groqKey    = localStorage.getItem('valterm_groq')   || '';
 let eurRate    = null;
 let data       = null;
 let earMode    = 'quarterly';
-let keyStatus  = { av: null, fh: null, gemini: null, or: null };
+let keyStatus  = { av: null, fh: null, gemini: null, or: null, groq: null };
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 const OR      = 'https://openrouter.ai/api/v1/chat/completions';
-const OR_MODELS=['google/gemma-2-9b-it:free','mistralai/mistral-7b-instruct:free','qwen/qwen-2-7b-instruct:free','microsoft/phi-3-mini-128k-instruct:free'];
+const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
+const OR_MODELS=['google/gemma-2-9b-it:free','mistralai/mistral-7b-instruct:free','deepseek/deepseek-r1-0528:free','meta-llama/llama-3.3-70b-instruct:free'];
+const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
 
 // ── FORMATO ─────────────────────────────────────────────────────────────────
 const fmt  = (n,d=2) => isNaN(n)||n===null||n===undefined ? 'N/A' : Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -537,6 +551,13 @@ function guardarOR(){
   if(data) renderAnalysis();
 }
 function borrarOR(){ orKey=''; localStorage.removeItem('valterm_or'); document.getElementById('orKeyInput').value=''; updateKeyUI(); toast('OpenRouter key eliminada'); }
+function guardarGroq(){
+  const v=document.getElementById('groqKeyInput').value.trim();
+  if(!v){toast('Pega tu Groq key primero');return;}
+  groqKey=v; localStorage.setItem('valterm_groq',v); updateKeyUI(); toast('Groq key guardada');
+  if(data) renderAnalysis();
+}
+function borrarGroq(){ groqKey=''; localStorage.removeItem('valterm_groq'); document.getElementById('groqKeyInput').value=''; updateKeyUI(); toast('Groq key eliminada'); }
 
 function updateKeyUI(){
   const av=!!avKey, fh=!!fhKey, gm=!!geminiKey, or_=!!orKey;
@@ -554,6 +575,11 @@ function updateKeyUI(){
   document.getElementById('orDot').className  = or_?'dot live':'dot';
   document.getElementById('orNote').textContent= or_?'OpenRouter activo — fallback IA disponible':'Sin key — ve a openrouter.ai';
   if(or_) document.getElementById('orKeyInput').value=orKey;
+  const gq=!!groqKey;
+  set('dotGQ',gq);
+  document.getElementById('groqDot').className = gq?'dot live':'dot';
+  document.getElementById('groqNote').textContent= gq?'Groq activo — IA gratuita y rápida':'Sin key — ve a console.groq.com';
+  if(gq) document.getElementById('groqKeyInput').value=groqKey;
 }
 
 async function verificarAV(){
@@ -597,7 +623,7 @@ async function buscar(){
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
-  keyStatus = { av: null, fh: null, gemini: null, or: null };
+  keyStatus = { av: null, fh: null, gemini: null, or: null, groq: null };
   let avData=null, fhData=null;
   const avLimited = avKey && getReq()>=25;
   const proms=[];
@@ -917,6 +943,7 @@ function renderSourceStatus(){
     {label:'Finnhub',       key:'fh',     color:'#C084FC'},
     {label:'Gemini IA',     key:'gemini', color:'var(--teal)'},
     {label:'OpenRouter',    key:'or',     color:'var(--amber)'},
+    {label:'Groq IA',       key:'groq',   color:'#F97316'},
   ];
   bar.style.display='flex';
   bar.innerHTML=items.map(it=>{
@@ -1172,12 +1199,9 @@ function renderAnalistas(){
 
 // ── ANALISIS IA ───────────────────────────────────────────────────────────────
 async function renderAnalysis(){
-  if(geminiKey){
-    try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){}
-    if(orKey){ toast('Gemini falló — usando OpenRouter...',2500); try{ await runOpenRouter(); return; }catch(e){} }
-  } else if(orKey){
-    try{ await runOpenRouter(); return; }catch(e){}
-  }
+  if(geminiKey){ try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){} }
+  if(groqKey){ try{ await runGroq(); return; }catch(e){} }
+  if(orKey){ try{ await runOpenRouter(); return; }catch(e){} }
   renderTemplate();
 }
 
@@ -1367,6 +1391,46 @@ function renderTemplate(){
     const el=document.getElementById(id);
     if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis automatico — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
   });
+}
+
+// ── GROQ ──────────────────────────────────────────────────────────────────────
+async function runGroq(){
+  const d=data;
+  const avg=avgVal(d), mos=avg>0?(avg-d.price)/avg*100:0, pot=avg>0?(avg-d.price)/d.price*100:0;
+  const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
+  const buys=d.analysts.filter(a=>a.rating==='BUY').length, holds=d.analysts.filter(a=>a.rating==='HOLD').length, sells=d.analysts.filter(a=>a.rating==='SELL').length;
+  const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
+  const prompt=`Eres analista de inversiones senior. Redacta un análisis fundamental profesional en español de 6-7 frases, texto corrido, sin listas ni markdown. Sé directo.
+Empresa: ${d.name} (${d.ticker}) | Sector: ${d.sector} | Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x
+Valor intrínseco medio: $${fmt(avg)} | Potencial: ${pot>=0?'+':''}${fmt(pot,1)}% | Margen seguridad: ${fmt(mos,1)}%
+Analistas: ${buys}B/${holds}H/${sells}S | P.O.: $${fmt(avgTp)} | Earnings beats: ${beats}/${d.quarterly.length}
+Cubre: calidad del negocio, valoración, margen de seguridad, riesgos y conclusión.`;
+
+  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">Groq analizando ${d.ticker}...</span></div>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
+
+  let text='', usedModel='';
+  for(const model of GROQ_MODELS){
+    try{
+      const res=await fetch(GROQ,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${groqKey}`},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:700,temperature:0.5})});
+      const json=await res.json();
+      if(json.error){
+        const msg=json.error.message||'';
+        if(msg.includes('auth')||msg.includes('key')||msg.includes('401')){keyStatus.groq={ok:false,msg:'Key inválida — verifica en console.groq.com'};renderSourceStatus();throw new Error(keyStatus.groq.msg);}
+        continue;
+      }
+      const t=json.choices?.[0]?.message?.content||'';
+      if(t){text=t;usedModel=model;break;}
+    }catch(e){if(e.message.includes('Key inválida'))throw e;}
+  }
+  if(!text){keyStatus.groq={ok:false,msg:'Error — prueba de nuevo'};renderSourceStatus();throw new Error('Groq sin respuesta');}
+  keyStatus.groq={ok:true,msg:`Análisis generado con ${usedModel}`};
+  renderSourceStatus();
+  const badge=`<span class="src-badge" style="background:#F9731618;color:#F97316;border:1px solid #F9731630">GROQ</span>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;});
+  const sc=document.getElementById('aiSourcesCard');if(sc)sc.style.display='';
+  const sw=document.getElementById('aiSourcesWrap');
+  if(sw)sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (Groq)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | Analistas: ${buys}B/${holds}H/${sells}S`;
 }
 
 // ── WATCHLIST ─────────────────────────────────────────────────────────────────
