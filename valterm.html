@@ -418,17 +418,26 @@ async function fetchAlpha(ticker){
     ]);
     addReq(4);
 
-    // Detectar limite de peticiones (cualquiera de las 4 respuestas puede devolver Note)
-    if(ov.Note || qt.Note || earn.Note || inc.Note){
-      showMsg('⚠ Limite diario de Alpha Vantage alcanzado (25 peticiones). Reset a medianoche UTC.', 'warn');
+    // Detectar limite de peticiones — Alpha Vantage usa Note o Information segun el caso
+    const limitMsg = ov.Note||ov.Information||qt.Note||qt.Information||earn.Note||earn.Information||inc.Note||inc.Information;
+    if(limitMsg){
+      if(limitMsg.toLowerCase().includes('api key') || limitMsg.toLowerCase().includes('apikey') || limitMsg.toLowerCase().includes('invalid')){
+        showMsg('⚠ API key de Alpha Vantage invalida o no reconocida. Ve a <strong>API Keys</strong> y comprueba tu key.', 'warn');
+      } else {
+        showMsg('⚠ Limite diario de Alpha Vantage alcanzado (25 peticiones/dia). Reset a medianoche UTC.<br><br>Mensaje de Alpha Vantage: <em style="color:var(--text3);font-size:11px">'+limitMsg.slice(0,200)+'</em>', 'warn');
+      }
       return;
     }
-    // Detectar API key invalida
-    if(ov['Error Message'] && ov['Error Message'].includes('apikey')){
-      showMsg('⚠ API key de Alpha Vantage invalida. Ve a API Keys y comprueba tu key.', 'warn');
+    // Detectar API key invalida via Error Message
+    if(ov['Error Message']){
+      if(ov['Error Message'].toLowerCase().includes('api')){
+        showMsg('⚠ API key de Alpha Vantage invalida. Ve a <strong>API Keys</strong> y comprueba tu key.', 'warn');
+      } else {
+        showMsg('Ticker <strong>'+ticker+'</strong> no encontrado. Verifica que sea correcto (ej: META, NVDA, AAPL, MSFT).', 'error');
+      }
       return;
     }
-    // Detectar ticker no encontrado
+    // Ticker no encontrado
     if(!ov.Symbol){
       showMsg('Ticker <strong>'+ticker+'</strong> no encontrado. Verifica que sea correcto (ej: META, NVDA, AAPL, MSFT).', 'error');
       return;
