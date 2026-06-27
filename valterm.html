@@ -256,7 +256,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.8</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.9</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -306,7 +306,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
         <div id="sourceStatusBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center"></div>
         <!-- SCORE + 52W -->
         <div class="grid2" style="margin-top:0">
-          <div class="card"><div class="card-title"><i class="ti ti-gauge"></i> VALTERM Score</div><div id="scoreCard"></div></div>
+          <div class="card"><div class="card-title"><i class="ti ti-chart-infographic"></i> Indicadores clave</div><div id="scoreCard"></div></div>
           <div class="card"><div class="card-title"><i class="ti ti-arrows-horizontal"></i> Rango 52 semanas</div><div id="range52Card"></div></div>
         </div>
         <!-- MARGEN DE SEGURIDAD — protagonista -->
@@ -950,6 +950,13 @@ function mergeData(ticker, av, fh){
     quarterly, annualRev, g, wacc, fcf, beta,
     forwardPE, refPER, sectorPER, sectorEVEB,
     epsGrowthYoy, ebitdaAbs, sharesOut, bookValue, roe,
+    profitMargin: av?parseFloat(av.ov.ProfitMargin||0):(fh?parseFloat(fh.metrics?.metric?.netProfitMarginTTM||0)/100:0),
+    roa: av?parseFloat(av.ov.ReturnOnAssetsTTM||0):(fh?parseFloat(fh.metrics?.metric?.roaTTM||0)/100:0),
+    pegRatio: av?parseFloat(av.ov.PEGRatio||0):(fh?parseFloat(fh.metrics?.metric?.pegNormalizedAnnual||0):0),
+    divYield: av?parseFloat(av.ov.DividendYield||0):0,
+    divPerShare: av?parseFloat(av.ov.DividendPerShare||0):0,
+    exDivDate: av?(av.ov.ExDividendDate||''):'',
+    revGrowthYoy: av?parseFloat(av.ov.QuarterlyRevenueGrowthYOY||0):(fh?parseFloat(fh.metrics?.metric?.revenueGrowthTTMYoy||0)/100:0),
     sources,
     hasFH: !!fh, hasAV: !!av,
   };
@@ -1039,31 +1046,29 @@ function calcScore(d){
 }
 
 function renderScoreCard(d){
-  const sc=calcScore(d);
-  const col=sc.total>=65?'var(--teal)':sc.total>=40?'var(--amber)':'var(--red)';
-  const verdict=sc.total>=65?'FAVORABLE':sc.total>=40?'NEUTRAL':'DESFAVORABLE';
-  const circ=138.2, offset=(1-sc.total/100)*circ;
-  const bars=[
-    {label:'Valor (MdS)',val:sc.mos,max:35,color:'var(--teal)'},
-    {label:'Analistas',val:sc.analyst,max:25,color:'#60A5FA'},
-    {label:'Earnings',val:sc.earnings,max:25,color:'var(--purple)'},
-    {label:'Fundament.',val:sc.fund,max:15,color:'var(--amber)'},
-  ];
-  return`<div class="score-wrap">
-    <div class="score-ring-outer">
-      <svg viewBox="0 0 54 54" width="80" height="80">
-        <circle cx="27" cy="27" r="22" fill="none" stroke="var(--bg4)" stroke-width="5"/>
-        <circle cx="27" cy="27" r="22" fill="none" stroke="${col}" stroke-width="5" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset 1s ease"/>
-      </svg>
-      <div class="score-ring-inner">
-        <div style="font-family:var(--mono);font-size:20px;font-weight:900;color:${col};line-height:1">${sc.total}</div>
-        <div style="font-size:8px;color:var(--text3);margin-top:1px">/100</div>
+  const kpi=(label,val,sub,col)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <span style="font-size:13px;color:var(--text3)">${label}</span>
+      <div style="text-align:right">
+        <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:${col||'var(--text)'}">${val}</span>
+        ${sub?`<span style="font-size:11px;color:var(--text3);margin-left:6px">${sub}</span>`:''}
       </div>
-    </div>
-    <div class="score-bars">
-      <div style="font-size:12px;font-weight:700;color:${col};margin-bottom:9px;letter-spacing:.5px">${verdict}</div>
-      ${bars.map(b=>`<div class="score-bar-row"><span class="score-bar-label">${b.label}</span><div class="score-bar-track"><div class="score-bar-fill" style="width:${b.val/b.max*100}%;background:${b.color}"></div></div><span class="score-bar-pts">${b.val}/${b.max}</span></div>`).join('')}
-    </div>
+    </div>`;
+  const pct=v=>v?`${(v*100).toFixed(1)}%`:'—';
+  const na=v=>v&&v!==0?v:'—';
+  const divStr=d.divYield>0?`${(d.divYield*100).toFixed(2)}% ($${fmt(d.divPerShare)})`:'No paga';
+  const pegCol=d.pegRatio>0?(d.pegRatio<1?'var(--teal)':d.pegRatio<2?'var(--amber)':'var(--red)'):'var(--text)';
+  const roeCol=d.roe>0?(d.roe>0.15?'var(--teal)':d.roe>0.08?'var(--amber)':'var(--red)'):'var(--text)';
+  const mrgCol=d.profitMargin>0?(d.profitMargin>0.15?'var(--teal)':d.profitMargin>0.05?'var(--amber)':'var(--red)'):'var(--text)';
+  const betaCol=d.beta?(d.beta<1?'var(--teal)':d.beta<1.5?'var(--amber)':'var(--red)'):'var(--text)';
+  return`<div style="padding:0 2px">
+    ${kpi('ROE — Rentab. capital',   pct(d.roe),    '',        roeCol)}
+    ${kpi('Margen neto',             pct(d.profitMargin),'',  mrgCol)}
+    ${kpi('Crec. EPS (YoY)',         pct(d.epsGrowthYoy),'', d.epsGrowthYoy>0?'var(--teal)':'var(--red)')}
+    ${kpi('PEG Ratio',               d.pegRatio>0?fmt(d.pegRatio,2):'—','<1 = barata',pegCol)}
+    ${kpi('Beta',                    d.beta?fmt(d.beta,2):'—','volatilidad',betaCol)}
+    ${kpi('Dividendo',               divStr,'',     d.divYield>0?'var(--teal)':'var(--text3)')}
+    ${d.exDivDate?kpi('Ex-dividendo',d.exDivDate,'','var(--text2)'):''}
   </div>`;
 }
 
