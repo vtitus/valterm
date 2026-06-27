@@ -227,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.3</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.5</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -653,7 +653,10 @@ async function fetchAV(ticker){
       if(note.toLowerCase().includes('api key')||note.toLowerCase().includes('invalid')){
         keyStatus.av={ok:false,msg:'API key invalida — verifica en alphavantage.co'};
       } else {
-        keyStatus.av={ok:false,msg:'Limite diario alcanzado (25/dia) — reset a las 2:00 AM UTC'};
+        localStorage.setItem(todayKey(),'0');
+        updateReqUI();
+        keyStatus.av={ok:false,msg:'Limite diario confirmado por AV — contador reseteado. Usando Finnhub.'};
+        toast('⚠ AV confirmó límite diario — contador reseteado. Continuando con Finnhub.',4000);
       }
       throw new Error('AV limit');
     }
