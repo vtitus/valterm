@@ -251,7 +251,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.4</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.6</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -509,6 +509,7 @@ let geminiKey  = localStorage.getItem('valterm_gemini') || '';
 let orKey      = localStorage.getItem('valterm_or')     || '';
 let groqKey    = localStorage.getItem('valterm_groq')   || '';
 let eurRate    = null;
+let valMethod  = localStorage.getItem('valterm_val_method')||'avg';
 let data       = null;
 let earMode    = 'quarterly';
 let keyStatus  = { av: null, fh: null, gemini: null, or: null, groq: null };
@@ -865,12 +866,70 @@ function mergeData(ticker, av, fh){
     }));
   }
 
-  // Calculos
-  const g=0.08, wacc=0.09, fcf=eps*0.65>0?eps*0.65:2;
-  const dcfVal=calcDCF(fcf,g,wacc,0.025);
-  const perVal=eps*(per>0?Math.min(per,40):20);
-  const evEbVal=eps*(evEb>0?Math.min(evEb,25):15);
-  const grahamVal=calcGraham(eps,g*100,4.4);
+  // ── CÁLCULOS DE VALORACIÓN CON DATOS REALES ──────────────────────────────
+  const SECTOR_PER={
+    'Technology':28,'Information Technology':28,'Software':30,
+    'Healthcare':22,'Health Care':22,'Biotechnology':25,
+    'Financial Services':14,'Financials':14,'Finance':14,'Banking':12,
+    'Consumer Cyclical':18,'Consumer Discretionary':18,
+    'Consumer Defensive':20,'Consumer Staples':20,
+    'Energy':12,'Oil & Gas':11,
+    'Utilities':16,'Real Estate':22,'REIT':22,
+    'Communication Services':22,'Telecommunications':18,
+    'Industrials':19,'Basic Materials':13,'Materials':13,
+  };
+  const SECTOR_EVEB={
+    'Technology':22,'Information Technology':22,'Software':25,
+    'Healthcare':16,'Health Care':16,'Biotechnology':20,
+    'Financial Services':10,'Financials':10,'Finance':10,
+    'Consumer Cyclical':13,'Consumer Discretionary':13,
+    'Consumer Defensive':14,'Consumer Staples':14,
+    'Energy':8,'Oil & Gas':7,
+    'Utilities':11,'Real Estate':20,'REIT':20,
+    'Communication Services':17,'Telecommunications':14,
+    'Industrials':14,'Basic Materials':10,'Materials':10,
+  };
+
+  // Tasa de crecimiento real — prioridad: YoY AV > métricas FH > PEG > default conservador
+  let epsGrowthYoy=0;
+  if(av) epsGrowthYoy=parseFloat(av.ov.QuarterlyEarningsGrowthYOY||0);
+  if(!epsGrowthYoy&&fh){const m=fh.metrics?.metric||{};epsGrowthYoy=(parseFloat(m.epsGrowth3Y||m.revenueGrowthTTMYoy||0))/100;}
+  let pegRatio=av?parseFloat(av.ov.PEGRatio||0):0;
+  if(pegRatio<=0&&fh) pegRatio=parseFloat(fh.metrics?.metric?.pegNormalizedAnnual||0);
+  const pegGrowth=(pegRatio>0&&per>0)?(per/pegRatio/100):0;
+  const g=Math.min(0.30,Math.max(0.02,epsGrowthYoy||pegGrowth||0.06));
+
+  // WACC ajustado por Beta real (risk-free 4.5% + beta × prima 5.5%)
+  let beta=av?parseFloat(av.ov.Beta||1.0):1.0;
+  if(beta<=0||beta>3.5) beta=1.0;
+  if(!beta&&fh) beta=parseFloat(fh.metrics?.metric?.beta||1.0);
+  const wacc=Math.min(0.15,Math.max(0.07,0.045+beta*0.055));
+
+  // DCF con crecimiento real y WACC real
+  const fcf=eps*0.65>0?eps*0.65:0;
+  const dcfVal=fcf>0?calcDCF(fcf,g,wacc,0.025):0;
+
+  // PER — ForwardPE si disponible, sino promedio sectorial (NO el PER propio)
+  const forwardPE=av?parseFloat(av.ov.ForwardPE||0):0;
+  const sectorPER=SECTOR_PER[sector]||17;
+  const refPER=(forwardPE>0&&forwardPE<80)?forwardPE:sectorPER;
+  const perVal=eps>0?eps*refPER:0;
+
+  // EV/EBITDA — EBITDA absoluto real × múltiplo sectorial / acciones
+  const sectorEVEB=SECTOR_EVEB[sector]||13;
+  const ebitdaAbs=av?parseFloat(av.ov.EBITDA||0):0;
+  const sharesOut=av?parseFloat(av.ov.SharesOutstanding||0):0;
+  let evEbVal=0;
+  if(ebitdaAbs>0&&sharesOut>0) evEbVal=(ebitdaAbs*sectorEVEB)/sharesOut;
+  else if(eps>0) evEbVal=eps*sectorEVEB;
+
+  // Graham — crecimiento real + yield bonos actual ~4.5%
+  const grahamVal=calcGraham(eps,g*100,4.5);
+
+  // P/B Justificado — Valor libro × (ROE / WACC)
+  const bookValue=av?parseFloat(av.ov.BookValue||0):(fh?parseFloat(fh.metrics?.metric?.bookValuePerShareQuarterly||0):0);
+  const roe=av?parseFloat(av.ov.ReturnOnEquityTTM||0):(fh?parseFloat(fh.metrics?.metric?.roeTTM||0)/100:0);
+  const pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
 
   const sources=[];
   if(av) sources.push('Alpha Vantage');
@@ -882,8 +941,10 @@ function mergeData(ticker, av, fh){
     eps, per, evEb, mktCap, high52, low52,
     aBuy, aHold, aSell, targetPrice, targetHigh, targetLow,
     analysts: buildAnalysts(targetPrice||price*1.1, aBuy, aHold, aSell, targetHigh, targetLow),
-    dcfVal, perVal, evEbVal, grahamVal,
-    quarterly, annualRev, g, wacc, fcf,
+    dcfVal, perVal, evEbVal, grahamVal, pbVal,
+    quarterly, annualRev, g, wacc, fcf, beta,
+    forwardPE, refPER, sectorPER, sectorEVEB,
+    epsGrowthYoy, ebitdaAbs, sharesOut, bookValue, roe,
     sources,
     hasFH: !!fh, hasAV: !!av,
   };
@@ -910,13 +971,25 @@ function calcDCF(fcf,g,wacc,gp){
 }
 function calcGraham(eps,gPct,y){ return eps>0?eps*(8.5+2*gPct)*4.4/y:0; }
 function avgVal(d){
-  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal].filter(v=>v>0&&isFinite(v)&&v<d.price*10);
+  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal,d.pbVal].filter(v=>v>0&&isFinite(v)&&v<d.price*15&&v>d.price*0.1);
   return vals.length>0?vals.reduce((a,b,_,arr)=>a+b/arr.length,0):0;
+}
+function getValForMethod(d,method){
+  if(method==='dcf')    return d.dcfVal||0;
+  if(method==='per')    return d.perVal||0;
+  if(method==='eveb')   return d.evEbVal||0;
+  if(method==='graham') return d.grahamVal||0;
+  if(method==='pb')     return d.pbVal||0;
+  return avgVal(d);
+}
+function setValMethod(m){
+  valMethod=m; localStorage.setItem('valterm_val_method',m);
+  if(data){ renderOverview(); renderValoracion(); }
 }
 
 // ── VALTERM SCORE ─────────────────────────────────────────────────────────────
 function calcScore(d){
-  const avg=avgVal(d);
+  const avg=getValForMethod(d,valMethod);
   const mos=avg>0?(avg-d.price)/avg*100:0;
   const mosScore=mos>30?35:mos>20?28:mos>10?20:mos>0?10:0;
   const total=(d.aBuy||0)+(d.aHold||0)+(d.aSell||0)||1;
@@ -1073,7 +1146,7 @@ function renderAll(){
 }
 
 function mosHTML(d){
-  const avg=avgVal(d);
+  const avg=getValForMethod(d,valMethod);
   const pot=avg>0?(avg-d.price)/d.price*100:0;
   const mos=avg>0?(avg-d.price)/avg*100:0;
   const priceEur=toEur(d.price), avgEur=toEur(avg);
@@ -1084,7 +1157,21 @@ function mosHTML(d){
   else{verdict='SOBREVALORADA';col='var(--red)';bgCol='#FF4D6A22';zone='Sin margen de seguridad';}
   const barW=Math.min(100,Math.max(0,mos>0?Math.min(mos/50*100,100):0));
   const srcBadges=d.sources.map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='DEMO'?'src-demo':'src-ai'}">${s}</span>`).join('');
+  const methodLabel={'avg':'MEDIA','dcf':'DCF','per':'PER','eveb':'EV/EBITDA','graham':'GRAHAM','pb':'P/B'}[valMethod]||'MEDIA';
+  const allMethods=[
+    {k:'avg',  l:'MEDIA',    v:avgVal(d)},
+    {k:'dcf',  l:'DCF',      v:d.dcfVal},
+    {k:'per',  l:'PER',      v:d.perVal},
+    {k:'eveb', l:'EV/EB',    v:d.evEbVal},
+    {k:'graham',l:'GRAHAM',  v:d.grahamVal},
+    {k:'pb',   l:'P/B',      v:d.pbVal},
+  ].filter(m=>m.v>0);
+  const tabs=allMethods.map(m=>`<button onclick="setValMethod('${m.k}')" style="background:${valMethod===m.k?'var(--accent-dim)':'transparent'};border:1px solid ${valMethod===m.k?'var(--accent)':'var(--bd)'};color:${valMethod===m.k?'var(--accent)':'var(--text3)'};border-radius:8px;padding:4px 11px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--mono);letter-spacing:1px;transition:all .15s">${m.l}</button>`).join('');
   return `
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-right:4px">Método</span>
+      ${tabs}
+    </div>
     <div class="mos-left">
       <div class="mos-label">Precio actual</div>
       <div class="mos-price" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">$${fmt(d.price)}</div>
@@ -1101,14 +1188,11 @@ function mosHTML(d){
       <div class="mos-zone-label">${zone}</div>
     </div>
     <div class="mos-right">
-      <div class="mos-label" style="text-align:right">Valor intrinseco medio</div>
+      <div class="mos-label" style="text-align:right">Valor intrínseco — ${methodLabel}</div>
       <div class="mos-price" style="color:var(--teal);text-align:right">$${fmt(avg)}</div>
-      ${avgEur?`<div class="mos-eur">€${fmt(avgEur)}</div>`:''}
-      <div style="font-size:10px;color:var(--text3);margin-top:10px;text-align:right;line-height:2">
-        DCF: $${fmt(d.dcfVal)}<br>
-        PER: $${fmt(d.perVal)}<br>
-        EV/EBITDA: $${fmt(d.evEbVal)}<br>
-        Graham: $${fmt(d.grahamVal)}
+      ${avgEur?`<div class="mos-eur" style="text-align:right">€${fmt(avgEur)}</div>`:''}
+      <div style="font-size:10px;color:var(--text3);margin-top:10px;text-align:right;line-height:2.1">
+        ${allMethods.filter(m=>m.k!=='avg').map(m=>`<span style="color:${valMethod===m.k?'var(--accent)':'var(--text3)'};font-weight:${valMethod===m.k?'700':'400'}">${m.l}: $${fmt(m.v)}</span>`).join('<br>')}
       </div>
     </div>`;
 }
@@ -1216,7 +1300,7 @@ function renderRevenueTable(){
 function renderValoracion(){
   const d=data;
   const avg=avgVal(d);
-  const methods=[{name:'DCF 10 años',val:d.dcfVal},{name:'PER múltiplo',val:d.perVal},{name:'EV/EBITDA',val:d.evEbVal},{name:'Graham',val:d.grahamVal}];
+  const methods=[{name:'DCF 10 años',val:d.dcfVal},{name:`PER ${d.forwardPE>0?'Forward':'Sectorial'}`,val:d.perVal},{name:'EV/EBITDA Sect.',val:d.evEbVal},{name:'Graham',val:d.grahamVal},{name:'P/B Justificado',val:d.pbVal}].filter(m=>m.val>0);
   const maxV=Math.max(...methods.map(m=>m.val),d.price)*1.1;
 
   document.getElementById('mosCard2').innerHTML = mosHTML(d);
@@ -1231,8 +1315,22 @@ function renderValoracion(){
     }).join('')+
     (avg>0?`<div class="val-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:8px"><span class="val-method" style="color:var(--text);font-weight:700">MEDIA</span><div class="val-bar-track"><div class="val-bar-fill" style="width:${Math.min(95,Math.max(4,(avg/maxV)*90))}%;background:var(--teal)"></div></div><span class="val-price" style="color:var(--teal)">$${fmt(avg)}${toEur(avg)?` <span style="font-size:10px;color:var(--text3)">/ €${fmt(toEur(avg))}</span>`:''}</span><span class="val-pot" style="color:${clr((avg-d.price)/d.price*100)}">${sign((avg-d.price)/d.price*100)}${fmt((avg-d.price)/d.price*100,1)}%</span></div>`:'');
 
+  const growthSrc=d.epsGrowthYoy?'YoY AV real':d.forwardPE>0?'PEG implícito':'Estimado conservador';
+  const perSrc=d.forwardPE>0?`ForwardPE real (${fmt(d.forwardPE,1)}x)`:`Sector ${d.sector} (${d.refPER}x)`;
+  const evebSrc=d.ebitdaAbs>0&&d.sharesOut>0?`EBITDA real $${fmt(d.ebitdaAbs/1e9,1)}B / ${fmt(d.sharesOut/1e6,0)}M acc.`:`EPS × ${d.sectorEVEB}x (sin EBITDA absoluto)`;
+  const pbSrc=d.pbVal>0?`Book $${fmt(d.bookValue)} × ROE ${fmt(d.roe*100,1)}% / WACC ${fmt(d.wacc*100,1)}%`:'Sin datos suficientes';
   document.getElementById('valParamsWrap').innerHTML=
-    `FCF base: $${fmt(d.fcf)}<br>Crecim. g (1-5 años): ${fmt(d.g*100,1)}%<br>WACC: ${fmt(d.wacc*100,1)}%<br>Crecim. terminal: 2.5%<br>PER referencia: ${fmt(d.per,1)}x<br>EV/EBITDA ref.: ${fmt(d.evEb,1)}x<br>Rf (Graham): 4.4%<br>Eps base: $${fmt(d.eps)}`;
+    `<span style="color:var(--accent);font-weight:700">DCF</span><br>
+FCF base: $${fmt(d.fcf)} | Crec. real: ${fmt(d.g*100,1)}% (${growthSrc})<br>
+Beta: ${fmt(d.beta,2)} → WACC: ${fmt(d.wacc*100,1)}% | Terminal: 2.5%<br><br>
+<span style="color:var(--accent);font-weight:700">PER</span><br>
+Ref: ${perSrc}<br><br>
+<span style="color:var(--accent);font-weight:700">EV/EBITDA</span><br>
+${evebSrc}<br>Múltiplo sectorial: ${d.sectorEVEB}x<br><br>
+<span style="color:var(--accent);font-weight:700">Graham</span><br>
+EPS $${fmt(d.eps)} | Crec. ${fmt(d.g*100,1)}% | Yield bonos: 4.5%<br><br>
+<span style="color:var(--accent);font-weight:700">P/B Justificado</span><br>
+${pbSrc}`;
 }
 
 // ── ANALISTAS ─────────────────────────────────────────────────────────────────
