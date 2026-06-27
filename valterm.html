@@ -263,7 +263,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.2</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -276,7 +276,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
       <div class="dot-item"><div class="dot" id="dotAV"></div><span>AV</span></div>
       <div class="dot-item"><div class="dot" id="dotFH"></div><span>FH</span></div>
       <div class="dot-item"><div class="dot" id="dotGM"></div><span>GM</span></div>
-      <div class="dot-item"><div class="dot" id="dotOR"></div><span>OR</span></div>
       <div class="dot-item"><div class="dot" id="dotGQ"></div><span>GQ</span></div>
     </div>
     <button class="btn-ghost" onclick="showPanel('settings')" style="padding:4px 8px"><i class="ti ti-settings"></i></button>
@@ -486,17 +485,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
         <div class="toggle-row"><span class="toggle-label">Usar Groq para análisis IA</span><label class="toggle"><input type="checkbox" id="groqToggle" onchange="setToggle('groq',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-robot"></i> OpenRouter — IA alternativa <span class="source-tag" style="color:var(--amber);border-color:var(--amber)30">OR</span></div>
-        <p style="font-size:12px;color:var(--text2);line-height:1.7">Fallback automático cuando Gemini falla o agota su quota. Usa modelos gratuitos como <strong>Llama 3.1</strong>. Sin limite diario. Key gratuita: <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--amber)">openrouter.ai</a> → Create Key</p>
-        <div class="input-row">
-          <input type="password" class="settings-input" id="orKeyInput" placeholder="sk-or-..." />
-          <button class="btn" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="guardarOR()">GUARDAR</button>
-          <button class="btn-ghost" onclick="borrarOR()">BORRAR</button>
-        </div>
-        <div class="status-note"><div class="dot" id="orDot"></div><span id="orNote">Sin key — fallback IA no disponible</span></div>
-        <div class="toggle-row"><span class="toggle-label">Usar OpenRouter para análisis IA</span><label class="toggle"><input type="checkbox" id="orToggle" onchange="setToggle('or',this.checked)"><div class="toggle-slider"></div></label></div>
-      </div>
-      <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Logica de fuentes</div>
         <div style="font-size:12px;color:var(--text2);line-height:2.2">
           <span style="color:var(--teal)">●</span> <strong>Solo AV:</strong> fundamentales + earnings historicos + analistas de AV<br>
@@ -530,7 +518,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 let avKey      = localStorage.getItem('valterm_av')     || '';
 let fhKey      = localStorage.getItem('valterm_fh')     || '';
 let geminiKey  = localStorage.getItem('valterm_gemini') || '';
-let orKey      = localStorage.getItem('valterm_or')     || '';
 let groqKey    = localStorage.getItem('valterm_groq')   || '';
 let eurRate    = null;
 let valMethod  = localStorage.getItem('valterm_val_method')||'avg';
@@ -541,13 +528,10 @@ let avBlockedThisSession = false;
 let avEnabled     = localStorage.getItem('valterm_av_on')!=='false';
 let geminiEnabled = localStorage.getItem('valterm_gm_on')!=='false';
 let groqEnabled   = localStorage.getItem('valterm_gq_on')!=='false';
-let orEnabled     = localStorage.getItem('valterm_or_on')==='true'; // off by default — free models unreliable
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
-const OR      = 'https://openrouter.ai/api/v1/chat/completions';
 const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
-const OR_MODELS=['google/gemma-2-9b-it:free','mistralai/mistral-7b-instruct:free','deepseek/deepseek-r1-0528:free','meta-llama/llama-3.3-70b-instruct:free'];
 const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
 
 // ── FORMATO ─────────────────────────────────────────────────────────────────
@@ -611,13 +595,7 @@ function guardarGemini(){
   if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de Gemini?`)) renderAnalysis();
 }
 function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
-function guardarOR(){
-  const v=document.getElementById('orKeyInput').value.trim();
-  if(!v){toast('Pega tu OpenRouter key primero');return;}
-  orKey=v; localStorage.setItem('valterm_or',v); updateKeyUI(); toast('OpenRouter key guardada — IA alternativa activa');
-  if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de OpenRouter?`)) renderAnalysis();
-}
-function borrarOR(){ orKey=''; localStorage.removeItem('valterm_or'); document.getElementById('orKeyInput').value=''; updateKeyUI(); toast('OpenRouter key eliminada'); }
+
 function guardarGroq(){
   const v=document.getElementById('groqKeyInput').value.trim();
   if(!v){toast('Pega tu Groq key primero');return;}
@@ -630,9 +608,8 @@ function setToggle(src,val){
   if(src==='av'){avEnabled=val;localStorage.setItem('valterm_av_on',val);}
   else if(src==='gemini'){geminiEnabled=val;localStorage.setItem('valterm_gm_on',val);}
   else if(src==='groq'){groqEnabled=val;localStorage.setItem('valterm_gq_on',val);}
-  else if(src==='or'){orEnabled=val;localStorage.setItem('valterm_or_on',val);}
   renderQuickToggles();
-  if(data&&(src==='gemini'||src==='groq'||src==='or')) renderAnalysis();
+  if(data&&(src==='gemini'||src==='groq')) renderAnalysis();
 }
 
 function renderStartupSources(){
@@ -643,7 +620,6 @@ function renderStartupSources(){
     {key:'fh',     label:'Finnhub',       icon:'ti-chart-dots',   hasKey:!!fhKey,     enabled:true,          cost:'Gratis',  limit:'60 peticiones/min',   col:'#A855F7', what:'Precio en tiempo real, analistas, precio objetivo'},
     {key:'gemini', label:'Gemini',        icon:'ti-robot',         hasKey:!!geminiKey, enabled:geminiEnabled, cost:'Gratis',  limit:'1.500 análisis/día',  col:'var(--teal)', what:'Análisis cualitativo generado por IA'},
     {key:'groq',   label:'Groq',          icon:'ti-bolt',          hasKey:!!groqKey,   enabled:groqEnabled,   cost:'Gratis',  limit:'Sin límite estricto', col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma)'},
-    {key:'or',     label:'OpenRouter',    icon:'ti-world',         hasKey:!!orKey,     enabled:orEnabled,     cost:'Gratis*', limit:'Modelos gratuitos',   col:'#64748B', what:'IA alternativa — modelos gratuitos frecuentemente no disponibles', warn:true},
   ];
   if(srcs.every(s=>!s.hasKey)){
     el.innerHTML=`<div style="text-align:center;color:var(--text3);font-size:13px;margin-top:8px">
@@ -677,7 +653,6 @@ function renderQuickToggles(){
     {key:'av',   label:'AV',          hasKey:!!avKey,     enabled:avEnabled},
     {key:'gemini',label:'GEMINI',     hasKey:!!geminiKey, enabled:geminiEnabled},
     {key:'groq', label:'GROQ',        hasKey:!!groqKey,   enabled:groqEnabled},
-    {key:'or',   label:'OPENROUTER',  hasKey:!!orKey,     enabled:orEnabled},
   ].filter(s=>s.hasKey);
   if(!srcs.length){el.style.display='none';return;}
   el.style.display='flex';
@@ -694,9 +669,9 @@ function qtToggle(key,btn){
 }
 
 function updateKeyUI(){
-  const av=!!avKey, fh=!!fhKey, gm=!!geminiKey, or_=!!orKey;
+  const av=!!avKey, fh=!!fhKey, gm=!!geminiKey;
   function set(id,live){ const d=document.getElementById(id); if(d) d.className=live?'dot live':'dot'; }
-  set('dotAV', av); set('dotFH', fh); set('dotGM', gm); set('dotOR', or_);
+  set('dotAV', av); set('dotFH', fh); set('dotGM', gm);
   document.getElementById('avDot').className  = av?'dot live':'dot';
   document.getElementById('avNote').textContent= av?'API key configurada':'Sin key — ve a alphavantage.co';
   if(av) document.getElementById('avKeyInput').value=avKey;
@@ -706,9 +681,6 @@ function updateKeyUI(){
   document.getElementById('geminiDot').className  = gm?'dot live':'dot';
   document.getElementById('geminiNote').textContent= gm?'Gemini configurado — analisis IA activo':'Sin key — analisis por plantilla automatica';
   if(gm) document.getElementById('geminiKeyInput').value=geminiKey;
-  document.getElementById('orDot').className  = or_?'dot live':'dot';
-  document.getElementById('orNote').textContent= or_?'OpenRouter activo — fallback IA disponible':'Sin key — ve a openrouter.ai';
-  if(or_) document.getElementById('orKeyInput').value=orKey;
   const gq=!!groqKey;
   set('dotGQ',gq);
   document.getElementById('groqDot').className = gq?'dot live':'dot';
@@ -717,7 +689,6 @@ function updateKeyUI(){
   document.getElementById('avToggle').checked=avEnabled;
   document.getElementById('geminiToggle').checked=geminiEnabled;
   document.getElementById('groqToggle').checked=groqEnabled;
-  document.getElementById('orToggle').checked=orEnabled;
   renderQuickToggles();
 }
 
@@ -1198,7 +1169,6 @@ function renderSourceStatus(){
     {label:'Alpha Vantage', key:'av',     color:'#60A5FA'},
     {label:'Finnhub',       key:'fh',     color:'#C084FC'},
     {label:'Gemini IA',     key:'gemini', color:'var(--teal)'},
-    {label:'OpenRouter',    key:'or',     color:'var(--amber)'},
     {label:'Groq IA',       key:'groq',   color:'#F97316'},
   ];
   bar.style.display='flex';
@@ -1208,7 +1178,7 @@ function renderSourceStatus(){
       : s.ok===true  ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;flex-shrink:0"></span>`
       : s.ok===false ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>`
       :                `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`;
-    const hasKey = it.key==='av'?!!avKey:it.key==='fh'?!!fhKey:it.key==='gemini'?!!geminiKey:it.key==='or'?!!orKey:!!groqKey;
+    const hasKey = it.key==='av'?!!avKey:it.key==='fh'?!!fhKey:it.key==='gemini'?!!geminiKey:!!groqKey;
     const msg = s ? s.msg : hasKey ? 'Key configurada — no utilizada en esta búsqueda' : 'Sin key';
     const col = s?.ok===true ? 'var(--text2)' : s?.ok===false ? 'var(--red)' : 'var(--text3)';
     return `<div style="display:flex;align-items:center;gap:7px;font-size:12px">${dot}<span style="color:${it.color};font-weight:700">${it.label}</span><span style="color:${col}">${msg}</span></div>`;
@@ -1510,7 +1480,6 @@ async function renderAnalysis(){
   const jobs=[];
   if(geminiKey&&geminiEnabled) jobs.push(runGemini().catch(()=>null));
   if(groqKey&&groqEnabled) jobs.push(runGroq().catch(()=>null));
-  if(orKey&&orEnabled) jobs.push(runOpenRouter().catch(()=>null));
   await Promise.all(jobs);
   renderSourceStatus();
 
@@ -1629,71 +1598,6 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
   }
 }
 
-async function runOpenRouter(){
-  const d=data;
-  const avg=avgVal(d);
-  const mos=avg>0?(avg-d.price)/avg*100:0;
-  const pot=avg>0?(avg-d.price)/d.price*100:0;
-  const beats=d.quarterly.filter(q=>q.actual>q.estimated).length;
-  const buys=d.analysts.filter(a=>a.rating==='BUY').length;
-  const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
-  const sells=d.analysts.filter(a=>a.rating==='SELL').length;
-  const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
-
-  const prompt=`Eres un analista de inversiones senior. Redacta un analisis fundamental profesional en español de 6-7 frases. Texto corrido, sin listas ni markdown. Sé directo y con criterio propio.
-
-Empresa: ${d.name} (${d.ticker}) | Sector: ${d.sector}
-Precio actual: $${fmt(d.price)} | Mkt Cap: $${fmt(d.mktCap,1)}B
-Fundamentales: EPS $${fmt(d.eps)} | PER ${fmt(d.per,1)}x | EV/EBITDA ${fmt(d.evEb,1)}x
-52 semanas: $${fmt(d.low52)} — $${fmt(d.high52)}
-
-Valoracion intrinseca (4 metodos):
-- DCF 10 años: $${fmt(d.dcfVal)}
-- PER múltiplo: $${fmt(d.perVal)}
-- EV/EBITDA: $${fmt(d.evEbVal)}
-- Graham: $${fmt(d.grahamVal)}
-- MEDIA: $${fmt(avg)} → potencial ${pot>=0?'+':''}${fmt(pot,1)}%
-- Margen de seguridad: ${fmt(mos,1)}% ${mos>25?'(ZONA DE COMPRA)':mos>10?'(moderado)':mos>0?'(minimo)':'(SOBREVALORADA)'}
-
-Analistas: ${buys} BUY · ${holds} HOLD · ${sells} SELL
-Precio objetivo consenso: $${fmt(avgTp)} (upside ${fmt((avgTp-d.price)/d.price*100,1)}%)
-Historial earnings: ${beats}/${d.quarterly.length} trimestres superando estimaciones
-
-Cubre: calidad del negocio, si la valoracion es razonable, margen de seguridad, riesgos principales y conclusion.`;
-
-  let text='', usedModel='';
-  for(const model of OR_MODELS){
-    try{
-      const res=await fetch(OR,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${orKey}`,'HTTP-Referer':'https://vtitus.github.io/valterm/','X-Title':'VALTERM'},
-        body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:700})
-      });
-      const json=await res.json();
-      if(json.error){
-        const msg=json.error.message||'';
-        if(msg.includes('key')||msg.includes('auth')||msg.includes('Unauthorized')||msg.includes('401')){
-          keyStatus.or={ok:false,msg:'Key invalida — verifica en openrouter.ai/keys'};
-          renderSourceStatus(); throw new Error(keyStatus.or.msg);
-        }
-        continue; // modelo no disponible, probar el siguiente
-      }
-      const t=json.choices?.[0]?.message?.content||'';
-      if(t){ text=t; usedModel=model.split('/')[1]||model; break; }
-    }catch(e){ if(e.message.includes('Key invalida')) throw e; }
-  }
-  if(!text){
-    keyStatus.or={ok:false,msg:'Ningún modelo gratuito disponible — prueba mañana'};
-    renderSourceStatus(); throw new Error('Sin modelos disponibles');
-  }
-  keyStatus.or={ok:true,msg:`Análisis generado con ${usedModel} (OpenRouter)`};
-  aiResults.or={
-    text,
-    badge:`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`,
-    badgeLabel:'OPENROUTER',
-    sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`
-  };
-}
 
 function renderTemplate(){
   if(!keyStatus.gemini) keyStatus.gemini={ok:null,msg:'No configurada — analisis por plantilla automatica'};
