@@ -246,6 +246,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:1px;background:var(--text3);border-radius:50%;transition:all .25s}
 .toggle input:checked+.toggle-slider{background:var(--teal-dim);border-color:var(--teal)}
 .toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:var(--teal);box-shadow:0 0 6px var(--teal-glow)}
+/* ── PICKER ── */
+.picker-section{margin-bottom:22px}
+.picker-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:10px}
+.picker-chips{display:flex;flex-wrap:wrap;gap:8px}
+.picker-chip{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--sans)}
+.picker-chip .p-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:all .18s}
+.picker-chip.p-on{border-color:var(--pc,var(--teal));color:var(--text);background:color-mix(in srgb,var(--pc,var(--teal)) 10%,transparent)}
+.picker-chip.p-on .p-dot{background:var(--pc,var(--teal));box-shadow:0 0 6px var(--pc,var(--teal))}
+.picker-chip:hover{border-color:var(--pc,var(--teal));color:var(--text)}
 /* ── COLLAPSIBLE ── */
 .sec-collapse{display:none;flex-direction:column;gap:16px}.sec-collapse.open{display:flex}
 .sec-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border2);color:var(--text3);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:11px 20px;border-radius:10px;cursor:pointer;transition:all .2s;font-family:var(--sans)}
@@ -263,7 +272,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.2</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.3</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -275,6 +284,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
     <div class="dots-row">
       <div class="dot-item"><div class="dot" id="dotAV"></div><span>AV</span></div>
       <div class="dot-item"><div class="dot" id="dotFH"></div><span>FH</span></div>
+      <div class="dot-item"><div class="dot" id="dotFMP"></div><span>FMP</span></div>
       <div class="dot-item"><div class="dot" id="dotGM"></div><span>GM</span></div>
       <div class="dot-item"><div class="dot" id="dotGQ"></div><span>GQ</span></div>
     </div>
@@ -306,6 +316,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
         <p style="margin-bottom:28px">Introduce un ticker y pulsa <strong>BUSCAR</strong> · Pulsa <strong>DEMO</strong> para ver un ejemplo</p>
         <div id="startupSources" style="max-width:560px;margin:0 auto;text-align:left"></div>
       </div>
+      <div id="picker-overview" style="display:none"></div>
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header"></div>
         <div id="sourceStatusBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center"></div>
@@ -462,6 +473,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
         <div class="status-note"><div class="dot" id="fhDot"></div><span id="fhNote">Sin key</span></div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="ti ti-chart-candle"></i> Financial Modeling Prep — Datos + DCF real <span class="source-tag" style="color:#34D399;border-color:#34D39930">FMP</span></div>
+        <p style="font-size:12px;color:var(--text2);line-height:1.7">Fundamentales completos + <strong>DCF ya calculado con datos reales</strong>: EPS, PER, EV/EBITDA, ROE, ROA, PEG, precio objetivo de analistas, earnings trimestrales. Gratis: <strong>250 peticiones/día</strong> (= 50 búsquedas/día).</p>
+        <p style="font-size:11px;color:var(--text3);margin-top:4px">Key gratuita: <a href="https://financialmodelingprep.com/developer/docs" target="_blank" style="color:#34D399">financialmodelingprep.com</a> → Register → Dashboard → API Key</p>
+        <div class="input-row">
+          <input type="text" class="settings-input" id="fmpKeyInput" placeholder="Pega tu API key de FMP..." />
+          <button class="btn" style="background:linear-gradient(135deg,#34D399,#059669)" onclick="guardarFMP()">GUARDAR</button>
+          <button class="btn-ghost" onclick="borrarFMP()">BORRAR</button>
+        </div>
+        <div class="status-note"><div class="dot" id="fmpDot"></div><span id="fmpNote">Sin key</span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar FMP en búsquedas</span><label class="toggle"><input type="checkbox" id="fmpToggle" onchange="setToggle('fmp',this.checked)"><div class="toggle-slider"></div></label></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="ti ti-robot"></i> Google Gemini — Analisis IA <span class="source-tag src-ai">AI</span></div>
         <p style="font-size:12px;color:var(--text2);line-height:1.7">Genera un analisis cualitativo profesional: tesis de inversion, riesgos, posicion competitiva, interpretacion del margen de seguridad. Gratis: <strong>1.500 peticiones/dia</strong>.</p>
         <p style="font-size:11px;color:var(--text3);margin-top:4px">Key gratuita: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--teal)">aistudio.google.com</a> → Get API Key → Create API Key</p>
@@ -517,19 +540,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 // ── ESTADO ──────────────────────────────────────────────────────────────────
 let avKey      = localStorage.getItem('valterm_av')     || '';
 let fhKey      = localStorage.getItem('valterm_fh')     || '';
+let fmpKey     = localStorage.getItem('valterm_fmp')    || '';
 let geminiKey  = localStorage.getItem('valterm_gemini') || '';
 let groqKey    = localStorage.getItem('valterm_groq')   || '';
 let eurRate    = null;
 let valMethod  = localStorage.getItem('valterm_val_method')||'avg';
 let data       = null;
 let earMode    = 'quarterly';
-let keyStatus  = { av: null, fh: null, gemini: null, or: null, groq: null };
+let keyStatus  = { av: null, fh: null, fmp: null, gemini: null, groq: null };
 let avBlockedThisSession = false;
 let avEnabled     = localStorage.getItem('valterm_av_on')!=='false';
+let fmpEnabled    = localStorage.getItem('valterm_fmp_on')!=='false';
 let geminiEnabled = localStorage.getItem('valterm_gm_on')!=='false';
 let groqEnabled   = localStorage.getItem('valterm_gq_on')!=='false';
+// Picker — fuentes y métodos seleccionados (persisten)
+let srcPicker    = JSON.parse(localStorage.getItem('valterm_src')||'{"fmp":true,"av":true,"fh":true}');
+let methodPicker = JSON.parse(localStorage.getItem('valterm_mth')||'{"dcf":true,"per":true,"eveb":true,"graham":true,"pb":true}');
+let aiPicker     = JSON.parse(localStorage.getItem('valterm_aip')||'{"gemini":true,"groq":true}');
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
+const FMP_B   = 'https://financialmodelingprep.com/api/v3';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
@@ -604,11 +634,21 @@ function guardarGroq(){
 }
 function borrarGroq(){ groqKey=''; localStorage.removeItem('valterm_groq'); document.getElementById('groqKeyInput').value=''; updateKeyUI(); toast('Groq key eliminada'); }
 
+function guardarFMP(){
+  const v=document.getElementById('fmpKeyInput').value.trim();
+  if(!v){toast('Pega tu FMP key primero');return;}
+  fmpKey=v; localStorage.setItem('valterm_fmp',v); updateKeyUI(); toast('FMP key guardada');
+  if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con FMP?`)) buscarConFuentes(data.ticker);
+}
+function borrarFMP(){ fmpKey=''; localStorage.removeItem('valterm_fmp'); document.getElementById('fmpKeyInput').value=''; updateKeyUI(); toast('FMP key eliminada'); }
+
 function setToggle(src,val){
   if(src==='av'){avEnabled=val;localStorage.setItem('valterm_av_on',val);}
+  else if(src==='fmp'){fmpEnabled=val;localStorage.setItem('valterm_fmp_on',val);}
   else if(src==='gemini'){geminiEnabled=val;localStorage.setItem('valterm_gm_on',val);}
   else if(src==='groq'){groqEnabled=val;localStorage.setItem('valterm_gq_on',val);}
   renderQuickToggles();
+  renderStartupSources();
   if(data&&(src==='gemini'||src==='groq')) renderAnalysis();
 }
 
@@ -616,10 +656,11 @@ function renderStartupSources(){
   const el=document.getElementById('startupSources');
   if(!el)return;
   const srcs=[
+    {key:'fmp',    label:'FMP',            icon:'ti-chart-candle', hasKey:!!fmpKey,    enabled:fmpEnabled,    cost:'Gratis',  limit:'250 peticiones/día',  col:'#34D399', what:'Fundamentales + DCF real calculado por FMP'},
     {key:'av',     label:'Alpha Vantage', icon:'ti-database',     hasKey:!!avKey,     enabled:avEnabled,     cost:'Gratis',  limit:'25 peticiones/día',   col:'#F59E0B', what:'Datos fundamentales: EPS, PER, EBITDA, earnings, revenue'},
     {key:'fh',     label:'Finnhub',       icon:'ti-chart-dots',   hasKey:!!fhKey,     enabled:true,          cost:'Gratis',  limit:'60 peticiones/min',   col:'#A855F7', what:'Precio en tiempo real, analistas, precio objetivo'},
-    {key:'gemini', label:'Gemini',        icon:'ti-robot',         hasKey:!!geminiKey, enabled:geminiEnabled, cost:'Gratis',  limit:'1.500 análisis/día',  col:'var(--teal)', what:'Análisis cualitativo generado por IA'},
-    {key:'groq',   label:'Groq',          icon:'ti-bolt',          hasKey:!!groqKey,   enabled:groqEnabled,   cost:'Gratis',  limit:'Sin límite estricto', col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma)'},
+    {key:'gemini', label:'Gemini',        icon:'ti-robot',        hasKey:!!geminiKey, enabled:geminiEnabled, cost:'Gratis',  limit:'1.500 análisis/día',  col:'var(--teal)', what:'Análisis cualitativo generado por IA'},
+    {key:'groq',   label:'Groq',          icon:'ti-bolt',         hasKey:!!groqKey,   enabled:groqEnabled,   cost:'Gratis',  limit:'Sin límite estricto', col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma)'},
   ];
   if(srcs.every(s=>!s.hasKey)){
     el.innerHTML=`<div style="text-align:center;color:var(--text3);font-size:13px;margin-top:8px">
@@ -669,15 +710,18 @@ function qtToggle(key,btn){
 }
 
 function updateKeyUI(){
-  const av=!!avKey, fh=!!fhKey, gm=!!geminiKey;
+  const av=!!avKey, fh=!!fhKey, fm=!!fmpKey, gm=!!geminiKey;
   function set(id,live){ const d=document.getElementById(id); if(d) d.className=live?'dot live':'dot'; }
-  set('dotAV', av); set('dotFH', fh); set('dotGM', gm);
+  set('dotAV',av); set('dotFH',fh); set('dotFMP',fm); set('dotGM',gm);
   document.getElementById('avDot').className  = av?'dot live':'dot';
   document.getElementById('avNote').textContent= av?'API key configurada':'Sin key — ve a alphavantage.co';
   if(av) document.getElementById('avKeyInput').value=avKey;
   document.getElementById('fhDot').className  = fh?'dot live':'dot';
   document.getElementById('fhNote').textContent= fh?'Finnhub configurado (60 req/min, sin limite diario)':'Sin key — ve a finnhub.io/register';
   if(fh) document.getElementById('fhKeyInput').value=fhKey;
+  document.getElementById('fmpDot').className  = fm?'dot live':'dot';
+  document.getElementById('fmpNote').textContent= fm?'FMP configurado — 250 peticiones/día':'Sin key — ve a financialmodelingprep.com';
+  if(fm) document.getElementById('fmpKeyInput').value=fmpKey;
   document.getElementById('geminiDot').className  = gm?'dot live':'dot';
   document.getElementById('geminiNote').textContent= gm?'Gemini configurado — analisis IA activo':'Sin key — analisis por plantilla automatica';
   if(gm) document.getElementById('geminiKeyInput').value=geminiKey;
@@ -687,9 +731,11 @@ function updateKeyUI(){
   document.getElementById('groqNote').textContent= gq?'Groq activo — IA gratuita y rápida':'Sin key — ve a console.groq.com';
   if(gq) document.getElementById('groqKeyInput').value=groqKey;
   document.getElementById('avToggle').checked=avEnabled;
+  document.getElementById('fmpToggle').checked=fmpEnabled;
   document.getElementById('geminiToggle').checked=geminiEnabled;
   document.getElementById('groqToggle').checked=groqEnabled;
   renderQuickToggles();
+  renderStartupSources();
 }
 
 async function verificarAV(){
@@ -729,29 +775,108 @@ function switchEarnings(mode,el){
 async function buscar(){
   const t=document.getElementById('tickerInput').value.trim().toUpperCase();
   if(!t){toast('Introduce un ticker');return;}
-  if(!avKey&&!fhKey){toast('Configura al menos una API key',3500);showPanel('settings');return;}
-  if(avKey&&getReq()>=25){
-    if(fhKey){ toast('AV sin peticiones hoy — usando solo Finnhub',3000); }
-    else { toast('Limite AV alcanzado y sin Finnhub. Reset a medianoche UTC.',4000); return; }
-  }
-  await buscarConFuentes(t);
+  if(!avKey&&!fhKey&&!fmpKey){toast('Configura al menos una API key',3500);showPanel('settings');return;}
+  showPicker(t);
+}
+
+function showPicker(ticker){
+  showPanel('overview');
+  document.getElementById('empty-overview').style.display='none';
+  document.getElementById('overview-data').style.display='none';
+  const fmpChip = fmpKey ? `<button class="picker-chip ${srcPicker.fmp!==false?'p-on':''}" onclick="togglePick('src','fmp',this)" style="--pc:#34D399"><span class="p-dot"></span>FMP <span style="font-size:10px;opacity:.7">250/día</span></button>` : '';
+  const avChip  = avKey  ? `<button class="picker-chip ${srcPicker.av!==false?'p-on':''}"  onclick="togglePick('src','av',this)"  style="--pc:#F59E0B"><span class="p-dot"></span>Alpha Vantage <span style="font-size:10px;opacity:.7">25/día</span></button>` : '';
+  const fhChip  = fhKey  ? `<button class="picker-chip ${srcPicker.fh!==false?'p-on':''}"  onclick="togglePick('src','fh',this)"  style="--pc:#A855F7"><span class="p-dot"></span>Finnhub <span style="font-size:10px;opacity:.7">60/min</span></button>` : '';
+  const gmChip  = geminiKey ? `<button class="picker-chip ${aiPicker.gemini!==false?'p-on':''}" onclick="togglePick('ai','gemini',this)" style="--pc:var(--teal)"><span class="p-dot"></span>Gemini</button>` : '';
+  const gqChip  = groqKey   ? `<button class="picker-chip ${aiPicker.groq!==false?'p-on':''}"   onclick="togglePick('ai','groq',this)"   style="--pc:#F97316"><span class="p-dot"></span>Groq</button>` : '';
+  const mths=[
+    {k:'dcf',   l:'DCF',      desc:'Flujos de caja descontados'},
+    {k:'per',   l:'PER',      desc:'Múltiplo precio/beneficio'},
+    {k:'eveb',  l:'EV/EBITDA',desc:'Múltiplo sectorial'},
+    {k:'graham',l:'Graham',   desc:'Fórmula Benjamin Graham'},
+    {k:'pb',    l:'P/B',      desc:'Precio sobre valor en libros'},
+  ];
+  document.getElementById('picker-overview').style.display='block';
+  document.getElementById('picker-overview').innerHTML=`
+    <div class="card" style="max-width:680px;margin:40px auto">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px">
+        <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--teal)">${ticker}</div>
+        <div style="font-size:14px;color:var(--text3)">¿Cómo quieres valorar esta empresa?</div>
+        <button onclick="cancelPicker()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px">✕</button>
+      </div>
+      <div class="picker-section">
+        <div class="picker-label">Fuentes de datos</div>
+        <div class="picker-chips">${fmpChip}${avChip}${fhChip}</div>
+      </div>
+      <div class="picker-section">
+        <div class="picker-label">Métodos de valoración a calcular</div>
+        <div class="picker-chips">${mths.map(m=>`<button class="picker-chip ${methodPicker[m.k]!==false?'p-on':''}" onclick="togglePick('method','${m.k}',this)" style="--pc:var(--teal)" title="${m.desc}"><span class="p-dot"></span>${m.l}</button>`).join('')}</div>
+      </div>
+      ${gmChip||gqChip?`<div class="picker-section"><div class="picker-label">Análisis IA</div><div class="picker-chips">${gmChip}${gqChip}</div></div>`:''}
+      <div style="margin-top:28px;display:flex;justify-content:flex-end">
+        <button class="btn" style="padding:14px 36px;font-size:15px" onclick="ejecutarValoracion('${ticker}')"><i class="ti ti-calculator"></i> VALORAR</button>
+      </div>
+    </div>`;
+}
+
+function togglePick(group, key, btn){
+  if(group==='src')    { srcPicker[key]=srcPicker[key]===false?true:false; localStorage.setItem('valterm_src',JSON.stringify(srcPicker)); }
+  if(group==='method') { methodPicker[key]=methodPicker[key]===false?true:false; localStorage.setItem('valterm_mth',JSON.stringify(methodPicker)); }
+  if(group==='ai')     { aiPicker[key]=aiPicker[key]===false?true:false; localStorage.setItem('valterm_aip',JSON.stringify(aiPicker)); }
+  btn.classList.toggle('p-on');
+}
+
+function cancelPicker(){
+  document.getElementById('picker-overview').style.display='none';
+  document.getElementById('empty-overview').style.display='block';
+}
+
+async function ejecutarValoracion(ticker){
+  document.getElementById('picker-overview').style.display='none';
+  await buscarConFuentes(ticker);
 }
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
-  keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, gemini: null, or: null, groq: null };
-  let avData=null, fhData=null;
-  const avLimited = !avEnabled || (avKey && (getReq()>=25 || avBlockedThisSession));
+  keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, fmp: null, gemini: null, groq: null };
+  let avData=null, fhData=null, fmpData=null;
   const proms=[];
-  if(avKey && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
-  if(avKey && avLimited) keyStatus.av = {ok:false, msg:'Limite diario alcanzado — reset a las 2:00 AM (UTC)'};
-  if(!avKey) keyStatus.av = {ok:null, msg:'No configurada'};
-  if(fhKey) proms.push(fetchFH(ticker).then(d=>{ fhData=d; }).catch(()=>{}));
-  if(!fhKey) keyStatus.fh = {ok:null, msg:'No configurada'};
+  const useFMP = fmpKey && fmpEnabled && srcPicker.fmp!==false;
+  const useAV  = avKey  && avEnabled  && srcPicker.av!==false;
+  const useFH  = fhKey  && srcPicker.fh!==false;
+  const avLimited = useAV && (getReq()>=25 || avBlockedThisSession);
+  if(useFMP) proms.push(fetchFMP(ticker).then(d=>{ fmpData=d; }).catch(e=>{ keyStatus.fmp={ok:false,msg:e.message}; }));
+  if(useAV && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
+  if(useAV && avLimited) keyStatus.av={ok:false,msg:'Limite diario alcanzado'};
+  if(!useAV) keyStatus.av={ok:null,msg:'No seleccionada'};
+  if(useFH) proms.push(fetchFH(ticker).then(d=>{ fhData=d; }).catch(()=>{}));
+  if(!useFH) keyStatus.fh={ok:null,msg:'No seleccionada'};
   await Promise.all(proms);
-  if(!avData&&!fhData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Comprueba las keys y el ticker.','error'); return; }
-  data = mergeData(ticker, avData, fhData);
+  if(!avData&&!fhData&&!fmpData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Comprueba las keys y el ticker.','error'); return; }
+  data = mergeData(ticker, avData, fhData, fmpData);
   renderAll();
+}
+
+// ── FMP FETCH ────────────────────────────────────────────────────────────────
+async function fetchFMP(ticker){
+  const k=fmpKey;
+  const [profile,metrics,dcfRaw,incomeRaw,ptarget] = await Promise.all([
+    fetch(`${FMP_B}/profile/${ticker}?apikey=${k}`).then(r=>r.json()),
+    fetch(`${FMP_B}/key-metrics/${ticker}?limit=1&apikey=${k}`).then(r=>r.json()),
+    fetch(`${FMP_B}/discounted-cash-flow/${ticker}?apikey=${k}`).then(r=>r.json()),
+    fetch(`${FMP_B}/income-statement/${ticker}?limit=8&period=quarter&apikey=${k}`).then(r=>r.json()),
+    fetch(`${FMP_B}/price-target-consensus/${ticker}?apikey=${k}`).then(r=>r.json()),
+  ]);
+  if(!Array.isArray(profile)||!profile[0]) throw new Error('FMP: ticker no encontrado o key inválida');
+  const errMsg=profile['Error Message']||profile.message||'';
+  if(errMsg) throw new Error('FMP: '+errMsg);
+  keyStatus.fmp={ok:true,msg:'FMP: datos cargados correctamente'};
+  return {
+    profile: profile[0]||{},
+    metrics: Array.isArray(metrics)?metrics[0]||{}:metrics||{},
+    dcf: Array.isArray(dcfRaw)?dcfRaw[0]:dcfRaw||{},
+    income: Array.isArray(incomeRaw)?incomeRaw:[],
+    ptarget: ptarget||{},
+  };
 }
 
 // ── ALPHA VANTAGE FETCH ──────────────────────────────────────────────────────
@@ -818,7 +943,7 @@ async function fetchFH(ticker){
 }
 
 // ── MERGE DATA ────────────────────────────────────────────────────────────────
-function mergeData(ticker, av, fh){
+function mergeData(ticker, av, fh, fmp){
   // Precio — Finnhub tiene tiempo real, AV puede tener retraso
   let price, change, changePct, priceSource;
   if(fh&&fh.quote.c>0){
@@ -968,7 +1093,35 @@ function mergeData(ticker, av, fh){
   const roe=av?parseFloat(av.ov.ReturnOnEquityTTM||0):(fh?parseFloat(fh.metrics?.metric?.roeTTM||0)/100:0);
   const pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
 
+  // ── FMP overrides y complementos ──────────────────────────────────────────
+  let dcfValFMP=0;
+  if(fmp){
+    const fp=fmp.profile, fm=fmp.metrics, fd=fmp.dcf, fi=fmp.income, ft=fmp.ptarget;
+    // DCF real de FMP (ya calculado por ellos con datos reales de la empresa)
+    if(fd?.dcf>0) dcfValFMP=parseFloat(fd.dcf);
+    // Fundamentales de FMP si faltan de AV/FH
+    if(!eps||eps===0) eps=parseFloat(fm?.eps||fm?.netIncomePerShareTTM||0);
+    if(!per||per===0) per=parseFloat(fm?.peRatio||0);
+    if(!evEb||evEb===0) evEb=parseFloat(fm?.evToEbitda||0);
+    if(!bookValue||bookValue===0) bookValue=parseFloat(fm?.bookValuePerShareTTM||0);
+    if(!roe||roe===0) roe=parseFloat(fm?.roeTTM||0);
+    if(!beta||beta===1.0) beta=parseFloat(fp?.beta||1.0);
+    if(!mktCap||mktCap===0) mktCap=parseFloat(fp?.mktCap||0)/1e9;
+    // Precio de FMP si no hay otra fuente
+    if(!price||price===0){ price=parseFloat(fp?.price||0); change=parseFloat(fp?.changes||0); changePct=parseFloat(fp?.changesPercentage||0); }
+    // Analistas de FMP si no hay FH/AV
+    if(!targetPrice&&ft?.targetMedian){ targetPrice=parseFloat(ft.targetMedian); targetHigh=parseFloat(ft.targetHigh||0); targetLow=parseFloat(ft.targetLow||0); }
+    // Earnings trimestrales de FMP si no hay AV
+    if(quarterly.length===0&&fi.length>0){
+      quarterly=fi.slice(0,8).map(q=>({ period:q.date?.slice(0,7)||'', actual:parseFloat(q.epsdiluted||q.eps||0), estimated:parseFloat(q.epsdiluted||q.eps||0)*0.97, surprise:0, surprisePct:0 }));
+    }
+  }
+
+  // DCF final: usar FMP si disponible y método DCF activo, sino el calculado
+  const dcfFinal = (dcfValFMP>0 && methodPicker.dcf!==false) ? dcfValFMP : (methodPicker.dcf!==false ? dcfVal : 0);
+
   const sources=[];
+  if(fmp) sources.push('FMP');
   if(av) sources.push('Alpha Vantage');
   if(fh) sources.push('Finnhub');
 
@@ -978,7 +1131,12 @@ function mergeData(ticker, av, fh){
     eps, per, evEb, mktCap, high52, low52,
     aBuy, aHold, aSell, targetPrice, targetHigh, targetLow,
     analysts: buildAnalysts(targetPrice||price*1.1, aBuy, aHold, aSell, targetHigh, targetLow),
-    dcfVal, perVal, evEbVal, grahamVal, pbVal,
+    dcfVal: dcfFinal,
+    dcfValFMP,
+    perVal:   methodPicker.per!==false   ? perVal   : 0,
+    evEbVal:  methodPicker.eveb!==false  ? evEbVal  : 0,
+    grahamVal:methodPicker.graham!==false? grahamVal: 0,
+    pbVal:    methodPicker.pb!==false    ? pbVal     : 0,
     quarterly, annualRev, g, wacc, fcf, beta,
     forwardPE, refPER, sectorPER, sectorEVEB,
     epsGrowthYoy, ebitdaAbs, sharesOut, bookValue, roe,
@@ -990,7 +1148,7 @@ function mergeData(ticker, av, fh){
     exDivDate: av?(av.ov.ExDividendDate||''):'',
     revGrowthYoy: av?parseFloat(av.ov.QuarterlyRevenueGrowthYOY||0):(fh?parseFloat(fh.metrics?.metric?.revenueGrowthTTMYoy||0)/100:0),
     sources,
-    hasFH: !!fh, hasAV: !!av,
+    hasFH: !!fh, hasAV: !!av, hasFMP: !!fmp,
   };
 }
 
