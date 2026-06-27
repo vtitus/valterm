@@ -111,7 +111,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .qt-on{background:var(--bg3);border-color:var(--bd)}
 .qt-off{background:transparent;color:var(--text3);opacity:.5}
 .qt-off:hover{opacity:.8}
+.qt-fmp.qt-on{border-color:#34D39955;color:#34D399}.qt-fmp .qt-dot{background:#34D399}
 .qt-av.qt-on{border-color:#F59E0B55;color:#F59E0B}.qt-av .qt-dot{background:#F59E0B}
+.qt-fh.qt-on{border-color:#A855F755;color:#A855F7}.qt-fh .qt-dot{background:#A855F7}
 .qt-gemini.qt-on{border-color:var(--accent);color:var(--accent)}.qt-gemini .qt-dot{background:var(--accent)}
 .qt-groq.qt-on{border-color:#F9731655;color:#F97316}.qt-groq .qt-dot{background:#F97316}
 .qt-or.qt-on{border-color:#A78BFA55;color:#A78BFA}.qt-or .qt-dot{background:#A78BFA}
@@ -272,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.3</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.4</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -691,15 +693,16 @@ function renderStartupSources(){
 function renderQuickToggles(){
   const el=document.getElementById('quickToggles');if(!el)return;
   const srcs=[
-    {key:'av',   label:'AV',          hasKey:!!avKey,     enabled:avEnabled},
-    {key:'gemini',label:'GEMINI',     hasKey:!!geminiKey, enabled:geminiEnabled},
-    {key:'groq', label:'GROQ',        hasKey:!!groqKey,   enabled:groqEnabled},
+    {key:'fmp',  label:'FMP',    hasKey:!!fmpKey,    enabled:fmpEnabled,    cls:'qt-fmp'},
+    {key:'av',   label:'AV',     hasKey:!!avKey,     enabled:avEnabled,     cls:'qt-av'},
+    {key:'fh',   label:'FH',     hasKey:!!fhKey,     enabled:true,          cls:'qt-fh'},
+    {key:'gemini',label:'GEMINI',hasKey:!!geminiKey, enabled:geminiEnabled, cls:'qt-gemini'},
+    {key:'groq', label:'GROQ',   hasKey:!!groqKey,   enabled:groqEnabled,   cls:'qt-groq'},
   ].filter(s=>s.hasKey);
   if(!srcs.length){el.style.display='none';return;}
   el.style.display='flex';
-  const colorClass={av:'qt-av',gemini:'qt-gemini',groq:'qt-groq',or:'qt-or'};
   el.innerHTML=`<span class="qt-label">Fuentes</span>`+
-    srcs.map(s=>`<button class="qt-btn ${colorClass[s.key]||''} ${s.enabled?'qt-on':'qt-off'}" onclick="qtToggle('${s.key}',this)"><span class="qt-dot"></span>${s.label}</button>`).join('');
+    srcs.map(s=>`<button class="qt-btn ${s.cls} ${s.enabled?'qt-on':'qt-off'}" onclick="qtToggle('${s.key}',this)"><span class="qt-dot"></span>${s.label}</button>`).join('');
 }
 
 function qtToggle(key,btn){
