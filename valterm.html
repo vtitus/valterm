@@ -256,7 +256,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.8</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -989,7 +989,37 @@ function getValForMethod(d,method){
 }
 function setValMethod(m){
   valMethod=m; localStorage.setItem('valterm_val_method',m);
-  if(data){ renderOverview(); renderValoracion(); }
+  if(data){ renderOverview(); renderValoracion(); updateAIMethodBanner(); }
+}
+
+function aiMethodBannerHTML(){
+  if(!data) return '';
+  const d=data;
+  const val=getValForMethod(d,valMethod);
+  if(!val) return '';
+  const pot=(val-d.price)/d.price*100;
+  const mos=val>0?(val-d.price)/val*100:0;
+  const col=mos>25?'var(--teal)':mos>10?'var(--teal)':mos>0?'var(--amber)':'var(--red)';
+  const labels={'avg':'Media de todos los métodos','dcf':'DCF — Descuento de Flujos','per':'PER — Múltiplo sectorial','eveb':'EV/EBITDA — Múltiplo sectorial','graham':'Graham','pb':'P/B — Precio sobre Valor en Libros'};
+  return `<div style="display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--bd);border-left:3px solid ${col};border-radius:10px;padding:10px 16px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Método</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);font-family:var(--mono)">${labels[valMethod]||valMethod}</div>
+    <div style="margin-left:auto;display:flex;gap:20px;text-align:right">
+      <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Valor intrínseco</div><div style="font-size:16px;font-weight:800;color:${col};font-family:var(--mono)">$${fmt(val)}</div></div>
+      <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Potencial</div><div style="font-size:16px;font-weight:800;color:${col};font-family:var(--mono)">${pot>=0?'+':''}${fmt(pot,1)}%</div></div>
+    </div>
+  </div>`;
+}
+
+function updateAIMethodBanner(){
+  const banner=aiMethodBannerHTML();
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||!el.dataset.hasBanner) return;
+    const existing=el.querySelector('.ai-method-banner');
+    if(existing) existing.outerHTML=`<div class="ai-method-banner">${banner}</div>`;
+    else el.insertAdjacentHTML('afterbegin',`<div class="ai-method-banner">${banner}</div>`);
+  });
 }
 
 // ── VALTERM SCORE ─────────────────────────────────────────────────────────────
@@ -1422,8 +1452,8 @@ function switchAITab(key){
 
 function showAITabContent(key){
   const r=aiResults[key];if(!r)return;
-  const html=`<div class="ai-label">${r.badge} Análisis — ${data.ticker}</div><p style="line-height:1.9">${r.text}</p>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+  const html=`<div class="ai-method-banner">${aiMethodBannerHTML()}</div><div class="ai-label">${r.badge} Análisis — ${data.ticker}</div><p style="line-height:1.9">${r.text}</p>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML=html;el.dataset.hasBanner='1';}});
   const sc=document.getElementById('aiSourcesCard');if(sc)sc.style.display='';
   const sw=document.getElementById('aiSourcesWrap');if(sw)sw.innerHTML=r.sourcesInfo;
 }
@@ -1612,7 +1642,7 @@ function renderTemplate(){
   const badge=`<span class="src-badge src-demo">PLANTILLA</span>`;
   ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis automatico — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
+    if(el){el.innerHTML=`<div class="ai-method-banner">${aiMethodBannerHTML()}</div><div class="ai-label">${badge} Analisis automatico — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;el.dataset.hasBanner='1';}
   });
 }
 
