@@ -24,7 +24,7 @@ html,body{height:100%;overflow:hidden}
   --shadow:0 4px 24px rgba(0,0,0,.4);
   --shadow-sm:0 2px 8px rgba(0,0,0,.3);
 }
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;display:flex;flex-direction:column;height:100vh;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;display:flex;flex-direction:column;height:100vh;-webkit-font-smoothing:antialiased}
 
 /* ── TOPBAR ── */
 .topbar{background:linear-gradient(180deg,#0F1828 0%,#0B1220 100%);border-bottom:1px solid var(--border2);padding:0 24px;height:62px;display:flex;align-items:center;gap:16px;flex-shrink:0;box-shadow:0 1px 0 var(--border3)}
@@ -92,14 +92,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .mos-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,var(--teal-dim) 0%,transparent 70%);pointer-events:none}
 .mos-card.over::before{background:radial-gradient(ellipse at 50% 50%,var(--red-dim) 0%,transparent 70%)}
 .mos-card.fair::before{background:radial-gradient(ellipse at 50% 50%,var(--amber-dim) 0%,transparent 70%)}
-.mos-left{display:flex;flex-direction:column;gap:8px;position:relative}
-.mos-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700}
-.mos-price{font-family:var(--mono);font-size:38px;font-weight:800;line-height:1;letter-spacing:-1px}
-.mos-eur{font-family:var(--mono);font-size:19px;color:var(--text2);margin-top:2px}
+.mos-left{display:flex;flex-direction:column;gap:6px;position:relative}
+.mos-label{font-size:11px;text-transform:uppercase;letter-spacing:2.5px;color:var(--text3);font-weight:700;margin-bottom:2px}
+.mos-price{font-family:var(--mono);font-size:54px;font-weight:900;line-height:1;letter-spacing:-2px}
+.mos-eur{font-family:var(--mono);font-size:24px;color:var(--text2);margin-top:4px;letter-spacing:-1px}
 .mos-center{text-align:center;position:relative}
-.mos-pct{font-family:var(--mono);font-size:64px;font-weight:900;line-height:1;letter-spacing:-4px}
-.mos-verdict{font-size:13px;font-weight:800;letter-spacing:3px;margin-top:8px;padding:7px 18px;border-radius:8px;display:inline-block}
+.mos-pct{font-family:var(--mono);font-size:76px;font-weight:900;line-height:1;letter-spacing:-4px}
+.mos-verdict{font-size:14px;font-weight:800;letter-spacing:3px;margin-top:10px;padding:8px 20px;border-radius:8px;display:inline-block}
 .mos-right{text-align:right;position:relative}
+.ai-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ai-tab{background:var(--bg2);border:1px solid var(--bd);color:var(--text2);padding:7px 18px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:1px;transition:all .15s;font-family:var(--mono)}
+.ai-tab:hover{background:var(--bg3);color:var(--text)}
+.ai-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .mos-bar-wrap{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:10px}
 .mos-bar{height:8px;border-radius:4px;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
 .mos-zone-label{font-size:11px;color:var(--text3);margin-top:5px;letter-spacing:.5px}
@@ -236,7 +240,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.8</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -357,7 +361,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <div class="panel" id="panel-ia">
       <div class="empty" id="empty-ia"><i class="ti ti-robot"></i><p>Busca un ticker para generar el analisis con IA.</p></div>
       <div id="ia-data" style="display:none">
-        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Analisis fundamental — IA</div><div class="ai-box" id="aiFullBox" style="min-height:200px"></div></div>
+        <div class="card"><div class="card-title"><i class="ti ti-robot"></i> Analisis fundamental — IA</div><div id="aiTabsWrap" class="ai-tabs"></div><div class="ai-box" id="aiFullBox" style="min-height:200px"></div></div>
         <div class="card" id="aiSourcesCard" style="display:none">
           <div class="card-title"><i class="ti ti-database"></i> Fuentes de datos utilizadas</div>
           <div id="aiSourcesWrap" style="font-size:11px;color:var(--text2);line-height:2.2;font-family:var(--mono)"></div>
@@ -1233,11 +1237,48 @@ function renderAnalistas(){
 }
 
 // ── ANALISIS IA ───────────────────────────────────────────────────────────────
+let aiResults={};
+
 async function renderAnalysis(){
-  if(geminiKey&&geminiEnabled){ try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){} }
-  if(groqKey&&groqEnabled){ try{ await runGroq(); return; }catch(e){} }
-  if(orKey&&orEnabled){ try{ await runOpenRouter(); return; }catch(e){} }
-  renderTemplate();
+  aiResults={};
+  const d=data;
+  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">Analizando ${d.ticker}...</span></div>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
+  const tw=document.getElementById('aiTabsWrap');if(tw)tw.innerHTML='';
+
+  const jobs=[];
+  if(geminiKey&&geminiEnabled) jobs.push(runGemini().catch(()=>null));
+  if(groqKey&&groqEnabled) jobs.push(runGroq().catch(()=>null));
+  if(orKey&&orEnabled) jobs.push(runOpenRouter().catch(()=>null));
+  await Promise.all(jobs);
+  renderSourceStatus();
+
+  if(Object.keys(aiResults).length>0) renderAITabs();
+  else renderTemplate();
+}
+
+function renderAITabs(){
+  const entries=Object.entries(aiResults);
+  if(!entries.length) return;
+  const firstKey=entries[0][0];
+  const tw=document.getElementById('aiTabsWrap');
+  if(tw) tw.innerHTML=entries.map(([k,r])=>`<button class="ai-tab" id="aitab-${k}" onclick="switchAITab('${k}')">${r.badgeLabel}</button>`).join('');
+  document.getElementById(`aitab-${firstKey}`)?.classList.add('active');
+  showAITabContent(firstKey);
+}
+
+function switchAITab(key){
+  document.querySelectorAll('.ai-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`aitab-${key}`)?.classList.add('active');
+  showAITabContent(key);
+}
+
+function showAITabContent(key){
+  const r=aiResults[key];if(!r)return;
+  const html=`<div class="ai-label">${r.badge} Análisis — ${data.ticker}</div><p style="line-height:1.9">${r.text}</p>`;
+  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+  const sc=document.getElementById('aiSourcesCard');if(sc)sc.style.display='';
+  const sw=document.getElementById('aiSourcesWrap');if(sw)sw.innerHTML=r.sourcesInfo;
 }
 
 async function runGemini(){
@@ -1251,9 +1292,6 @@ async function runGemini(){
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
   const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
   const sources=d.sources.join(' + ');
-
-  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">Gemini analizando ${d.ticker}...</span></div>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
 
   const prompt=`Eres un analista de inversiones senior. Redacta un analisis fundamental profesional en español de 6-7 frases. Texto corrido, sin listas ni markdown. Sé directo y con criterio propio.
 
@@ -1279,44 +1317,53 @@ ${d.quarterly.length>0?`Ultimo EPS: real $${fmt(d.quarterly[0].actual)} vs estim
 
 Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la valoracion actual es razonable dado el crecimiento, (3) el margen de seguridad y lo que significa para el inversor, (4) riesgos principales, (5) conclusion de inversion clara.`;
 
-  try{
+  const callGemini=async()=>{
     const body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:700,temperature:0.5}});
     const res=await fetch(`${GEMINI}?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body});
-    const json=await res.json();
+    return res.json();
+  };
+  try{
+    let json=await callGemini();
+    // Si es rate-limit temporal (429) reintenta una vez tras 4 s
+    if(json.error?.code===429||(json.error&&(json.error.status==='RESOURCE_EXHAUSTED'))){
+      const msg=json.error.message||'';
+      const isRateLimit=msg.toLowerCase().includes('per minute')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('per_minute');
+      const isDailyQuota=msg.toLowerCase().includes('per day')||msg.toLowerCase().includes('daily')||msg.toLowerCase().includes('exhausted');
+      if(isRateLimit||(!isDailyQuota)){
+        // Probablemente límite por minuto — esperar y reintentar
+        keyStatus.gemini={ok:null,msg:'Límite por minuto — reintentando en 4s...'};
+        renderSourceStatus();
+        await new Promise(r=>setTimeout(r,4000));
+        json=await callGemini();
+      }
+    }
     if(json.error){
       const msg=json.error.message||'';
-      let shortMsg;
-      if(msg.includes('quota')||msg.includes('limit')||msg.includes('RESOURCE_EXHAUSTED')){
-        keyStatus.gemini={ok:false,msg:'Quota excedida — crea una nueva key en aistudio.google.com (cuenta Google personal)'};
-        shortMsg='Gemini: quota excedida';
-      } else if(msg.includes('API key')||msg.includes('invalid')||msg.includes('API_KEY')){
-        keyStatus.gemini={ok:false,msg:'Key invalida — crea una nueva en aistudio.google.com'};
-        shortMsg='Gemini: key invalida';
-      } else if(msg.includes('not found')||msg.includes('not supported')){
-        keyStatus.gemini={ok:false,msg:'Modelo no disponible'};
-        shortMsg='Gemini: modelo no disponible';
+      const status=json.error.status||'';
+      let userMsg;
+      if(msg.includes('API key')||msg.includes('invalid')||msg.includes('API_KEY')||json.error.code===400){
+        userMsg='Key inválida — verifica en aistudio.google.com';
+      } else if(status==='RESOURCE_EXHAUSTED'||msg.includes('quota')||msg.includes('per day')){
+        userMsg='Cupo diario agotado — se renueva a medianoche (hora del servidor Google)';
       } else {
-        keyStatus.gemini={ok:false,msg:msg.slice(0,100)};
-        shortMsg='Gemini: error';
+        userMsg=msg.slice(0,120);
       }
+      keyStatus.gemini={ok:false,msg:userMsg};
       renderSourceStatus();
-      throw new Error(shortMsg);
+      throw new Error('Gemini: '+userMsg);
     }
     const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    if(!text) throw new Error('Respuesta vacia');
-    keyStatus.gemini={ok:true,msg:'Analisis IA generado correctamente'};
-    renderSourceStatus();
-    const badge=`<span class="src-badge src-ai">GEMINI AI</span>`;
-    ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) el.innerHTML=`<div class="ai-label">${badge} Analisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
-    });
-    const sc=document.getElementById('aiSourcesCard');
-    if(sc) sc.style.display='';
-    const sw=document.getElementById('aiSourcesWrap');
-    if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: Google Gemini 1.5 Flash<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
+    if(!text) throw new Error('Respuesta vacía de Gemini');
+    keyStatus.gemini={ok:true,msg:'Análisis generado correctamente'};
+    aiResults.gemini={
+      text,
+      badge:`<span class="src-badge src-ai">GEMINI AI</span>`,
+      badgeLabel:'GEMINI',
+      sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: Gemini 2.0 Flash Lite<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`
+    };
   }catch(e){
-    toast('Gemini: '+e.message,4000);
+    if(!keyStatus.gemini?.msg||keyStatus.gemini.ok===null) keyStatus.gemini={ok:false,msg:e.message};
+    renderSourceStatus();
     throw e;
   }
 }
@@ -1331,9 +1378,6 @@ async function runOpenRouter(){
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
   const avgTp=d.analysts.reduce((a,b)=>a+b.tp,0)/d.analysts.length;
-
-  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">OpenRouter analizando ${d.ticker}...</span></div>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
 
   const prompt=`Eres un analista de inversiones senior. Redacta un analisis fundamental profesional en español de 6-7 frases. Texto corrido, sin listas ni markdown. Sé directo y con criterio propio.
 
@@ -1382,15 +1426,12 @@ Cubre: calidad del negocio, si la valoracion es razonable, margen de seguridad, 
     renderSourceStatus(); throw new Error('Sin modelos disponibles');
   }
   keyStatus.or={ok:true,msg:`Análisis generado con ${usedModel} (OpenRouter)`};
-  renderSourceStatus();
-  const badge=`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;
-  });
-  const sc=document.getElementById('aiSourcesCard'); if(sc) sc.style.display='';
-  const sw=document.getElementById('aiSourcesWrap');
-  if(sw) sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`;
+  aiResults.or={
+    text,
+    badge:`<span class="src-badge" style="background:#F59E0B18;color:var(--amber);border:1px solid #F59E0B30">OPENROUTER</span>`,
+    badgeLabel:'OPENROUTER',
+    sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: ${usedModel} (OpenRouter)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`
+  };
 }
 
 function renderTemplate(){
@@ -1441,9 +1482,6 @@ Valor intrínseco medio: $${fmt(avg)} | Potencial: ${pot>=0?'+':''}${fmt(pot,1)}
 Analistas: ${buys}B/${holds}H/${sells}S | P.O.: $${fmt(avgTp)} | Earnings beats: ${beats}/${d.quarterly.length}
 Cubre: calidad del negocio, valoración, margen de seguridad, riesgos y conclusión.`;
 
-  const thinking=`<div style="display:flex;gap:4px;align-items:center;padding:6px 0"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:8px;font-size:11px;color:var(--text3)">Groq analizando ${d.ticker}...</span></div>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=thinking;});
-
   let text='', usedModel='';
   for(const model of GROQ_MODELS){
     try{
@@ -1460,12 +1498,12 @@ Cubre: calidad del negocio, valoración, margen de seguridad, riesgos y conclusi
   }
   if(!text){keyStatus.groq={ok:false,msg:'Error — prueba de nuevo'};renderSourceStatus();throw new Error('Groq sin respuesta');}
   keyStatus.groq={ok:true,msg:`Análisis generado con ${usedModel}`};
-  renderSourceStatus();
-  const badge=`<span class="src-badge" style="background:#F9731618;color:#F97316;border:1px solid #F9731630">GROQ</span>`;
-  ['aiOverviewBox','aiValBox','aiFullBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=`<div class="ai-label">${badge} Análisis — ${d.ticker}</div><p style="line-height:1.9">${text}</p>`;});
-  const sc=document.getElementById('aiSourcesCard');if(sc)sc.style.display='';
-  const sw=document.getElementById('aiSourcesWrap');
-  if(sw)sw.innerHTML=`Datos: ${d.sources.join(' + ')}<br>Modelo IA: ${usedModel} (Groq)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | Analistas: ${buys}B/${holds}H/${sells}S`;
+  aiResults.groq={
+    text,
+    badge:`<span class="src-badge" style="background:#F9731618;color:#F97316;border:1px solid #F9731630">GROQ</span>`,
+    badgeLabel:'GROQ',
+    sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: ${usedModel} (Groq)<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | Analistas: ${buys}B/${holds}H/${sells}S`
+  };
 }
 
 // ── WATCHLIST ─────────────────────────────────────────────────────────────────
