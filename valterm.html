@@ -217,6 +217,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .range52-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
 .range52-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
 
+/* ── TOGGLE ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:10px 0;border-top:1px solid var(--border)}
+.toggle-label{font-size:13px;color:var(--text2);font-weight:500}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;cursor:pointer;transition:all .25s;border:1.5px solid var(--border3)}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:1px;background:var(--text3);border-radius:50%;transition:all .25s}
+.toggle input:checked+.toggle-slider{background:var(--teal-dim);border-color:var(--teal)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:var(--teal);box-shadow:0 0 6px var(--teal-glow)}
 /* ── MISC ── */
 .rating-bar-wrap{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:14px;gap:2px}
 .web-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -227,7 +236,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.5</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.7</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -400,6 +409,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
           <button class="btn-ghost" onclick="borrarAV()">BORRAR</button>
         </div>
         <div class="status-note"><div class="dot" id="avDot"></div><span id="avNote">Sin key</span>&nbsp;&nbsp;<span id="avReqInfo" style="font-family:var(--mono)"></span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar Alpha Vantage en búsquedas</span><label class="toggle"><input type="checkbox" id="avToggle" onchange="setToggle('av',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-chart-dots"></i> Finnhub — Analistas y precio en tiempo real <span class="source-tag src-fh">FH</span></div>
@@ -422,6 +432,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
           <button class="btn-ghost" onclick="borrarGemini()">BORRAR</button>
         </div>
         <div class="status-note"><div class="dot" id="geminiDot"></div><span id="geminiNote">Sin key — analisis por plantilla</span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar Gemini para análisis IA</span><label class="toggle"><input type="checkbox" id="geminiToggle" onchange="setToggle('gemini',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-bolt"></i> Groq — IA gratuita y rápida <span class="source-tag" style="color:#F97316;border-color:#F9731630">GQ</span></div>
@@ -432,6 +443,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
           <button class="btn-ghost" onclick="borrarGroq()">BORRAR</button>
         </div>
         <div class="status-note"><div class="dot" id="groqDot"></div><span id="groqNote">Sin key — ve a console.groq.com</span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar Groq para análisis IA</span><label class="toggle"><input type="checkbox" id="groqToggle" onchange="setToggle('groq',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-robot"></i> OpenRouter — IA alternativa <span class="source-tag" style="color:var(--amber);border-color:var(--amber)30">OR</span></div>
@@ -442,6 +454,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
           <button class="btn-ghost" onclick="borrarOR()">BORRAR</button>
         </div>
         <div class="status-note"><div class="dot" id="orDot"></div><span id="orNote">Sin key — fallback IA no disponible</span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar OpenRouter para análisis IA</span><label class="toggle"><input type="checkbox" id="orToggle" onchange="setToggle('or',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-info-circle"></i> Logica de fuentes</div>
@@ -483,6 +496,11 @@ let eurRate    = null;
 let data       = null;
 let earMode    = 'quarterly';
 let keyStatus  = { av: null, fh: null, gemini: null, or: null, groq: null };
+let avBlockedThisSession = false;
+let avEnabled     = localStorage.getItem('valterm_av_on')!=='false';
+let geminiEnabled = localStorage.getItem('valterm_gm_on')!=='false';
+let groqEnabled   = localStorage.getItem('valterm_gq_on')!=='false';
+let orEnabled     = localStorage.getItem('valterm_or_on')!=='false';
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
@@ -559,6 +577,14 @@ function guardarGroq(){
 }
 function borrarGroq(){ groqKey=''; localStorage.removeItem('valterm_groq'); document.getElementById('groqKeyInput').value=''; updateKeyUI(); toast('Groq key eliminada'); }
 
+function setToggle(src,val){
+  if(src==='av'){avEnabled=val;localStorage.setItem('valterm_av_on',val);}
+  else if(src==='gemini'){geminiEnabled=val;localStorage.setItem('valterm_gm_on',val);}
+  else if(src==='groq'){groqEnabled=val;localStorage.setItem('valterm_gq_on',val);}
+  else if(src==='or'){orEnabled=val;localStorage.setItem('valterm_or_on',val);}
+  if(data&&(src==='gemini'||src==='groq'||src==='or')) renderAnalysis();
+}
+
 function updateKeyUI(){
   const av=!!avKey, fh=!!fhKey, gm=!!geminiKey, or_=!!orKey;
   function set(id,live){ const d=document.getElementById(id); if(d) d.className=live?'dot live':'dot'; }
@@ -580,6 +606,10 @@ function updateKeyUI(){
   document.getElementById('groqDot').className = gq?'dot live':'dot';
   document.getElementById('groqNote').textContent= gq?'Groq activo — IA gratuita y rápida':'Sin key — ve a console.groq.com';
   if(gq) document.getElementById('groqKeyInput').value=groqKey;
+  document.getElementById('avToggle').checked=avEnabled;
+  document.getElementById('geminiToggle').checked=geminiEnabled;
+  document.getElementById('groqToggle').checked=groqEnabled;
+  document.getElementById('orToggle').checked=orEnabled;
 }
 
 async function verificarAV(){
@@ -623,9 +653,9 @@ async function buscar(){
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
-  keyStatus = { av: null, fh: null, gemini: null, or: null, groq: null };
+  keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, gemini: null, or: null, groq: null };
   let avData=null, fhData=null;
-  const avLimited = avKey && getReq()>=25;
+  const avLimited = !avEnabled || (avKey && (getReq()>=25 || avBlockedThisSession));
   const proms=[];
   if(avKey && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
   if(avKey && avLimited) keyStatus.av = {ok:false, msg:'Limite diario alcanzado — reset a las 2:00 AM (UTC)'};
@@ -653,10 +683,11 @@ async function fetchAV(ticker){
       if(note.toLowerCase().includes('api key')||note.toLowerCase().includes('invalid')){
         keyStatus.av={ok:false,msg:'API key invalida — verifica en alphavantage.co'};
       } else {
-        localStorage.setItem(todayKey(),'0');
+        localStorage.setItem(todayKey(),'25');
         updateReqUI();
-        keyStatus.av={ok:false,msg:'Limite diario confirmado por AV — contador reseteado. Usando Finnhub.'};
-        toast('⚠ AV confirmó límite diario — contador reseteado. Continuando con Finnhub.',4000);
+        avBlockedThisSession=true;
+        keyStatus.av={ok:false,msg:'Límite diario confirmado por AV — sin más consultas hasta las 2:00 AM UTC'};
+        toast('AV: límite diario alcanzado — continuando con Finnhub',3500);
       }
       throw new Error('AV limit');
     }
@@ -955,7 +986,8 @@ function renderSourceStatus(){
       : s.ok===true  ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;flex-shrink:0"></span>`
       : s.ok===false ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>`
       :                `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`;
-    const msg = s ? s.msg : 'No configurada';
+    const hasKey = it.key==='av'?!!avKey:it.key==='fh'?!!fhKey:it.key==='gemini'?!!geminiKey:it.key==='or'?!!orKey:!!groqKey;
+    const msg = s ? s.msg : hasKey ? 'Key configurada — no utilizada en esta búsqueda' : 'Sin key';
     const col = s?.ok===true ? 'var(--text2)' : s?.ok===false ? 'var(--red)' : 'var(--text3)';
     return `<div style="display:flex;align-items:center;gap:7px;font-size:12px">${dot}<span style="color:${it.color};font-weight:700">${it.label}</span><span style="color:${col}">${msg}</span></div>`;
   }).join('<span style="color:var(--border2)">|</span>');
@@ -1202,9 +1234,9 @@ function renderAnalistas(){
 
 // ── ANALISIS IA ───────────────────────────────────────────────────────────────
 async function renderAnalysis(){
-  if(geminiKey){ try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){} }
-  if(groqKey){ try{ await runGroq(); return; }catch(e){} }
-  if(orKey){ try{ await runOpenRouter(); return; }catch(e){} }
+  if(geminiKey&&geminiEnabled){ try{ await runGemini(); if(keyStatus.gemini?.ok) return; }catch(e){} }
+  if(groqKey&&groqEnabled){ try{ await runGroq(); return; }catch(e){} }
+  if(orKey&&orEnabled){ try{ await runOpenRouter(); return; }catch(e){} }
   renderTemplate();
 }
 
