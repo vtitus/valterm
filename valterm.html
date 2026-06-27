@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.6</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.7</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -473,6 +473,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
           <button class="btn-ghost" onclick="borrarFH()">BORRAR</button>
         </div>
         <div class="status-note"><div class="dot" id="fhDot"></div><span id="fhNote">Sin key</span></div>
+        <div class="toggle-row"><span class="toggle-label">Usar Finnhub en búsquedas</span><label class="toggle"><input type="checkbox" id="fhToggle" onchange="setToggle('fh',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-chart-candle"></i> Financial Modeling Prep — Datos + DCF real <span class="source-tag" style="color:#34D399;border-color:#34D39930">FMP</span></div>
@@ -551,14 +552,13 @@ let data       = null;
 let earMode    = 'quarterly';
 let keyStatus  = { av: null, fh: null, fmp: null, gemini: null, groq: null };
 let avBlockedThisSession = false;
-let avEnabled     = localStorage.getItem('valterm_av_on')!=='false';
-let fmpEnabled    = localStorage.getItem('valterm_fmp_on')!=='false';
-let geminiEnabled = localStorage.getItem('valterm_gm_on')!=='false';
-let groqEnabled   = localStorage.getItem('valterm_gq_on')!=='false';
-// Picker — fuentes y métodos seleccionados (persisten)
-let srcPicker    = JSON.parse(localStorage.getItem('valterm_src2')||'{"fmp":false,"av":false,"fh":false}');
+let avEnabled     = localStorage.getItem('valterm_av_on')==='true';
+let fmpEnabled    = localStorage.getItem('valterm_fmp_on')==='true';
+let fhEnabled     = localStorage.getItem('valterm_fh_on')==='true';
+let geminiEnabled = localStorage.getItem('valterm_gm_on')==='true';
+let groqEnabled   = localStorage.getItem('valterm_gq_on')==='true';
+// Picker — métodos de valoración (persisten por búsqueda)
 let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":false,"per":false,"eveb":false,"graham":false,"pb":false}');
-let aiPicker     = JSON.parse(localStorage.getItem('valterm_aip2')||'{"gemini":false,"groq":false}');
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const FMP_B   = 'https://financialmodelingprep.com/api/v3';
@@ -647,6 +647,7 @@ function borrarFMP(){ fmpKey=''; localStorage.removeItem('valterm_fmp'); documen
 function setToggle(src,val){
   if(src==='av'){avEnabled=val;localStorage.setItem('valterm_av_on',val);}
   else if(src==='fmp'){fmpEnabled=val;localStorage.setItem('valterm_fmp_on',val);}
+  else if(src==='fh'){fhEnabled=val;localStorage.setItem('valterm_fh_on',val);}
   else if(src==='gemini'){geminiEnabled=val;localStorage.setItem('valterm_gm_on',val);}
   else if(src==='groq'){groqEnabled=val;localStorage.setItem('valterm_gq_on',val);}
   renderQuickToggles();
@@ -660,7 +661,7 @@ function renderStartupSources(){
   const srcs=[
     {key:'fmp',    label:'FMP',            icon:'ti-chart-candle', hasKey:!!fmpKey,    enabled:fmpEnabled,    cost:'Gratis',  limit:'250 peticiones/día',  col:'#34D399', what:'Fundamentales + DCF real calculado por FMP'},
     {key:'av',     label:'Alpha Vantage', icon:'ti-database',     hasKey:!!avKey,     enabled:avEnabled,     cost:'Gratis',  limit:'25 peticiones/día',   col:'#F59E0B', what:'Datos fundamentales: EPS, PER, EBITDA, earnings, revenue'},
-    {key:'fh',     label:'Finnhub',       icon:'ti-chart-dots',   hasKey:!!fhKey,     enabled:true,          cost:'Gratis',  limit:'60 peticiones/min',   col:'#A855F7', what:'Precio en tiempo real, analistas, precio objetivo'},
+    {key:'fh',     label:'Finnhub',       icon:'ti-chart-dots',   hasKey:!!fhKey,     enabled:fhEnabled,     cost:'Gratis',  limit:'60 peticiones/min',   col:'#A855F7', what:'Precio en tiempo real, analistas, precio objetivo'},
     {key:'gemini', label:'Gemini',        icon:'ti-robot',        hasKey:!!geminiKey, enabled:geminiEnabled, cost:'Gratis',  limit:'1.500 análisis/día',  col:'var(--teal)', what:'Análisis cualitativo generado por IA'},
     {key:'groq',   label:'Groq',          icon:'ti-bolt',         hasKey:!!groqKey,   enabled:groqEnabled,   cost:'Gratis',  limit:'Sin límite estricto', col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma)'},
   ];
@@ -695,7 +696,7 @@ function renderQuickToggles(){
   const srcs=[
     {key:'fmp',  label:'FMP',    hasKey:!!fmpKey,    enabled:fmpEnabled,    cls:'qt-fmp'},
     {key:'av',   label:'AV',     hasKey:!!avKey,     enabled:avEnabled,     cls:'qt-av'},
-    {key:'fh',   label:'FH',     hasKey:!!fhKey,     enabled:true,          cls:'qt-fh'},
+    {key:'fh',   label:'FH',     hasKey:!!fhKey,     enabled:fhEnabled,     cls:'qt-fh'},
     {key:'gemini',label:'GEMINI',hasKey:!!geminiKey, enabled:geminiEnabled, cls:'qt-gemini'},
     {key:'groq', label:'GROQ',   hasKey:!!groqKey,   enabled:groqEnabled,   cls:'qt-groq'},
   ].filter(s=>s.hasKey);
@@ -735,6 +736,7 @@ function updateKeyUI(){
   if(gq) document.getElementById('groqKeyInput').value=groqKey;
   document.getElementById('avToggle').checked=avEnabled;
   document.getElementById('fmpToggle').checked=fmpEnabled;
+  document.getElementById('fhToggle').checked=fhEnabled;
   document.getElementById('geminiToggle').checked=geminiEnabled;
   document.getElementById('groqToggle').checked=groqEnabled;
   renderQuickToggles();
@@ -786,11 +788,6 @@ function showPicker(ticker){
   showPanel('overview');
   document.getElementById('empty-overview').style.display='none';
   document.getElementById('overview-data').style.display='none';
-  const fmpChip = fmpKey ? `<button class="picker-chip ${srcPicker.fmp!==false?'p-on':''}" onclick="togglePick('src','fmp',this)" style="--pc:#34D399"><span class="p-dot"></span>FMP <span style="font-size:10px;opacity:.7">250/día</span></button>` : '';
-  const avChip  = avKey  ? `<button class="picker-chip ${srcPicker.av!==false?'p-on':''}"  onclick="togglePick('src','av',this)"  style="--pc:#F59E0B"><span class="p-dot"></span>Alpha Vantage <span style="font-size:10px;opacity:.7">25/día</span></button>` : '';
-  const fhChip  = fhKey  ? `<button class="picker-chip ${srcPicker.fh!==false?'p-on':''}"  onclick="togglePick('src','fh',this)"  style="--pc:#A855F7"><span class="p-dot"></span>Finnhub <span style="font-size:10px;opacity:.7">60/min</span></button>` : '';
-  const gmChip  = geminiKey ? `<button class="picker-chip ${aiPicker.gemini!==false?'p-on':''}" onclick="togglePick('ai','gemini',this)" style="--pc:var(--teal)"><span class="p-dot"></span>Gemini</button>` : '';
-  const gqChip  = groqKey   ? `<button class="picker-chip ${aiPicker.groq!==false?'p-on':''}"   onclick="togglePick('ai','groq',this)"   style="--pc:#F97316"><span class="p-dot"></span>Groq</button>` : '';
   const mths=[
     {k:'dcf',   l:'DCF',      desc:'Flujos de caja descontados'},
     {k:'per',   l:'PER',      desc:'Múltiplo precio/beneficio'},
@@ -798,23 +795,20 @@ function showPicker(ticker){
     {k:'graham',l:'Graham',   desc:'Fórmula Benjamin Graham'},
     {k:'pb',    l:'P/B',      desc:'Precio sobre valor en libros'},
   ];
+  const activeSrcs=[fmpEnabled&&fmpKey?'FMP':'',avEnabled&&avKey?'AV':'',fhEnabled&&fhKey?'FH':'',geminiEnabled&&geminiKey?'Gemini':'',groqEnabled&&groqKey?'Groq':''].filter(Boolean);
   document.getElementById('picker-overview').style.display='block';
   document.getElementById('picker-overview').innerHTML=`
     <div class="card" style="max-width:680px;margin:40px auto">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px">
         <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--teal)">${ticker}</div>
-        <div style="font-size:14px;color:var(--text3)">¿Cómo quieres valorar esta empresa?</div>
+        <div style="font-size:14px;color:var(--text3)">¿Con qué métodos quieres valorar?</div>
         <button onclick="cancelPicker()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px">✕</button>
       </div>
-      <div class="picker-section">
-        <div class="picker-label">Fuentes de datos</div>
-        <div class="picker-chips">${fmpChip}${avChip}${fhChip}</div>
-      </div>
+      ${activeSrcs.length?`<div style="font-size:12px;color:var(--text3);margin-bottom:20px">Fuentes activas: <span style="color:var(--teal)">${activeSrcs.join(' · ')}</span> — actívalas desde la barra superior</div>`:`<div style="font-size:12px;color:var(--red);margin-bottom:20px">⚠ Sin fuentes activas — activa al menos una desde la barra de fuentes superior antes de buscar</div>`}
       <div class="picker-section">
         <div class="picker-label">Métodos de valoración a calcular</div>
         <div class="picker-chips">${mths.map(m=>`<button class="picker-chip ${methodPicker[m.k]!==false?'p-on':''}" onclick="togglePick('method','${m.k}',this)" style="--pc:var(--teal)" title="${m.desc}"><span class="p-dot"></span>${m.l}</button>`).join('')}</div>
       </div>
-      ${gmChip||gqChip?`<div class="picker-section"><div class="picker-label">Análisis IA</div><div class="picker-chips">${gmChip}${gqChip}</div></div>`:''}
       <div style="margin-top:28px;display:flex;justify-content:flex-end">
         <button class="btn" style="padding:14px 36px;font-size:15px" onclick="ejecutarValoracion('${ticker}')"><i class="ti ti-calculator"></i> VALORAR</button>
       </div>
@@ -822,9 +816,7 @@ function showPicker(ticker){
 }
 
 function togglePick(group, key, btn){
-  if(group==='src')    { srcPicker[key]=srcPicker[key]===false?true:false; localStorage.setItem('valterm_src2',JSON.stringify(srcPicker)); }
   if(group==='method') { methodPicker[key]=methodPicker[key]===false?true:false; localStorage.setItem('valterm_mth2',JSON.stringify(methodPicker)); }
-  if(group==='ai')     { aiPicker[key]=aiPicker[key]===false?true:false; localStorage.setItem('valterm_aip2',JSON.stringify(aiPicker)); }
   btn.classList.toggle('p-on');
 }
 
@@ -843,9 +835,9 @@ async function buscarConFuentes(ticker){
   keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, fmp: null, gemini: null, groq: null };
   let avData=null, fhData=null, fmpData=null;
   const proms=[];
-  const useFMP = fmpKey && fmpEnabled && srcPicker.fmp!==false;
-  const useAV  = avKey  && avEnabled  && srcPicker.av!==false;
-  const useFH  = fhKey  && srcPicker.fh!==false;
+  const useFMP = fmpKey && fmpEnabled;
+  const useAV  = avKey  && avEnabled;
+  const useFH  = fhKey  && fhEnabled;
   const avLimited = useAV && (getReq()>=25 || avBlockedThisSession);
   if(useFMP) proms.push(fetchFMP(ticker).then(d=>{ fmpData=d; }).catch(e=>{ keyStatus.fmp={ok:false,msg:e.message}; }));
   if(useAV && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
@@ -2036,6 +2028,12 @@ inp.addEventListener('keydown',e=>{
 });
 inp.addEventListener('blur',()=>setTimeout(closeDD,150));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDD(); });
+// Migración v5.7: resetear toggles de fuentes (ahora defecto = desactivado)
+if(localStorage.getItem('valterm_migration')<'5.7'){
+  ['valterm_av_on','valterm_fmp_on','valterm_fh_on','valterm_gm_on','valterm_gq_on'].forEach(k=>localStorage.removeItem(k));
+  avEnabled=false; fmpEnabled=false; fhEnabled=false; geminiEnabled=false; groqEnabled=false;
+  localStorage.setItem('valterm_migration','5.7');
+}
 document.getElementById('tickerInput').value='';
 updateKeyUI();
 updateReqUI();
