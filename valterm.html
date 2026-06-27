@@ -245,7 +245,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.2</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -576,7 +576,7 @@ function borrarFH(){ fhKey=''; localStorage.removeItem('valterm_fh'); document.g
 function guardarGemini(){
   const v=document.getElementById('geminiKeyInput').value.trim();
   if(!v){toast('Pega tu Gemini key primero');return;}
-  geminiKey=v; localStorage.setItem('valterm_gemini',v); updateKeyUI(); toast('Gemini key guardada — IA activa');
+  geminiKey=v; localStorage.setItem('valterm_gemini',v); keyStatus.gemini=null; updateKeyUI(); renderSourceStatus(); toast('Gemini key guardada — IA activa');
   if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de Gemini?`)) renderAnalysis();
 }
 function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
