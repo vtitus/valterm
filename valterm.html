@@ -104,6 +104,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .ai-tab{background:var(--bg2);border:1px solid var(--bd);color:var(--text2);padding:7px 18px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:1px;transition:all .15s;font-family:var(--mono)}
 .ai-tab:hover{background:var(--bg3);color:var(--text)}
 .ai-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.qt-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px}
+.qt-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;white-space:nowrap}
+.qt-btn{border-radius:20px;padding:4px 13px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--mono);letter-spacing:0.5px;transition:all .15s;border:1px solid var(--bd)}
+.qt-on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.qt-off{background:transparent;color:var(--text3)}.qt-off:hover{color:var(--text)}
 .mos-bar-wrap{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:10px}
 .mos-bar{height:8px;border-radius:4px;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
 .mos-zone-label{font-size:11px;color:var(--text3);margin-top:5px;letter-spacing:.5px}
@@ -240,7 +245,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v3.8</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.0</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -278,6 +283,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
+      <div id="quickToggles" class="qt-bar" style="display:none"></div>
       <div class="empty" id="empty-overview">
         <i class="ti ti-telescope"></i>
         <p>Introduce un ticker y pulsa <strong>BUSCAR</strong>.<br>
@@ -563,21 +569,21 @@ function guardarGemini(){
   const v=document.getElementById('geminiKeyInput').value.trim();
   if(!v){toast('Pega tu Gemini key primero');return;}
   geminiKey=v; localStorage.setItem('valterm_gemini',v); updateKeyUI(); toast('Gemini key guardada — IA activa');
-  if(data) renderAnalysis();
+  if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de Gemini?`)) renderAnalysis();
 }
 function borrarGemini(){ geminiKey=''; localStorage.removeItem('valterm_gemini'); document.getElementById('geminiKeyInput').value=''; updateKeyUI(); toast('Gemini key eliminada'); }
 function guardarOR(){
   const v=document.getElementById('orKeyInput').value.trim();
   if(!v){toast('Pega tu OpenRouter key primero');return;}
   orKey=v; localStorage.setItem('valterm_or',v); updateKeyUI(); toast('OpenRouter key guardada — IA alternativa activa');
-  if(data) renderAnalysis();
+  if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de OpenRouter?`)) renderAnalysis();
 }
 function borrarOR(){ orKey=''; localStorage.removeItem('valterm_or'); document.getElementById('orKeyInput').value=''; updateKeyUI(); toast('OpenRouter key eliminada'); }
 function guardarGroq(){
   const v=document.getElementById('groqKeyInput').value.trim();
   if(!v){toast('Pega tu Groq key primero');return;}
   groqKey=v; localStorage.setItem('valterm_groq',v); updateKeyUI(); toast('Groq key guardada');
-  if(data) renderAnalysis();
+  if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con la nueva key de Groq?`)) renderAnalysis();
 }
 function borrarGroq(){ groqKey=''; localStorage.removeItem('valterm_groq'); document.getElementById('groqKeyInput').value=''; updateKeyUI(); toast('Groq key eliminada'); }
 
@@ -586,7 +592,29 @@ function setToggle(src,val){
   else if(src==='gemini'){geminiEnabled=val;localStorage.setItem('valterm_gm_on',val);}
   else if(src==='groq'){groqEnabled=val;localStorage.setItem('valterm_gq_on',val);}
   else if(src==='or'){orEnabled=val;localStorage.setItem('valterm_or_on',val);}
+  renderQuickToggles();
   if(data&&(src==='gemini'||src==='groq'||src==='or')) renderAnalysis();
+}
+
+function renderQuickToggles(){
+  const el=document.getElementById('quickToggles');if(!el)return;
+  const srcs=[
+    {key:'av',   label:'AV',          hasKey:!!avKey,     enabled:avEnabled},
+    {key:'gemini',label:'GEMINI',     hasKey:!!geminiKey, enabled:geminiEnabled},
+    {key:'groq', label:'GROQ',        hasKey:!!groqKey,   enabled:groqEnabled},
+    {key:'or',   label:'OPENROUTER',  hasKey:!!orKey,     enabled:orEnabled},
+  ].filter(s=>s.hasKey);
+  if(!srcs.length){el.style.display='none';return;}
+  el.style.display='flex';
+  el.innerHTML=`<span class="qt-label">Fuentes</span>`+
+    srcs.map(s=>`<button class="qt-btn ${s.enabled?'qt-on':'qt-off'}" onclick="qtToggle('${s.key}',this)">${s.enabled?'✓ ':''} ${s.label}</button>`).join('');
+}
+
+function qtToggle(key,btn){
+  const nowOn=btn.classList.contains('qt-off');
+  const chk=document.getElementById(key+'Toggle');
+  if(chk) chk.checked=nowOn;
+  setToggle(key,nowOn);
 }
 
 function updateKeyUI(){
@@ -614,6 +642,7 @@ function updateKeyUI(){
   document.getElementById('geminiToggle').checked=geminiEnabled;
   document.getElementById('groqToggle').checked=groqEnabled;
   document.getElementById('orToggle').checked=orEnabled;
+  renderQuickToggles();
 }
 
 async function verificarAV(){
