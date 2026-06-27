@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.5</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.6</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -556,9 +556,9 @@ let fmpEnabled    = localStorage.getItem('valterm_fmp_on')!=='false';
 let geminiEnabled = localStorage.getItem('valterm_gm_on')!=='false';
 let groqEnabled   = localStorage.getItem('valterm_gq_on')!=='false';
 // Picker — fuentes y métodos seleccionados (persisten)
-let srcPicker    = JSON.parse(localStorage.getItem('valterm_src')||'{"fmp":false,"av":false,"fh":false}');
-let methodPicker = JSON.parse(localStorage.getItem('valterm_mth')||'{"dcf":false,"per":false,"eveb":false,"graham":false,"pb":false}');
-let aiPicker     = JSON.parse(localStorage.getItem('valterm_aip')||'{"gemini":false,"groq":false}');
+let srcPicker    = JSON.parse(localStorage.getItem('valterm_src2')||'{"fmp":false,"av":false,"fh":false}');
+let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":false,"per":false,"eveb":false,"graham":false,"pb":false}');
+let aiPicker     = JSON.parse(localStorage.getItem('valterm_aip2')||'{"gemini":false,"groq":false}');
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const FMP_B   = 'https://financialmodelingprep.com/api/v3';
@@ -822,9 +822,9 @@ function showPicker(ticker){
 }
 
 function togglePick(group, key, btn){
-  if(group==='src')    { srcPicker[key]=srcPicker[key]===false?true:false; localStorage.setItem('valterm_src',JSON.stringify(srcPicker)); }
-  if(group==='method') { methodPicker[key]=methodPicker[key]===false?true:false; localStorage.setItem('valterm_mth',JSON.stringify(methodPicker)); }
-  if(group==='ai')     { aiPicker[key]=aiPicker[key]===false?true:false; localStorage.setItem('valterm_aip',JSON.stringify(aiPicker)); }
+  if(group==='src')    { srcPicker[key]=srcPicker[key]===false?true:false; localStorage.setItem('valterm_src2',JSON.stringify(srcPicker)); }
+  if(group==='method') { methodPicker[key]=methodPicker[key]===false?true:false; localStorage.setItem('valterm_mth2',JSON.stringify(methodPicker)); }
+  if(group==='ai')     { aiPicker[key]=aiPicker[key]===false?true:false; localStorage.setItem('valterm_aip2',JSON.stringify(aiPicker)); }
   btn.classList.toggle('p-on');
 }
 
