@@ -117,7 +117,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .qt-or.qt-on{border-color:#A78BFA55;color:#A78BFA}.qt-or .qt-dot{background:#A78BFA}
 .mos-bar-wrap{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:10px}
 .mos-bar{height:8px;border-radius:4px;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
-.mos-zone-label{font-size:11px;color:var(--text3);margin-top:5px;letter-spacing:.5px}
+.mos-zone-label{font-size:13px;color:var(--text3);margin-top:5px;letter-spacing:.5px}
+.val-select-wrap{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding:12px 18px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
+.val-select-label{font-size:10px;text-transform:uppercase;letter-spacing:2.5px;color:var(--text3);font-weight:700;white-space:nowrap}
+.val-select{background:var(--bg3);border:1px solid var(--bd);color:var(--text);border-radius:8px;padding:9px 36px 9px 14px;font-size:14px;font-weight:700;cursor:pointer;flex:1;font-family:var(--mono);-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color .15s}
+.val-select:focus{outline:none;border-color:var(--accent)}
+.val-select option{background:var(--bg2);color:var(--text)}
 .mos-methods{font-size:12px;color:var(--text2);margin-top:12px;line-height:2.2;font-family:var(--mono)}
 
 /* ── GRIDS ── */
@@ -127,7 +132,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 
 /* ── CARDS ── */
 .card{background:linear-gradient(160deg,#111B2C 0%,#0D1520 100%);border:1px solid var(--border2);border-top:1px solid var(--border3);border-radius:var(--r2);padding:22px 24px;box-shadow:var(--shadow-sm)}
-.card-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:9px;font-weight:800;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:9px;font-weight:800;padding-bottom:12px;border-bottom:1px solid var(--border)}
 .card-title i{font-size:16px;color:var(--teal);opacity:.8}
 .stat-num{font-family:var(--mono);font-size:30px;font-weight:800;letter-spacing:-1px}
 .stat-eur{font-family:var(--mono);font-size:17px;color:var(--text2);margin-top:4px}
@@ -135,7 +140,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 
 /* ── TABLAS ── */
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{color:var(--text3);text-transform:uppercase;font-size:11px;letter-spacing:1px;padding:10px 12px;border-bottom:1px solid var(--border2);text-align:left;font-weight:700}
+.tbl th{color:var(--text3);text-transform:uppercase;font-size:13px;letter-spacing:1px;padding:10px 12px;border-bottom:1px solid var(--border2);text-align:left;font-weight:700}
 .tbl td{padding:12px 12px;border-bottom:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:13.5px}
 .tbl td:first-child{font-family:var(--sans);color:var(--text);font-size:13.5px;font-weight:500}
 .tbl tr:last-child td{border-bottom:none}
@@ -165,7 +170,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 
 /* ── AI BOX ── */
 .ai-box{background:linear-gradient(135deg,var(--bg3) 0%,#111B2C 100%);border:1px solid var(--border2);border-left:4px solid var(--teal);border-radius:var(--r2);padding:20px 22px;font-size:15px;line-height:2;color:var(--text2)}
-.ai-label{font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:800;display:flex;align-items:center;gap:8px}
+.ai-label{font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:800;display:flex;align-items:center;gap:8px}
 .ai-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 1.2s infinite}
 .ai-dot:nth-child(2){animation-delay:.25s}.ai-dot:nth-child(3){animation-delay:.5s}
 @keyframes blink{0%,100%{opacity:.15}50%{opacity:1}}
@@ -205,7 +210,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .toast.show{opacity:1}
 
 /* ── BADGES ── */
-.src-badge{font-size:11px;padding:3px 9px;border-radius:5px;font-weight:800;margin-right:4px;letter-spacing:.3px}
+.src-badge{font-size:12px;padding:3px 9px;border-radius:5px;font-weight:800;margin-right:4px;letter-spacing:.3px}
 .src-av{background:#3B82F618;color:#60A5FA;border:1px solid #3B82F630}
 .src-fh{background:var(--purple-dim);color:#C084FC;border:1px solid #A855F730}
 .src-ai{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-glow)}
@@ -218,10 +223,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .score-bars{flex:1}
 .score-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .score-bar-row:last-child{margin-bottom:0}
-.score-bar-label{font-size:11px;color:var(--text3);width:76px;flex-shrink:0}
+.score-bar-label{font-size:13px;color:var(--text3);width:86px;flex-shrink:0}
 .score-bar-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
 .score-bar-fill{height:4px;border-radius:2px;transition:width .8s ease}
-.score-bar-pts{font-size:11px;color:var(--text2);font-family:var(--mono);width:36px;text-align:right;flex-shrink:0}
+.score-bar-pts{font-size:13px;color:var(--text2);font-family:var(--mono);width:40px;text-align:right;flex-shrink:0}
 
 /* ── 52W RANGE ── */
 .range52-wrap{padding:4px 0}
@@ -229,7 +234,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .range52-track{position:absolute;top:8px;left:0;right:0;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
 .range52-fill{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--red)15%,var(--amber)55%,var(--teal));opacity:.35}
 .range52-dot{position:absolute;top:4px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bg2);transform:translateX(-50%);box-shadow:0 0 6px currentColor}
-.range52-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+.range52-labels{display:flex;justify-content:space-between;font-size:13px;color:var(--text3)}
 .range52-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
 
 /* ── TOGGLE ── */
@@ -251,7 +256,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.6</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v4.7</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1166,11 +1171,11 @@ function mosHTML(d){
     {k:'graham',l:'GRAHAM',  v:d.grahamVal},
     {k:'pb',   l:'P/B',      v:d.pbVal},
   ].filter(m=>m.v>0);
-  const tabs=allMethods.map(m=>`<button onclick="setValMethod('${m.k}')" style="background:${valMethod===m.k?'var(--accent-dim)':'transparent'};border:1px solid ${valMethod===m.k?'var(--accent)':'var(--bd)'};color:${valMethod===m.k?'var(--accent)':'var(--text3)'};border-radius:8px;padding:4px 11px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--mono);letter-spacing:1px;transition:all .15s">${m.l}</button>`).join('');
+  const opts=allMethods.map(m=>`<option value="${m.k}" ${valMethod===m.k?'selected':''}>${{avg:'Media de todos los métodos',dcf:'DCF — Descuento de Flujos de Caja',per:'PER — Múltiplo Precio / Beneficio',eveb:'EV/EBITDA — Múltiplo sectorial',graham:'Graham — Fórmula Benjamin Graham',pb:'P/B — Precio sobre Valor en Libros'}[m.k]||m.l}</option>`).join('');
   return `
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-right:4px">Método</span>
-      ${tabs}
+    <div class="val-select-wrap">
+      <span class="val-select-label">Método de valoración</span>
+      <select class="val-select" onchange="setValMethod(this.value)">${opts}</select>
     </div>
     <div class="mos-left">
       <div class="mos-label">Precio actual</div>
