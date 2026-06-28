@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.2</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1080,9 +1080,11 @@ function mergeData(ticker, av, fh, fmp){
   const g=Math.min(0.30,Math.max(0.02,epsGrowthYoy||pegGrowth||0.06));
 
   // WACC ajustado por Beta real (risk-free 4.5% + beta × prima 5.5%)
-  let beta=av?parseFloat(av.ov.Beta||1.0):1.0;
+  // pf() evita el bug parseFloat("None"||fallback) — "None" es truthy y parseFloat("None")=NaN
+  const pf=(v,d=0)=>{ const n=parseFloat(v); return isFinite(n)?n:d; };
+  let beta=av?pf(av.ov.Beta,1.0):1.0;
   if(beta<=0||beta>3.5) beta=1.0;
-  if(!beta&&fh) beta=parseFloat(fh.metrics?.metric?.beta||1.0);
+  if(fh){ const fb=pf(fh.metrics?.metric?.beta,0); if(fb>0&&fb<=3.5) beta=fb; }
   const wacc=Math.min(0.15,Math.max(0.07,0.045+beta*0.055));
 
   // DCF con crecimiento real y WACC real
@@ -1090,15 +1092,15 @@ function mergeData(ticker, av, fh, fmp){
   const dcfVal=fcf>0?calcDCF(fcf,g,wacc,0.025):0;
 
   // PER — ForwardPE si disponible, sino promedio sectorial (NO el PER propio)
-  const forwardPE=av?parseFloat(av.ov.ForwardPE||0):0;
+  const forwardPE=av?pf(av.ov.ForwardPE,0):0;
   const sectorPER=SECTOR_PER[sector]||17;
   const refPER=(forwardPE>0&&forwardPE<80)?forwardPE:sectorPER;
   const perVal=eps>0?eps*refPER:0;
 
   // EV/EBITDA — EBITDA absoluto real × múltiplo sectorial / acciones
   const sectorEVEB=SECTOR_EVEB[sector]||13;
-  const ebitdaAbs=av?parseFloat(av.ov.EBITDA||0):0;
-  const sharesOut=av?parseFloat(av.ov.SharesOutstanding||0):0;
+  const ebitdaAbs=av?pf(av.ov.EBITDA,0):0;
+  const sharesOut=av?pf(av.ov.SharesOutstanding,0):0;
   let evEbVal=0;
   if(ebitdaAbs>0&&sharesOut>0) evEbVal=(ebitdaAbs*sectorEVEB)/sharesOut;
   else if(eps>0) evEbVal=eps*sectorEVEB;
@@ -1107,8 +1109,8 @@ function mergeData(ticker, av, fh, fmp){
   const grahamVal=calcGraham(eps,g*100,4.5);
 
   // P/B Justificado — Valor libro × (ROE / WACC)
-  const bookValue=av?parseFloat(av.ov.BookValue||0):(fh?parseFloat(fh.metrics?.metric?.bookValuePerShareQuarterly||0):0);
-  const roe=av?parseFloat(av.ov.ReturnOnEquityTTM||0):(fh?parseFloat(fh.metrics?.metric?.roeTTM||0)/100:0);
+  const bookValue=av?pf(av.ov.BookValue,0):(fh?pf(fh.metrics?.metric?.bookValuePerShareQuarterly,0):0);
+  const roe=av?pf(av.ov.ReturnOnEquityTTM,0):(fh?pf(fh.metrics?.metric?.roeTTM,0)/100:0);
   const pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
 
   // ── FMP overrides y complementos ──────────────────────────────────────────
@@ -1158,13 +1160,13 @@ function mergeData(ticker, av, fh, fmp){
     quarterly, annualRev, g, wacc, fcf, beta,
     forwardPE, refPER, sectorPER, sectorEVEB,
     epsGrowthYoy, ebitdaAbs, sharesOut, bookValue, roe,
-    profitMargin: av?parseFloat(av.ov.ProfitMargin||0):(fh?parseFloat(fh.metrics?.metric?.netProfitMarginTTM||0)/100:0),
-    roa: av?parseFloat(av.ov.ReturnOnAssetsTTM||0):(fh?parseFloat(fh.metrics?.metric?.roaTTM||0)/100:0),
-    pegRatio: av?parseFloat(av.ov.PEGRatio||0):(fh?parseFloat(fh.metrics?.metric?.pegNormalizedAnnual||0):0),
-    divYield: av?parseFloat(av.ov.DividendYield||0):0,
-    divPerShare: av?parseFloat(av.ov.DividendPerShare||0):0,
+    profitMargin: av?pf(av.ov.ProfitMargin,0):(fh?pf(fh.metrics?.metric?.netProfitMarginTTM,0)/100:0),
+    roa: av?pf(av.ov.ReturnOnAssetsTTM,0):(fh?pf(fh.metrics?.metric?.roaTTM,0)/100:0),
+    pegRatio: av?pf(av.ov.PEGRatio,0):(fh?pf(fh.metrics?.metric?.pegNormalizedAnnual,0):0),
+    divYield: av?pf(av.ov.DividendYield,0):0,
+    divPerShare: av?pf(av.ov.DividendPerShare,0):0,
     exDivDate: av?(av.ov.ExDividendDate||''):'',
-    revGrowthYoy: av?parseFloat(av.ov.QuarterlyRevenueGrowthYOY||0):(fh?parseFloat(fh.metrics?.metric?.revenueGrowthTTMYoy||0)/100:0),
+    revGrowthYoy: av?pf(av.ov.QuarterlyRevenueGrowthYOY,0):(fh?pf(fh.metrics?.metric?.revenueGrowthTTMYoy,0)/100:0),
     sources,
     hasFH: !!fh, hasAV: !!av, hasFMP: !!fmp,
   };
@@ -1491,8 +1493,8 @@ function renderOverview(){
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
-  const tps=d.analysts.map(a=>a.tp);
-  const avgTp=tps.reduce((a,b)=>a+b,0)/tps.length;
+  const tps=d.analysts.map(a=>a.tp).filter(v=>v>0);
+  const avgTp=tps.length>0?tps.reduce((a,b)=>a+b,0)/tps.length:d.price;
   const up=(avgTp-d.price)/d.price*100;
   const fhTag=d.hasFH?'<span class="src-badge src-fh">FH</span>':'<span class="src-badge src-av">AV</span>';
   document.getElementById('analystSummaryCard').innerHTML=`
@@ -1604,9 +1606,9 @@ function renderAnalistas(){
   const buys=d.analysts.filter(a=>a.rating==='BUY').length;
   const holds=d.analysts.filter(a=>a.rating==='HOLD').length;
   const sells=d.analysts.filter(a=>a.rating==='SELL').length;
-  const tps=d.analysts.map(a=>a.tp);
-  const avgTp=tps.reduce((a,b)=>a+b,0)/tps.length;
-  const minTp=Math.min(...tps), maxTp=Math.max(...tps);
+  const tps=d.analysts.map(a=>a.tp).filter(v=>v>0);
+  const avgTp=tps.length>0?tps.reduce((a,b)=>a+b,0)/tps.length:d.price;
+  const minTp=tps.length>0?Math.min(...tps):d.price, maxTp=tps.length>0?Math.max(...tps):d.price;
   const up=(avgTp-d.price)/d.price*100;
   const total=buys+holds+sells||1;
   const fhTag=d.hasFH?'<span class="src-badge src-fh">Finnhub</span>':'<span class="src-badge src-av">Alpha Vantage</span>';
