@@ -293,7 +293,7 @@ body.mode-light .proonly{display:none!important}
 <div id="modeSplash" style="display:none">
   <div style="text-align:center;margin-bottom:48px">
     <div style="font-size:30px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.11</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.12</div>
     <div style="font-size:14px;color:var(--text3);margin-top:8px;letter-spacing:.5px">¿Cómo quieres usar la app hoy?</div>
   </div>
   <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
@@ -323,7 +323,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.11</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.12</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -377,6 +377,7 @@ body.mode-light .proonly{display:none!important}
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header"></div>
         <div id="sourceStatusBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center"></div>
+        <div id="noDataAlert" style="display:none"></div>
         <!-- Valoración — siempre visible -->
         <div class="mos-card" id="mosCard"></div>
         <!-- Secundario — colapsable -->
@@ -1680,6 +1681,59 @@ function renderSourceStatus(){
   }).join('<span style="color:var(--border2)">|</span>');
 }
 
+// ── NO DATA ALERT ─────────────────────────────────────────────────────────────
+function renderNoDataAlert(d){
+  const el=document.getElementById('noDataAlert');
+  if(!el) return;
+  const avg=avgVal(d);
+  const noFund=avg===0&&!d.dcfVal&&!d.perVal&&!d.evEbVal&&!d.grahamVal&&!d.pbVal;
+  if(!noFund){ el.style.display='none'; return; }
+
+  const intlMatch=(d.ticker||'').match(/\.([A-Z]{1,3})$/);
+  const intlSuffix=intlMatch?intlMatch[1].toUpperCase():null;
+  const INTL_MKT={MC:'Madrid (BME)',AS:'Amsterdam (AEX)',PA:'París (Euronext)',L:'Londres (LSE)',DE:'Frankfurt (XETRA)',MI:'Milán (MTA)',BR:'Bruselas',ST:'Estocolmo',HK:'Hong Kong',TO:'Toronto',AX:'Australia (ASX)',VI:'Viena',LS:'Lisboa',WA:'Varsovia'};
+  const exchange=intlSuffix&&INTL_MKT[intlSuffix]?INTL_MKT[intlSuffix]:'esta bolsa';
+
+  const sources=[
+    {name:'Finnhub', tag:'FH', cls:'src-fh', configured:!!fhKey, free:true, limit:'60 req/min · sin límite diario', url:'https://finnhub.io/register', nota:'Mejor para acciones europeas'},
+    {name:'Alpha Vantage', tag:'AV', cls:'src-av', configured:!!avKey, free:true, limit:'25 búsquedas/día', url:'https://alphavantage.co/support/#api-key', nota:'Cobertura amplia'},
+    {name:'Financial Modeling Prep', tag:'FMP', cls:'src-fmp', configured:!!fmpKey, free:true, limit:'250 req/día (50 búsquedas)', url:'https://financialmodelingprep.com', nota:'DCF incluido'},
+  ];
+
+  el.style.display='block';
+  el.innerHTML=`
+    <div style="background:#1a1208;border:1.5px solid var(--amber);border-radius:var(--r);padding:18px 22px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <i class="ti ti-alert-triangle" style="color:var(--amber);font-size:18px"></i>
+        <span style="color:var(--amber);font-weight:800;font-size:13px;letter-spacing:.5px">SIN DATOS FUNDAMENTALES — ${d.ticker}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.7">
+        No se encontraron EPS, Book Value ni EBITDA para <strong>${d.name}</strong> en <strong>${exchange}</strong>.<br>
+        Las valoraciones (Graham, DCF, PER) requieren estos datos. Activa una de estas fuentes:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${sources.map(s=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid ${s.configured?'var(--teal)':'var(--border2)'};border-radius:8px;padding:10px 14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="src-badge ${s.cls}">${s.tag}</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--text)">${s.name} <span style="font-size:10px;color:var(--teal);font-weight:600">GRATIS</span></div>
+                <div style="font-size:11px;color:var(--text3)">${s.limit} · ${s.nota}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              ${s.configured
+                ? `<span style="color:var(--teal);font-size:11px;font-weight:700">✓ Configurada</span>`
+                : `<a href="${s.url}" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600">Obtener key →</a>
+                   <button onclick="showPanel('settings')" style="background:var(--amber);color:#000;border:none;border-radius:5px;padding:4px 10px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.5px">ACTIVAR</button>`
+              }
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function showMsg(html,type='error'){
   ['overview','earnings','valoracion','analistas','ia'].forEach(id=>{
@@ -1702,6 +1756,7 @@ function showDataPanels(){
 function renderAll(){
   showDataPanels();
   renderSourceStatus();
+  renderNoDataAlert(data);
   if(appMode === 'light'){
     document.getElementById('light-result').style.display='block';
     renderLightResult();
