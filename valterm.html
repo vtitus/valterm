@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.9</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.0</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1596,6 +1596,65 @@ function clearHistorial(){
   renderHistorial(); updateHistBadge();
 }
 
+// ── SUGERENCIA DE MÉTODO ──────────────────────────────────────────────────────
+function suggestMethod(d){
+  const sec=(d.sector||'').toLowerCase();
+  const g=d.g||0;
+  const eps=d.eps||0;
+  const beta=d.beta||1;
+  const hasFCF=d.fcf>0;
+  const hasEBITDA=d.ebitdaAbs>0;
+  const gPct=Math.round(g*100);
+
+  if(/financ|bank|insur|credit|saving|brokerage/i.test(sec))
+    return{method:'pb',label:'P/B Justificado',icon:'ti-building-bank',
+      reason:'Los bancos y aseguradoras se valoran por su patrimonio neto. P/B es el estándar del sector financiero.',
+      warn:null};
+
+  if(/real estate|reit/i.test(sec))
+    return{method:'dcf',label:'DCF',icon:'ti-building',
+      reason:'Los REITs generan flujos estables y predecibles. DCF con tasa de descuento baja es el método idóneo.',
+      warn:null};
+
+  if(/utilities|electric|gas distribut/i.test(sec))
+    return{method:'dcf',label:'DCF',icon:'ti-bolt',
+      reason:'Sector regulado con flujos muy predecibles. DCF captura bien el valor de los ingresos recurrentes.',
+      warn:null};
+
+  if(eps<=0&&hasEBITDA)
+    return{method:'eveb',label:'EV/EBITDA',icon:'ti-chart-bar',
+      reason:'Sin beneficios netos, EV/EBITDA valora la capacidad operativa sin distorsión por amortizaciones ni deuda.',
+      warn:null};
+
+  if(eps<=0&&hasFCF)
+    return{method:'dcf',label:'DCF',icon:'ti-cash',
+      reason:'Sin beneficios pero con flujo de caja positivo. DCF es el único método válido para empresas en pérdidas.',
+      warn:null};
+
+  if(g>0.18&&(/tech|software|communic|semiconductor|internet|cloud/i.test(sec)||beta>1.4))
+    return{method:'dcf',label:'DCF',icon:'ti-trending-up',
+      reason:`Alto crecimiento (${gPct}%/año). DCF captura el valor de los flujos futuros sin el efecto inflado de 2g en Graham.`,
+      warn:'graham'};
+
+  if(g>0.09&&eps>0)
+    return{method:'avg',label:'Media de métodos',icon:'ti-calculator',
+      reason:`Empresa rentable con crecimiento moderado (${gPct}%/año). La media de métodos reduce el sesgo de cualquier modelo individual.`,
+      warn:g>0.15?'graham':null};
+
+  if(g<=0.09&&eps>0&&beta<1.4)
+    return{method:'graham',label:'Graham',icon:'ti-book',
+      reason:`Empresa estable, rentable y defensiva (Beta ${fmt(beta,2)}, crecimiento ${gPct}%). Graham conservador y fiable.`,
+      warn:null};
+
+  return{method:'avg',label:'Media de métodos',icon:'ti-calculator',
+    reason:'Sin un perfil claramente dominante, la media de todos los métodos es la estimación más robusta.',
+    warn:null};
+}
+
+const WARN_TEXT={
+  graham:'⚠ Graham sobreestima en empresas de alto crecimiento porque multiplica g×2. Resultado orientativo — usa DCF como referencia.',
+};
+
 function mosHTML(d){
   const avg=getValForMethod(d,valMethod);
   const pot=avg>0?(avg-d.price)/d.price*100:0;
@@ -1763,7 +1822,29 @@ function renderValoracion(){
   const val=getValForMethod(d,valMethod);
   const pot=val>0?(val-d.price)/d.price*100:0;
   const col=pot>20?'var(--teal)':pot>0?'var(--amber)':'var(--red)';
-  document.getElementById('valExplainWrap').innerHTML=`
+
+  // Sugerencia de método
+  const sug=suggestMethod(d);
+  const isUsingSuggested=valMethod===sug.method;
+  const showWarn=sug.warn&&valMethod===sug.warn;
+  const sugBanner=`
+    <div style="background:var(--bg2);border:1px solid ${isUsingSuggested?'var(--teal)':'var(--border2)'};border-left:3px solid ${isUsingSuggested?'var(--teal)':'var(--accent)'};border-radius:10px;padding:13px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+        <i class="ti ${sug.icon}" style="font-size:18px;color:${isUsingSuggested?'var(--teal)':'var(--accent)'};flex-shrink:0"></i>
+        <div style="min-width:0">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:700;margin-bottom:3px">Método recomendado para ${d.ticker}</div>
+          <div style="font-size:14px;font-weight:800;color:${isUsingSuggested?'var(--teal)':'var(--text)'};font-family:var(--mono)">${sug.label}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;line-height:1.7">${sug.reason}</div>
+          ${showWarn?`<div style="font-size:11px;color:var(--amber);margin-top:6px;line-height:1.6">${WARN_TEXT[sug.warn]||''}</div>`:''}
+        </div>
+      </div>
+      ${isUsingSuggested
+        ?`<span style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-dim);padding:5px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0"><i class="ti ti-check"></i> En uso</span>`
+        :`<button onclick="setValMethod('${sug.method}');renderValoracion()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--sans)">Aplicar <i class="ti ti-arrow-right"></i></button>`
+      }
+    </div>`;
+
+  document.getElementById('valExplainWrap').innerHTML=sugBanner+`
     <div class="val-explain">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
         <span style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700">Método activo</span>
