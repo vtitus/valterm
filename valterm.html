@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.8</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.9</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -788,6 +788,13 @@ function showPicker(ticker){
   showPanel('overview');
   document.getElementById('empty-overview').style.display='none';
   document.getElementById('overview-data').style.display='none';
+  const srcs=[
+    {key:'fmp',    l:'FMP',          sub:'250/día',   col:'#34D399', hasKey:!!fmpKey,    on:fmpEnabled},
+    {key:'av',     l:'Alpha Vantage',sub:'25/día',    col:'#F59E0B', hasKey:!!avKey,     on:avEnabled},
+    {key:'fh',     l:'Finnhub',      sub:'60/min',    col:'#A855F7', hasKey:!!fhKey,     on:fhEnabled},
+    {key:'gemini', l:'Gemini IA',    sub:'1500/día',  col:'var(--teal)', hasKey:!!geminiKey, on:geminiEnabled},
+    {key:'groq',   l:'Groq IA',      sub:'ilimitado', col:'#F97316', hasKey:!!groqKey,   on:groqEnabled},
+  ];
   const mths=[
     {k:'dcf',   l:'DCF',      desc:'Flujos de caja descontados'},
     {k:'per',   l:'PER',      desc:'Múltiplo precio/beneficio'},
@@ -795,24 +802,38 @@ function showPicker(ticker){
     {k:'graham',l:'Graham',   desc:'Fórmula Benjamin Graham'},
     {k:'pb',    l:'P/B',      desc:'Precio sobre valor en libros'},
   ];
-  const activeSrcs=[fmpEnabled&&fmpKey?'FMP':'',avEnabled&&avKey?'AV':'',fhEnabled&&fhKey?'FH':'',geminiEnabled&&geminiKey?'Gemini':'',groqEnabled&&groqKey?'Groq':''].filter(Boolean);
+  const srcChips = srcs.map(s=>s.hasKey
+    ? `<button class="picker-chip ${s.on?'p-on':''}" onclick="pickerSrcToggle('${s.key}',this)" style="--pc:${s.col}"><span class="p-dot"></span>${s.l} <span style="font-size:10px;opacity:.7">${s.sub}</span></button>`
+    : `<button class="picker-chip" style="--pc:var(--text3);opacity:.3;cursor:not-allowed" title="Sin key configurada"><span class="p-dot"></span>${s.l}</button>`
+  ).join('');
   document.getElementById('picker-overview').style.display='block';
   document.getElementById('picker-overview').innerHTML=`
-    <div class="card" style="max-width:680px;margin:40px auto">
+    <div class="card" style="max-width:720px;margin:40px auto">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px">
         <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:var(--teal)">${ticker}</div>
-        <div style="font-size:14px;color:var(--text3)">¿Con qué métodos quieres valorar?</div>
+        <div style="font-size:14px;color:var(--text3)">Configura la búsqueda</div>
         <button onclick="cancelPicker()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px">✕</button>
       </div>
-      ${activeSrcs.length?`<div style="font-size:12px;color:var(--text3);margin-bottom:20px">Fuentes activas: <span style="color:var(--teal)">${activeSrcs.join(' · ')}</span> — actívalas desde la barra superior</div>`:`<div style="font-size:12px;color:var(--red);margin-bottom:20px">⚠ Sin fuentes activas — activa al menos una desde la barra de fuentes superior antes de buscar</div>`}
       <div class="picker-section">
-        <div class="picker-label">Métodos de valoración a calcular</div>
+        <div class="picker-label">Fuentes de datos <span style="font-weight:400;opacity:.6">(activa las que quieras usar)</span></div>
+        <div class="picker-chips">${srcChips}</div>
+      </div>
+      <div class="picker-section">
+        <div class="picker-label">Métodos de valoración</div>
         <div class="picker-chips">${mths.map(m=>`<button class="picker-chip ${methodPicker[m.k]!==false?'p-on':''}" onclick="togglePick('method','${m.k}',this)" style="--pc:var(--teal)" title="${m.desc}"><span class="p-dot"></span>${m.l}</button>`).join('')}</div>
       </div>
       <div style="margin-top:28px;display:flex;justify-content:flex-end">
         <button class="btn" style="padding:14px 36px;font-size:15px" onclick="ejecutarValoracion('${ticker}')"><i class="ti ti-calculator"></i> VALORAR</button>
       </div>
     </div>`;
+}
+
+function pickerSrcToggle(key, btn){
+  const nowOn = !btn.classList.contains('p-on');
+  setToggle(key, nowOn);
+  btn.classList.toggle('p-on');
+  const chk = document.getElementById(key+'Toggle');
+  if(chk) chk.checked = nowOn;
 }
 
 function togglePick(group, key, btn){
