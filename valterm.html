@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.3</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.4</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -484,7 +484,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
           <button class="btn" style="background:linear-gradient(135deg,#34D399,#059669)" onclick="guardarFMP()">GUARDAR</button>
           <button class="btn-ghost" onclick="borrarFMP()">BORRAR</button>
         </div>
-        <div class="status-note"><div class="dot" id="fmpDot"></div><span id="fmpNote">Sin key</span></div>
+        <div class="status-note"><div class="dot" id="fmpDot"></div><span id="fmpNote">Sin key</span>&nbsp;&nbsp;<button class="btn-ghost" style="font-size:11px;padding:2px 8px" onclick="verificarFMP()">VERIFICAR</button>&nbsp;<span id="fmpVerifyStatus"></span></div>
         <div class="toggle-row"><span class="toggle-label">Usar FMP en búsquedas</span><label class="toggle"><input type="checkbox" id="fmpToggle" onchange="setToggle('fmp',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
@@ -658,6 +658,25 @@ function guardarFMP(){
   if(data&&confirm(`¿Ejecutar análisis de ${data.ticker} ahora con FMP?`)) buscarConFuentes(data.ticker);
 }
 function borrarFMP(){ fmpKey=''; localStorage.removeItem('valterm_fmp'); document.getElementById('fmpKeyInput').value=''; updateKeyUI(); toast('FMP key eliminada'); }
+
+async function verificarFMP(){
+  const el=document.getElementById('fmpVerifyStatus');
+  if(!fmpKey){el.innerHTML='<span style="color:var(--amber)">Sin key guardada.</span>';return;}
+  el.innerHTML='<span style="color:var(--text3)">Verificando...</span>';
+  try{
+    const r=await fetch(`${FMP_B}/profile/AAPL?apikey=${fmpKey}`);
+    const d=await r.json();
+    if(d['Error Message']||d['message']){
+      el.innerHTML=`<span style="color:var(--red)">${d['Error Message']||d['message']}</span>`;
+    } else if(Array.isArray(d)&&d[0]?.symbol){
+      el.innerHTML=`<span style="color:var(--teal)">Key válida — ${250-getReqFor('fmp')} peticiones restantes hoy (aprox.)</span>`;
+    } else {
+      el.innerHTML=`<span style="color:var(--amber)">Respuesta inesperada: ${JSON.stringify(d).slice(0,80)}</span>`;
+    }
+  }catch(e){
+    el.innerHTML=`<span style="color:var(--red)">Error de red: ${e.message}</span>`;
+  }
+}
 
 function setToggle(src,val){
   if(src==='av'){avEnabled=val;localStorage.setItem('valterm_av_on',val);}
@@ -908,24 +927,30 @@ async function buscarConFuentes(ticker){
 // ── FMP FETCH ────────────────────────────────────────────────────────────────
 async function fetchFMP(ticker){
   const k=fmpKey;
+  const safe=r=>r.json().catch(()=>({}));
   const [profile,metrics,dcfRaw,incomeRaw,ptarget] = await Promise.all([
-    fetch(`${FMP_B}/profile/${ticker}?apikey=${k}`).then(r=>r.json()),
-    fetch(`${FMP_B}/key-metrics/${ticker}?limit=1&apikey=${k}`).then(r=>r.json()),
-    fetch(`${FMP_B}/discounted-cash-flow/${ticker}?apikey=${k}`).then(r=>r.json()),
-    fetch(`${FMP_B}/income-statement/${ticker}?limit=8&period=quarter&apikey=${k}`).then(r=>r.json()),
-    fetch(`${FMP_B}/price-target-consensus/${ticker}?apikey=${k}`).then(r=>r.json()),
+    fetch(`${FMP_B}/profile/${ticker}?apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/key-metrics/${ticker}?limit=1&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/discounted-cash-flow/${ticker}?apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/income-statement/${ticker}?limit=8&period=quarter&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/price-target-consensus/${ticker}?apikey=${k}`).then(safe),
   ]);
-  if(!Array.isArray(profile)||!profile[0]) throw new Error('FMP: ticker no encontrado o key inválida');
-  const errMsg=profile['Error Message']||profile.message||'';
-  if(errMsg) throw new Error('FMP: '+errMsg);
-  keyStatus.fmp={ok:true,msg:'FMP: datos cargados correctamente'};
+  // Detectar error real de FMP (devuelve objeto, no array, cuando falla)
+  const profileErr=!Array.isArray(profile)||!profile[0];
+  if(profileErr){
+    const msg=profile['Error Message']||profile.message||profile['error']||'Ticker no encontrado o key inválida';
+    throw new Error('FMP: '+msg);
+  }
+  keyStatus.fmp={ok:true,msg:'FMP OK'};
   addReqFor('fmp',5);
+  // Endpoints secundarios pueden ser de pago — si fallan, se usan como vacíos
+  const safeObj=v=>(Array.isArray(v)?v[0]||{}:(v&&!v['Error Message']?v:{}));
   return {
-    profile: profile[0]||{},
-    metrics: Array.isArray(metrics)?metrics[0]||{}:metrics||{},
-    dcf: Array.isArray(dcfRaw)?dcfRaw[0]:dcfRaw||{},
-    income: Array.isArray(incomeRaw)?incomeRaw:[],
-    ptarget: ptarget||{},
+    profile: profile[0],
+    metrics: safeObj(metrics),
+    dcf:     safeObj(dcfRaw),
+    income:  Array.isArray(incomeRaw)?incomeRaw:[],
+    ptarget: (ptarget&&!ptarget['Error Message'])?ptarget:{},
   };
 }
 
