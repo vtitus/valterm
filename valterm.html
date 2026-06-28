@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.0</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.1</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1677,11 +1677,26 @@ function mosHTML(d){
     {k:'pb',   l:'P/B',      v:d.pbVal},
   ].filter(m=>m.v>0);
   const opts=allMethods.map(m=>`<option value="${m.k}" ${valMethod===m.k?'selected':''}>${{avg:'Media de todos los métodos',dcf:'DCF — Descuento de Flujos de Caja',per:'PER — Múltiplo Precio / Beneficio',eveb:'EV/EBITDA — Múltiplo sectorial',graham:'Graham — Fórmula Benjamin Graham',pb:'P/B — Precio sobre Valor en Libros'}[m.k]||m.l}</option>`).join('');
+  const sug=suggestMethod(d);
+  const isSug=valMethod===sug.method;
+  const showW=sug.warn&&valMethod===sug.warn;
+  const sugRow=`<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:8px;background:${isSug?'var(--teal-dim)':'var(--bg2)'};border:1px solid ${isSug?'var(--teal)':'var(--border2)'};margin-bottom:14px;flex-wrap:wrap">
+    <i class="ti ${sug.icon}" style="font-size:15px;color:${isSug?'var(--teal)':'var(--accent)'}"></i>
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700">Recomendado:</span>
+    <span style="font-size:12px;font-weight:800;color:${isSug?'var(--teal)':'var(--text)'};font-family:var(--mono)">${sug.label}</span>
+    <span style="font-size:11px;color:var(--text3);flex:1;min-width:120px">${sug.reason}</span>
+    ${isSug
+      ?`<span style="font-size:10px;font-weight:700;color:var(--teal)"><i class="ti ti-check"></i> En uso</span>`
+      :`<button onclick="setValMethod('${sug.method}')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--sans)">Aplicar</button>`
+    }
+    ${showW?`<div style="width:100%;font-size:10px;color:var(--amber);padding-top:4px;border-top:1px solid var(--border2);margin-top:4px">${WARN_TEXT[sug.warn]||''}</div>`:''}
+  </div>`;
   return `
     <div class="val-select-wrap">
       <span class="val-select-label">Método de valoración</span>
       <select class="val-select" onchange="setValMethod(this.value)">${opts}</select>
     </div>
+    ${sugRow}
     <div class="mos-left">
       <div class="mos-label">Precio actual</div>
       <div class="mos-price" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">$${fmt(d.price)}</div>
