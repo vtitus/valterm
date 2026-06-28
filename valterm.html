@@ -268,10 +268,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .sec-btn.open .chev{transform:rotate(180deg)}
 /* ── MODE ── */
 body.mode-light .proonly{display:none!important}
-.mode-pill{font-size:10px;font-weight:800;letter-spacing:1.5px;padding:4px 11px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-family:var(--sans);transition:all .2s}
-.mode-pill:hover{border-color:var(--accent);color:var(--accent)}
-.mode-pill.light{color:var(--accent);border-color:var(--accent)}
-.mode-pill.pro{color:var(--teal);border-color:var(--teal)}
+.mode-toggle{display:flex;gap:3px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;padding:3px}
+.mode-opt{background:transparent;border:none;padding:6px 14px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:800;letter-spacing:1px;color:var(--text3);font-family:var(--sans);transition:all .2s}
+.mode-opt:hover{color:var(--text)}
+.mode-opt.active-light{background:var(--accent-dim);color:var(--accent);pointer-events:none}
+.mode-opt.active-pro{background:var(--teal-dim);color:var(--teal);pointer-events:none}
 /* ── SPLASH ── */
 #modeSplash{position:fixed;inset:0;z-index:9999;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
 .splash-card{cursor:pointer;background:var(--bg2);border:2px solid var(--border2);border-radius:18px;padding:32px 28px;flex:1;min-width:220px;max-width:300px;transition:all .25s;display:flex;flex-direction:column}
@@ -321,8 +322,11 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.5</span></div>
-  <button id="modeToggleBtn" class="mode-pill" onclick="toggleMode()" title="Cambiar modo"></button>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.6</span></div>
+  <div class="mode-toggle">
+    <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
+    <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
+  </div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -2531,12 +2535,10 @@ function toggleMode(){
 function applyMode(){
   const isLight = appMode === 'light';
   document.body.classList.toggle('mode-light', isLight);
-  const btn = document.getElementById('modeToggleBtn');
-  if(btn){
-    btn.textContent = isLight ? '◆ PRO' : '⚡ LIGHT';
-    btn.className = 'mode-pill ' + (isLight ? 'light' : 'pro');
-    btn.title = isLight ? 'Cambiar a modo Pro' : 'Cambiar a modo Light';
-  }
+  const bl = document.getElementById('modeBtnLight');
+  const bp = document.getElementById('modeBtnPro');
+  if(bl) bl.className = 'mode-opt' + (isLight ? ' active-light' : '');
+  if(bp) bp.className = 'mode-opt' + (appMode === 'pro' ? ' active-pro' : '');
 }
 
 function renderLightResult(){
@@ -2635,10 +2637,17 @@ fetchEurRate();
 renderWatchlist();
 updateHistBadge();
 renderStartupSources();
-// Mode init
+// Mode init — always show splash so user always chooses mode on load
 applyMode();
-if(!appMode){
-  document.getElementById('modeSplash').style.display='flex';
+document.getElementById('modeSplash').style.display='flex';
+// Highlight last-used mode on splash
+if(appMode){
+  const lastCard = document.querySelector('.splash-card.'+appMode);
+  if(lastCard){
+    lastCard.style.borderColor = appMode==='light' ? 'var(--accent)' : 'var(--teal)';
+    const btn = lastCard.querySelector('button');
+    if(btn) btn.textContent = 'Continuar →';
+  }
 }
 </script>
 </body>
