@@ -322,7 +322,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.8</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.9</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -2581,6 +2581,15 @@ async function searchSymbol(q){
     if(!results.length){ dd.innerHTML=`<div class="ticker-dd-empty">Sin resultados para "<strong>${q}</strong>"</div>`; return; }
 
     // Dedup: misma empresa en múltiples bolsas → mostrar la más relevante
+    // Preferencia de bolsa: europea > otras > US ADR (sin sufijo)
+    const EU_SFX=['.MC','.L','.PA','.DE','.AS','.BR','.MI','.SW','.ST','.HE','.OL','.CO','.LS','.VI','.PR','.AT','.WA','.BU'];
+    const OT_SFX=['.MX','.BA','.SA','.T','.HK','.SS','.SZ','.KS','.NS','.BO','.SG','.NZ','.AX'];
+    const exchPref=s=>{
+      const u=s.toUpperCase();
+      if(EU_SFX.some(x=>u.endsWith(x))) return 1;
+      if(OT_SFX.some(x=>u.endsWith(x))) return 2;
+      return 3;
+    };
     const seen=new Map();
     const deduped=[];
     for(const r of results){
@@ -2590,12 +2599,13 @@ async function searchSymbol(q){
         seen.set(key,r);
         deduped.push(r);
       } else {
-        // Preferir el ticker que más se parezca a la búsqueda
         const prev=seen.get(key);
         const qUp=q.toUpperCase();
-        const prevScore=(prev.symbol.toUpperCase()===qUp?3:prev.symbol.toUpperCase().startsWith(qUp)?2:prev.symbol.toUpperCase().includes(qUp)?1:0);
-        const curScore=(r.symbol.toUpperCase()===qUp?3:r.symbol.toUpperCase().startsWith(qUp)?2:r.symbol.toUpperCase().includes(qUp)?1:0);
-        if(curScore>prevScore){
+        const score=s=>(s.toUpperCase()===qUp?3:s.toUpperCase().startsWith(qUp)?2:s.toUpperCase().includes(qUp)?1:0);
+        const prevScore=score(prev.symbol), curScore=score(r.symbol);
+        const prevExch=exchPref(prev.symbol), curExch=exchPref(r.symbol);
+        // Ganar si mayor similitud al query, o en empate si mejor exchange
+        if(curScore>prevScore||(curScore===prevScore&&curExch<prevExch)){
           const idx=deduped.indexOf(prev);
           deduped[idx]=r;
           seen.set(key,r);
