@@ -263,6 +263,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .sec-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
 .sec-btn .chev{font-size:16px;transition:transform .3s}
 .sec-btn.open .chev{transform:rotate(180deg)}
+/* ── MODE ── */
+body.mode-light .proonly{display:none!important}
+.mode-pill{font-size:10px;font-weight:800;letter-spacing:1.5px;padding:4px 11px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-family:var(--sans);transition:all .2s}
+.mode-pill:hover{border-color:var(--accent);color:var(--accent)}
+.mode-pill.light{color:var(--accent);border-color:var(--accent)}
+.mode-pill.pro{color:var(--teal);border-color:var(--teal)}
+/* ── SPLASH ── */
+#modeSplash{position:fixed;inset:0;z-index:9999;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+.splash-card{cursor:pointer;background:var(--bg2);border:2px solid var(--border2);border-radius:18px;padding:32px 28px;flex:1;min-width:220px;max-width:300px;transition:all .25s;display:flex;flex-direction:column}
+.splash-card:hover{transform:translateY(-3px)}
+.splash-card.light:hover{border-color:var(--accent);background:#1a1322}
+.splash-card.pro:hover{border-color:var(--teal);background:#0d1a1a}
 .val-explain{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--teal);border-radius:10px;padding:16px 20px;margin-bottom:4px}
 /* ── MISC ── */
 .rating-bar-wrap{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:14px;gap:2px}
@@ -273,8 +285,41 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </style>
 </head>
 <body>
+<!-- ── MODE SPLASH ────────────────────────────────────────────────────────── -->
+<div id="modeSplash" style="display:none">
+  <div style="text-align:center;margin-bottom:48px">
+    <div style="font-size:30px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
+    <div style="font-size:14px;color:var(--text3);margin-top:10px;letter-spacing:.5px">¿Cómo quieres usar la app hoy?</div>
+  </div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
+    <div class="splash-card light" onclick="setAppMode('light')">
+      <div style="font-size:30px;margin-bottom:14px">⚡</div>
+      <div style="font-size:17px;font-weight:900;color:var(--text);font-family:var(--mono);margin-bottom:8px">LIGHT</div>
+      <div style="font-size:12.5px;color:var(--text3);line-height:1.9;flex:1">Respuesta rápida. Busca una empresa y decide en segundos si es una buena oportunidad.</div>
+      <div style="font-size:12px;color:var(--text3);line-height:2.2;margin:16px 0">
+        <span style="color:var(--teal)">✓</span> Precio actual en tiempo real<br>
+        <span style="color:var(--teal)">✓</span> Valor intrínseco (método recomendado)<br>
+        <span style="color:var(--teal)">✓</span> Veredicto: COMPRA / JUSTO / SOBRE
+      </div>
+      <button style="width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans)">Empezar →</button>
+    </div>
+    <div class="splash-card pro" onclick="setAppMode('pro')">
+      <div style="font-size:30px;margin-bottom:14px">◆</div>
+      <div style="font-size:17px;font-weight:900;color:var(--teal);font-family:var(--mono);margin-bottom:8px">PRO</div>
+      <div style="font-size:12.5px;color:var(--text3);line-height:1.9;flex:1">Análisis completo para inversores que quieren profundidad de datos.</div>
+      <div style="font-size:12px;color:var(--text3);line-height:2.2;margin:16px 0">
+        <span style="color:var(--teal)">✓</span> 5 métodos de valoración con barras<br>
+        <span style="color:var(--teal)">✓</span> Earnings, Revenue histórico<br>
+        <span style="color:var(--teal)">✓</span> Analistas, Historial, Comparador
+      </div>
+      <button style="width:100%;background:var(--teal);color:#000;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--sans)">Empezar →</button>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
+</div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.1</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.2</span></div>
+  <button id="modeToggleBtn" class="mode-pill" onclick="toggleMode()" title="Cambiar modo"></button>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -297,15 +342,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
   <nav class="sidebar">
     <div class="sidebar-section">Analisis</div>
     <div class="sidebar-item active" id="nav-overview"   onclick="showPanel('overview')"><div class="sidebar-icon"><i class="ti ti-layout-dashboard"></i></div> Overview</div>
-    <div class="sidebar-item"        id="nav-earnings"   onclick="showPanel('earnings')"><div class="sidebar-icon"><i class="ti ti-chart-bar"></i></div> Earnings</div>
-    <div class="sidebar-item"        id="nav-valoracion" onclick="showPanel('valoracion')"><div class="sidebar-icon"><i class="ti ti-calculator"></i></div> Valoracion</div>
-    <div class="sidebar-item"        id="nav-analistas"  onclick="showPanel('analistas')"><div class="sidebar-icon"><i class="ti ti-users"></i></div> Analistas</div>
-    <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><div class="sidebar-icon"><i class="ti ti-robot"></i></div> Analisis IA</div>
-    <div class="sidebar-section">PRO</div>
-    <div class="sidebar-item" id="nav-watchlist"  onclick="showPanel('watchlist')"><div class="sidebar-icon"><i class="ti ti-star"></i></div> Watchlist <span id="wlBadge" style="display:none;margin-left:auto;background:var(--teal);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
-    <div class="sidebar-item" id="nav-historial"  onclick="showPanel('historial');renderHistorial()"><div class="sidebar-icon"><i class="ti ti-history"></i></div> Historial <span id="histBadge" style="display:none;margin-left:auto;background:var(--accent);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
-    <div class="sidebar-item" id="nav-noticias"   onclick="showPanel('noticias');loadNoticias()"><div class="sidebar-icon"><i class="ti ti-news"></i></div> Noticias</div>
-    <div class="sidebar-item" id="nav-comparador" onclick="showPanel('comparador')"><div class="sidebar-icon"><i class="ti ti-scale"></i></div> Comparar</div>
+    <div class="sidebar-item proonly" id="nav-earnings"   onclick="showPanel('earnings')"><div class="sidebar-icon"><i class="ti ti-chart-bar"></i></div> Earnings</div>
+    <div class="sidebar-item proonly" id="nav-valoracion" onclick="showPanel('valoracion')"><div class="sidebar-icon"><i class="ti ti-calculator"></i></div> Valoracion</div>
+    <div class="sidebar-item proonly" id="nav-analistas"  onclick="showPanel('analistas')"><div class="sidebar-icon"><i class="ti ti-users"></i></div> Analistas</div>
+    <div class="sidebar-item proonly" id="nav-ia"         onclick="showPanel('ia')"><div class="sidebar-icon"><i class="ti ti-robot"></i></div> Analisis IA</div>
+    <div class="sidebar-section proonly">PRO</div>
+    <div class="sidebar-item proonly" id="nav-watchlist"  onclick="showPanel('watchlist')"><div class="sidebar-icon"><i class="ti ti-star"></i></div> Watchlist <span id="wlBadge" style="display:none;margin-left:auto;background:var(--teal);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
+    <div class="sidebar-item proonly" id="nav-historial"  onclick="showPanel('historial');renderHistorial()"><div class="sidebar-icon"><i class="ti ti-history"></i></div> Historial <span id="histBadge" style="display:none;margin-left:auto;background:var(--accent);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
+    <div class="sidebar-item proonly" id="nav-noticias"   onclick="showPanel('noticias');loadNoticias()"><div class="sidebar-icon"><i class="ti ti-news"></i></div> Noticias</div>
+    <div class="sidebar-item proonly" id="nav-comparador" onclick="showPanel('comparador')"><div class="sidebar-icon"><i class="ti ti-scale"></i></div> Comparar</div>
     <div class="sidebar-section">Config</div>
     <div class="sidebar-item"        id="nav-settings"   onclick="showPanel('settings')"><div class="sidebar-icon"><i class="ti ti-key"></i></div> API Keys</div>
   </nav>
@@ -319,6 +364,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
         <p style="margin-bottom:28px">Introduce un ticker y pulsa <strong>BUSCAR</strong> · Pulsa <strong>DEMO</strong> para ver un ejemplo</p>
         <div id="startupSources" style="max-width:560px;margin:0 auto;text-align:left"></div>
       </div>
+      <div id="light-result" style="display:none;max-width:580px;margin:0 auto;padding:16px"></div>
       <div id="picker-overview" style="display:none"></div>
       <div id="overview-data" style="display:none">
         <div id="tickerHeader" class="ticker-header"></div>
@@ -1497,6 +1543,12 @@ function showDataPanels(){
 function renderAll(){
   showDataPanels();
   renderSourceStatus();
+  if(appMode === 'light'){
+    renderLightResult();
+    showPanel('overview');
+    saveHistorial(data);
+    return;
+  }
   renderOverview();
   renderEarnings();
   renderRevenueTable();
@@ -2332,6 +2384,90 @@ function moveFocus(dir){
   opts[ddIdx].classList.add('focused');
 }
 
+// ── APP MODE ──────────────────────────────────────────────────────────────────
+let appMode = localStorage.getItem('valterm_mode') || null;
+
+function setAppMode(m){
+  appMode = m;
+  localStorage.setItem('valterm_mode', m);
+  document.getElementById('modeSplash').style.display = 'none';
+  applyMode();
+  if(data) renderAll();
+}
+
+function toggleMode(){
+  setAppMode(appMode === 'light' ? 'pro' : 'light');
+}
+
+function applyMode(){
+  const isLight = appMode === 'light';
+  document.body.classList.toggle('mode-light', isLight);
+  const btn = document.getElementById('modeToggleBtn');
+  if(btn){
+    btn.textContent = isLight ? '◆ PRO' : '⚡ LIGHT';
+    btn.className = 'mode-pill ' + (isLight ? 'light' : 'pro');
+    btn.title = isLight ? 'Cambiar a modo Pro' : 'Cambiar a modo Light';
+  }
+}
+
+function renderLightResult(){
+  const d = data;
+  const sug = suggestMethod(d);
+  const val = getValForMethod(d, sug.method);
+  const pot = val > 0 ? (val - d.price) / d.price * 100 : 0;
+  const mos = val > 0 ? (val - d.price) / val * 100 : 0;
+  let verdict, col, bgCol, icon;
+  if(mos > 25){verdict='ZONA DE COMPRA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
+  else if(mos > 10){verdict='INFRAVALORADA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
+  else if(mos > 0){verdict='PRECIO JUSTO';col='var(--amber)';bgCol='#F59E0B22';icon='ti-minus';}
+  else{verdict='SOBREVALORADA';col='var(--red)';bgCol='#FF4D6A22';icon='ti-trending-down';}
+  const valEur = toEur(val), priceEur = toEur(d.price);
+  const chgCol = d.changePct >= 0 ? 'var(--teal)' : 'var(--red)';
+  const srcBadges = (d.sources||[]).map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s}</span>`).join(' ');
+  document.getElementById('light-result').innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;overflow:hidden">
+      <div style="padding:22px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text)">${d.ticker}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">${(d.name||'').slice(0,32)} · ${d.sector||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);color:${chgCol}">$${fmt(d.price)}</div>
+          ${priceEur?`<div style="font-size:12px;color:var(--text3)">€${fmt(priceEur)}</div>`:''}
+          <div style="font-size:11px;color:${chgCol};margin-top:2px">${d.changePct>=0?'+':''}${fmt(d.changePct,2)}% hoy</div>
+        </div>
+      </div>
+      <div style="padding:12px 24px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <i class="ti ${sug.icon}" style="color:var(--accent);font-size:15px;flex-shrink:0"></i>
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Método recomendado</span>
+        <span style="font-size:12px;font-weight:800;color:var(--text);font-family:var(--mono)">${sug.label}</span>
+        <span style="font-size:11px;color:var(--text3);flex:1;min-width:100px">${sug.reason}</span>
+      </div>
+      <div style="padding:36px 24px;text-align:center;border-bottom:1px solid var(--border2)">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--text3);font-weight:700;margin-bottom:14px">Valor intrínseco · ${sug.label}</div>
+        ${val > 0 ? `
+          <div style="font-size:48px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1">$${fmt(val)}</div>
+          ${valEur?`<div style="font-size:18px;color:var(--text3);margin-top:6px">€${fmt(valEur)}</div>`:''}
+          <div style="font-size:15px;font-weight:700;color:${col};margin-top:14px">${pot>=0?'+':''}${fmt(pot,1)}% vs precio actual</div>
+        ` : `<div style="font-size:16px;color:var(--text3);padding:12px">Datos insuficientes — prueba otro método</div>`}
+      </div>
+      <div style="padding:28px 24px;background:${bgCol};text-align:center;border-bottom:1px solid var(--border2)">
+        <div style="display:inline-flex;align-items:center;gap:12px;padding:14px 32px;border-radius:14px;background:${col}1a;border:2px solid ${col}">
+          <i class="ti ${icon}" style="font-size:24px;color:${col}"></i>
+          <span style="font-size:22px;font-weight:900;color:${col};letter-spacing:3px;font-family:var(--mono)">${verdict}</span>
+        </div>
+        ${mos > 0 ? `<div style="font-size:11px;color:var(--text3);margin-top:10px">Margen de seguridad: ${fmt(mos,1)}%</div>` : ''}
+      </div>
+      <div style="padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-size:11px">${srcBadges}</div>
+        <button onclick="setAppMode('pro')" style="background:transparent;border:1px solid var(--teal);color:var(--teal);border-radius:8px;padding:7px 18px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">◆ Ver análisis completo PRO</button>
+      </div>
+    </div>`;
+  document.getElementById('light-result').style.display = 'block';
+  document.getElementById('overview-data').style.display = 'none';
+  document.getElementById('empty-overview').style.display = 'none';
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 const inp=document.getElementById('tickerInput');
 inp.addEventListener('input',e=>{
@@ -2367,6 +2503,11 @@ fetchEurRate();
 renderWatchlist();
 updateHistBadge();
 renderStartupSources();
+// Mode init
+applyMode();
+if(!appMode){
+  document.getElementById('modeSplash').style.display='flex';
+}
 </script>
 </body>
 </html>
