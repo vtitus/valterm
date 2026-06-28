@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.8</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -932,7 +932,7 @@ async function fetchFMP(ticker){
     fetch(`${FMP_B}/profile?symbol=${ticker}&apikey=${k}`).then(safe),
     fetch(`${FMP_B}/key-metrics?symbol=${ticker}&limit=1&apikey=${k}`).then(safe),
     fetch(`${FMP_B}/discounted-cash-flow?symbol=${ticker}&apikey=${k}`).then(safe),
-    fetch(`${FMP_B}/income-statement?symbol=${ticker}&limit=8&period=quarterly&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/income-statement?symbol=${ticker}&limit=4&period=quarterly&apikey=${k}`).then(safe),
     fetch(`${FMP_B}/price-target-consensus?symbol=${ticker}&apikey=${k}`).then(safe),
   ]);
   const profileErr=!Array.isArray(profile)||!profile[0];
@@ -1029,7 +1029,7 @@ function mergeData(ticker, av, fh, fmp){
     changePct=parseFloat((gq['10. change percent']||'0%').replace('%',''));
     priceSource='Cierre reciente (Alpha Vantage)';
   } else {
-    price=0; change=0; changePct=0; priceSource='FMP';
+    price=0; change=0; changePct=0; priceSource='Cierre reciente (FMP)';
   }
 
   // Fundamentales — AV es mejor fuente si disponible
@@ -1148,12 +1148,13 @@ function mergeData(ticker, av, fh, fmp){
 
   // PER — ForwardPE si disponible, sino promedio sectorial (NO el PER propio)
   const forwardPE=av?pf(av.ov.ForwardPE,0):0;
-  const sectorPER=SECTOR_PER[sector]||17;
-  const refPER=(forwardPE>0&&forwardPE<80)?forwardPE:sectorPER;
+  const normSec=s=>(s||'').toLowerCase().replace(/\b./g,c=>c.toUpperCase());
+  let sectorPER=SECTOR_PER[sector]||SECTOR_PER[normSec(sector)]||17;
+  let refPER=(forwardPE>0&&forwardPE<80)?forwardPE:sectorPER;
   let perVal=eps>0?eps*refPER:0;
 
   // EV/EBITDA — EBITDA absoluto real × múltiplo sectorial / acciones
-  const sectorEVEB=SECTOR_EVEB[sector]||13;
+  let sectorEVEB=SECTOR_EVEB[sector]||SECTOR_EVEB[normSec(sector)]||13;
   let ebitdaAbs=av?pf(av.ov.EBITDA,0):0;
   let sharesOut=av?pf(av.ov.SharesOutstanding,0):0;
   let evEbVal=0;
@@ -1174,7 +1175,13 @@ function mergeData(ticker, av, fh, fmp){
     const fp=fmp.profile, fm=fmp.metrics, fd=fmp.dcf, fi=fmp.income, ft=fmp.ptarget;
     // Datos de empresa cuando FMP es la única fuente
     if(!name||name===ticker) name=fp?.companyName||ticker;
-    if(!sector||sector==='N/A') sector=fp?.sector||'N/A';
+    if(!sector||sector==='N/A'){
+      sector=fp?.sector||'N/A';
+      // Recalcular multiplicadores sectoriales con el sector real
+      sectorPER=SECTOR_PER[sector]||SECTOR_PER[normSec(sector)]||sectorPER;
+      sectorEVEB=SECTOR_EVEB[sector]||SECTOR_EVEB[normSec(sector)]||sectorEVEB;
+      refPER=(forwardPE>0&&forwardPE<80)?forwardPE:sectorPER;
+    }
     if(!exchange) exchange=fp?.exchange||'';
     // Precio — fp.change y fp.changePercentage son los campos correctos en /stable/
     if(!price||price===0){ price=pf(fp?.price,0); change=pf(fp?.change,0); changePct=pf(fp?.changePercentage,0); }
