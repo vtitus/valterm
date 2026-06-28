@@ -18,6 +18,8 @@ html,body{height:100%;overflow:hidden}
   --blue:#3B82F6;--purple:#A855F7;--purple-dim:#A855F715;
   --text:#F1F5F9;--text2:#94A3B8;--text3:#4E6179;
   --border:#1A2540;--border2:#243050;--border3:#2D3A52;
+  --bd:var(--border2);
+  --accent:#A855F7;--accent-dim:#A855F715;
   --mono:'JetBrains Mono',monospace;
   --sans:'Inter',system-ui,sans-serif;
   --r:10px;--r2:14px;
@@ -319,7 +321,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.4</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.5</span></div>
   <button id="modeToggleBtn" class="mode-pill" onclick="toggleMode()" title="Cambiar modo"></button>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
@@ -612,7 +614,7 @@ let eurRate    = null;
 let valMethod  = localStorage.getItem('valterm_val_method')||'avg';
 let data       = null;
 let earMode    = 'quarterly';
-let keyStatus  = { av: null, fh: null, fmp: null, gemini: null, groq: null };
+let keyStatus  = { av: null, fh: null, fmp: null, yf: null, gemini: null, groq: null };
 let avBlockedThisSession = false;
 let avEnabled     = localStorage.getItem('valterm_av_on')==='true';
 let fmpEnabled    = localStorage.getItem('valterm_fmp_on')==='true';
@@ -620,11 +622,11 @@ let fhEnabled     = localStorage.getItem('valterm_fh_on')==='true';
 let geminiEnabled = localStorage.getItem('valterm_gm_on')==='true';
 let groqEnabled   = localStorage.getItem('valterm_gq_on')==='true';
 // Picker — métodos de valoración (persisten por búsqueda)
-let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":false,"per":false,"eveb":false,"graham":false,"pb":false}');
+let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":true,"per":true,"eveb":true,"graham":true,"pb":true}');
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const FMP_B   = 'https://financialmodelingprep.com/stable';
-const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
 
@@ -1189,6 +1191,10 @@ function mergeData(ticker, av, fh, fmp, yf){
     if(!high52) high52=parseFloat(m['52WeekHigh']||0);
     if(!low52)  low52=parseFloat(m['52WeekLow']||0);
   }
+  // Analistas y earnings — declarados antes del bloque YF para evitar TDZ
+  let aBuy=0, aHold=0, aSell=0, targetPrice=0, targetHigh=0, targetLow=0;
+  let quarterly=[], annualRev=[];
+
   // Yahoo Finance — rellena datos faltantes para cualquier ticker global
   if(yf){
     if(!name||name===ticker) name=yf.name||ticker;
@@ -1206,8 +1212,7 @@ function mergeData(ticker, av, fh, fmp, yf){
     if(!targetPrice&&yf.targetPrice>0){ targetPrice=yf.targetPrice; targetHigh=yf.targetHigh||0; targetLow=yf.targetLow||0; }
   }
 
-  // Analistas — Finnhub tiene datos de precio objetivo más precisos
-  let aBuy=0, aHold=0, aSell=0, targetPrice=0, targetHigh=0, targetLow=0;
+  // Analistas — Finnhub tiene datos de precio objetivo más precisos (sobrescriben YF)
   if(fh&&fh.rec&&fh.rec.length>0){
     const r=fh.rec[0];
     aBuy=(r.strongBuy||0)+(r.buy||0); aHold=r.hold||0; aSell=(r.sell||0)+(r.strongSell||0);
@@ -1225,8 +1230,7 @@ function mergeData(ticker, av, fh, fmp, yf){
     targetHigh=targetPrice*1.15; targetLow=targetPrice*0.85;
   }
 
-  // Earnings
-  let quarterly=[], annualRev=[];
+  // Earnings — AV/FH sobrescriben YF si disponibles
   if(av&&av.earn.quarterlyEarnings){
     quarterly=(av.earn.quarterlyEarnings||[]).slice(0,8).map(q=>({
       period:q.fiscalDateEnding||'', estimated:parseFloat(q.estimatedEPS||0),
@@ -1603,7 +1607,7 @@ function renderSourceStatus(){
   bar.style.display='flex';
   bar.innerHTML=items.map(it=>{
     const s=keyStatus[it.key];
-    const dot = s===null ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`
+    const dot = (s==null) ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`
       : s.ok===true  ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;flex-shrink:0"></span>`
       : s.ok===false ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>`
       :                `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`;
@@ -1637,11 +1641,13 @@ function renderAll(){
   showDataPanels();
   renderSourceStatus();
   if(appMode === 'light'){
+    document.getElementById('light-result').style.display='block';
     renderLightResult();
     showPanel('overview');
     saveHistorial(data);
     return;
   }
+  document.getElementById('light-result').style.display='none';
   renderOverview();
   renderEarnings();
   renderRevenueTable();
@@ -2241,7 +2247,7 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
       text,
       badge:`<span class="src-badge src-ai">GEMINI AI</span>`,
       badgeLabel:'GEMINI',
-      sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: Gemini 2.0 Flash Lite<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`
+      sourcesInfo:`Datos: ${d.sources.join(' + ')}<br>Modelo: Gemini 1.5 Flash<br>Precio: $${fmt(d.price)} | EPS: $${fmt(d.eps)} | PER: ${fmt(d.per,1)}x | EV/EBITDA: ${fmt(d.evEb,1)}x<br>Analistas: ${buys}B/${holds}H/${sells}S — P.O. $${fmt(avgTp)}`
     };
   }catch(e){
     if(!keyStatus.gemini?.msg||keyStatus.gemini.ok===null) keyStatus.gemini={ok:false,msg:e.message};
@@ -2544,9 +2550,11 @@ function renderLightResult(){
   else if(mos > 10){verdict='INFRAVALORADA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
   else if(mos > 0){verdict='PRECIO JUSTO';col='var(--amber)';bgCol='#F59E0B22';icon='ti-minus';}
   else{verdict='SOBREVALORADA';col='var(--red)';bgCol='#FF4D6A22';icon='ti-trending-down';}
-  const valEur = toEur(val), priceEur = toEur(d.price);
+  const cs = currSym(d.currency||'USD');
+  const isUSD = (d.currency||'USD') === 'USD';
+  const valEur = isUSD ? toEur(val) : null, priceEur = isUSD ? toEur(d.price) : null;
   const chgCol = d.changePct >= 0 ? 'var(--teal)' : 'var(--red)';
-  const srcBadges = (d.sources||[]).map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s}</span>`).join(' ');
+  const srcBadges = (d.sources||[]).map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='Yahoo Finance'?'src-yf':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s==='Yahoo Finance'?'YF':s}</span>`).join(' ');
   document.getElementById('light-result').innerHTML = `
     <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;overflow:hidden">
       <div style="padding:22px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
@@ -2555,13 +2563,13 @@ function renderLightResult(){
           <div style="font-size:11px;color:var(--text3);margin-top:3px">${(d.name||'').slice(0,32)} · ${d.sector||''}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:26px;font-weight:800;font-family:var(--mono);color:${chgCol}">$${fmt(d.price)}</div>
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);color:${chgCol}">${cs}${fmt(d.price)}</div>
           ${priceEur?`<div style="font-size:12px;color:var(--text3)">€${fmt(priceEur)}</div>`:''}
           <div style="font-size:11px;color:${chgCol};margin-top:2px">${d.changePct>=0?'+':''}${fmt(d.changePct,2)}% hoy</div>
         </div>
       </div>
       <div style="padding:12px 24px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <i class="ti ${sug.icon}" style="color:var(--accent);font-size:15px;flex-shrink:0"></i>
+        <i class="ti ${sug.icon}" style="color:#A855F7;font-size:15px;flex-shrink:0"></i>
         <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Método recomendado</span>
         <span style="font-size:12px;font-weight:800;color:var(--text);font-family:var(--mono)">${sug.label}</span>
         <span style="font-size:11px;color:var(--text3);flex:1;min-width:100px">${sug.reason}</span>
@@ -2569,7 +2577,7 @@ function renderLightResult(){
       <div style="padding:36px 24px;text-align:center;border-bottom:1px solid var(--border2)">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--text3);font-weight:700;margin-bottom:14px">Valor intrínseco · ${sug.label}</div>
         ${val > 0 ? `
-          <div style="font-size:48px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1">$${fmt(val)}</div>
+          <div style="font-size:48px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1">${cs}${fmt(val)}</div>
           ${valEur?`<div style="font-size:18px;color:var(--text3);margin-top:6px">€${fmt(valEur)}</div>`:''}
           <div style="font-size:15px;font-weight:700;color:${col};margin-top:14px">${pot>=0?'+':''}${fmt(pot,1)}% vs precio actual</div>
         ` : `<div style="font-size:16px;color:var(--text3);padding:12px">Datos insuficientes — prueba otro método</div>`}
@@ -2612,12 +2620,13 @@ inp.addEventListener('keydown',e=>{
 inp.addEventListener('blur',()=>setTimeout(closeDD,150));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDD(); });
 // Migración v5.7: resetear toggles de fuentes (ahora defecto = desactivado)
-if(localStorage.getItem('valterm_migration')<'5.8'){
-  ['valterm_av_on','valterm_fmp_on','valterm_fh_on','valterm_gm_on','valterm_gq_on'].forEach(k=>localStorage.removeItem(k));
+if(localStorage.getItem('valterm_migration')<'5.9'){
+  ['valterm_av_on','valterm_fmp_on','valterm_fh_on','valterm_gm_on','valterm_gq_on','valterm_mth2'].forEach(k=>localStorage.removeItem(k));
   avEnabled=false; fmpEnabled=false; fhEnabled=false; geminiEnabled=false; groqEnabled=false;
+  methodPicker={dcf:true,per:true,eveb:true,graham:true,pb:true};
   localStorage.removeItem(todayKey());
   avBlockedThisSession=false;
-  localStorage.setItem('valterm_migration','5.8');
+  localStorage.setItem('valterm_migration','5.9');
 }
 document.getElementById('tickerInput').value='';
 updateKeyUI();
