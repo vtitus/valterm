@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.9</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.0</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -670,23 +670,23 @@ function renderStartupSources(){
       Configura tus API keys en <strong style="color:var(--teal);cursor:pointer" onclick="showPanel('settings')">API Keys</strong> para empezar a valorar acciones.</div>`;
     return;
   }
-  el.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:12px">Fuentes configuradas</div>`+
+  el.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:12px">Fuentes configuradas — activa las que quieras usar</div>`+
     srcs.map(s=>{
       const statusCol=s.hasKey?(s.enabled?s.col:'var(--text3)'):'var(--border2)';
       const statusTxt=s.hasKey?(s.enabled?'Activa':'Desactivada'):'Sin key';
-      return`<div style="display:flex;align-items:center;gap:14px;padding:11px 16px;margin-bottom:6px;background:var(--bg2);border:1px solid ${s.hasKey&&s.enabled?'var(--border2)':'var(--border)'};border-left:3px solid ${statusCol};border-radius:10px;opacity:${s.hasKey?1:.45}">
+      const clickable=s.hasKey?`onclick="setToggle('${s.key}',${!s.enabled});renderStartupSources()" style="cursor:pointer"`:'';
+      return`<div ${clickable} style="display:flex;align-items:center;gap:14px;padding:11px 16px;margin-bottom:6px;background:var(--bg2);border:1px solid ${s.hasKey&&s.enabled?'var(--border2)':'var(--border)'};border-left:3px solid ${statusCol};border-radius:10px;opacity:${s.hasKey?1:.4};transition:opacity .15s">
         <i class="ti ${s.icon}" style="font-size:18px;color:${statusCol};flex-shrink:0"></i>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.hasKey?'var(--text)':'var(--text3)'}">${s.label}</span>
             <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${s.hasKey&&s.enabled?'#00D4AA18':'var(--bg4)'};color:${s.hasKey&&s.enabled?'var(--teal)':'var(--text3)'};">${statusTxt}</span>
-            ${s.warn&&s.hasKey?`<span style="font-size:10px;color:var(--amber);padding:2px 8px;border-radius:4px;background:#F59E0B15">Poco fiable</span>`:''}
           </div>
           <div style="font-size:12px;color:var(--text3);line-height:1.6">${s.what}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:12px;font-weight:700;color:${s.cost.startsWith('Gratis')?'var(--teal)':'var(--amber)'}">${s.cost}</div>
           <div style="font-size:11px;color:var(--text3)">${s.limit}</div>
+          ${s.hasKey?`<label class="toggle" style="margin-top:6px" onclick="event.stopPropagation()"><input type="checkbox" ${s.enabled?'checked':''} onchange="setToggle('${s.key}',this.checked);renderStartupSources()"><div class="toggle-slider"></div></label>`:'<div style="font-size:11px;color:var(--text3);margin-top:4px">Sin key</div>'}
         </div>
       </div>`;
     }).join('');
