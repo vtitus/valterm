@@ -215,6 +215,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 .src-badge{font-size:12px;padding:3px 9px;border-radius:5px;font-weight:800;margin-right:4px;letter-spacing:.3px}
 .src-av{background:#3B82F618;color:#60A5FA;border:1px solid #3B82F630}
 .src-fh{background:var(--purple-dim);color:#C084FC;border:1px solid #A855F730}
+.src-yf{background:#A78BFA18;color:#A78BFA;border:1px solid #A78BFA30}
 .src-ai{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-glow)}
 .src-demo{background:#64748B15;color:var(--text3);border:1px solid var(--border2)}
 
@@ -318,7 +319,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.3</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.4</span></div>
   <button id="modeToggleBtn" class="mode-pill" onclick="toggleMode()" title="Cambiar modo"></button>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
@@ -966,8 +967,8 @@ async function ejecutarValoracion(ticker){
 
 async function buscarConFuentes(ticker){
   toast('Cargando '+ticker+'...',8000);
-  keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, fmp: null, gemini: null, groq: null };
-  let avData=null, fhData=null, fmpData=null;
+  keyStatus = { av: avBlockedThisSession?{ok:false,msg:'Límite diario — reset a las 2:00 AM UTC'}:null, fh: null, fmp: null, yf: null, gemini: null, groq: null };
+  let avData=null, fhData=null, fmpData=null, yfChart=null, yfSum=null;
   const proms=[];
   const useFMP = fmpKey && fmpEnabled;
   const useAV  = avKey  && avEnabled;
@@ -979,10 +980,75 @@ async function buscarConFuentes(ticker){
   if(!useAV) keyStatus.av={ok:null,msg:'No seleccionada'};
   if(useFH) proms.push(fetchFH(ticker).then(d=>{ fhData=d; }).catch(()=>{}));
   if(!useFH) keyStatus.fh={ok:null,msg:'No seleccionada'};
+  // Yahoo Finance — siempre activo, sin key, cobertura global
+  proms.push(fetchYFChart(ticker).then(d=>{ yfChart=d; }).catch(()=>{}));
+  proms.push(fetchYFData(ticker).then(d=>{ yfSum=d; }).catch(()=>{}));
   await Promise.all(proms);
-  if(!avData&&!fhData&&!fmpData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Comprueba las keys y el ticker.','error'); return; }
-  data = mergeData(ticker, avData, fhData, fmpData);
+  const yfData = processYFData(yfChart, yfSum);
+  if(yfData) keyStatus.yf={ok:true,msg:yfSum?'Activo — precio y fundamentales cargados':'Activo — solo precio (inicia sesión en Yahoo para fundamentales)'};
+  else keyStatus.yf={ok:false,msg:'No disponible'};
+  if(!avData&&!fhData&&!fmpData&&!yfData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Verifica el ticker.','error'); return; }
+  data = mergeData(ticker, avData, fhData, fmpData, yfData);
   renderAll();
+}
+
+// ── YAHOO FINANCE ─────────────────────────────────────────────────────────────
+let yfCrumb = null;
+
+async function fetchYFChart(ticker){
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d&includePrePost=false`,{credentials:'include'});
+    if(!r.ok) return null;
+    const j=await r.json();
+    const meta=j?.chart?.result?.[0]?.meta;
+    if(!meta||!meta.regularMarketPrice) return null;
+    const prev=meta.chartPreviousClose||meta.regularMarketPreviousClose||meta.regularMarketPrice;
+    return{price:meta.regularMarketPrice,prev,change:meta.regularMarketPrice-prev,changePct:(meta.regularMarketPrice-prev)/prev*100,currency:meta.currency||'USD',name:meta.longName||meta.shortName||ticker,exchange:meta.exchangeName||'',w52High:meta.fiftyTwoWeekHigh||0,w52Low:meta.fiftyTwoWeekLow||0,mktCap:meta.marketCap||0};
+  }catch(e){return null;}
+}
+
+async function fetchYFData(ticker){
+  try{
+    if(!yfCrumb){
+      const cr=await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb',{credentials:'include'});
+      if(cr.ok) yfCrumb=await cr.text();
+    }
+    if(!yfCrumb) return null;
+    const mods='defaultKeyStatistics,financialData,recommendationTrend,assetProfile,incomeStatementHistory,incomeStatementHistoryQuarterly,earningsHistory';
+    const r=await fetch(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(ticker)}?modules=${mods}&crumb=${encodeURIComponent(yfCrumb)}`,{credentials:'include'});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return j?.quoteSummary?.result?.[0]||null;
+  }catch(e){return null;}
+}
+
+function processYFData(chart,sum){
+  if(!chart) return null;
+  const pf=(v,d=0)=>{const n=parseFloat(v);return isFinite(n)?n:d;};
+  const raw=(obj,d=0)=>pf(obj?.raw,d);
+  const cur=chart.currency||'USD';
+  const isGBp=cur==='GBp'; const mult=isGBp?0.01:1;
+  const currency=isGBp?'GBP':cur;
+  const base={price:chart.price*mult,change:chart.change*mult,changePct:chart.changePct,name:chart.name,exchange:chart.exchange,w52High:chart.w52High*mult,w52Low:chart.w52Low*mult,mktCap:chart.mktCap,currency,priceSource:'Yahoo Finance'};
+  if(!sum) return base;
+  const ks=sum.defaultKeyStatistics||{};const fd=sum.financialData||{};const ap=sum.assetProfile||{};
+  const rt=sum.recommendationTrend?.trend?.[0]||{};
+  const is=(sum.incomeStatementHistory?.incomeStatementHistory||[]);
+  const isQ=(sum.incomeStatementHistoryQuarterly?.incomeStatementHistory||[]);
+  const eps=(raw(ks.trailingEps)||raw(ks.forwardEps))*mult;
+  const sharesOut=raw(ks.sharesOutstanding)||raw(ks.impliedSharesOutstanding)||0;
+  const ebitdaAbs=raw(fd.ebitda);
+  const fcfRaw=raw(fd.freeCashflow);
+  const fcfPerShare=sharesOut>0?fcfRaw/sharesOut*mult:eps*0.65;
+  const quarterly=isQ.slice(0,8).map(q=>({period:new Date(raw(q.endDate)*1000).toISOString().slice(0,7),actual:raw(q.netIncome)/(sharesOut||1)*mult,estimated:raw(q.netIncome)/(sharesOut||1)*mult*0.97,surprise:0,surprisePct:0})).filter(q=>q.actual!==0);
+  const annualRev=is.slice(0,5).map(s=>({period:new Date(raw(s.endDate)*1000).getFullYear().toString(),revenue:raw(s.totalRevenue)/1e9,netIncome:raw(s.netIncome)/1e9})).filter(r=>r.revenue>0);
+  const targetMean=raw(fd.targetMeanPrice)*mult,targetHigh=raw(fd.targetHighPrice)*mult,targetLow=raw(fd.targetLowPrice)*mult;
+  const buy=(rt.strongBuy||0)+(rt.buy||0),hold=rt.hold||0,sell=(rt.sell||0)+(rt.strongSell||0);
+  return{...base,sector:ap.sector||'N/A',industry:ap.industry||'',eps,forwardPE:raw(ks.forwardPE),beta:raw(ks.beta)||1,bookValue:raw(ks.bookValue)*mult,roe:raw(fd.returnOnEquity),fcf:fcfPerShare>0?fcfPerShare:eps*0.65,ebitdaAbs,sharesOut,revenueGrowth:raw(fd.revenueGrowth),earningsGrowth:raw(fd.earningsGrowth),profitMargin:raw(fd.profitMargins),operatingMargin:raw(fd.operatingMargins),debtToEquity:raw(fd.debtToEquity),currentRatio:raw(fd.currentRatio),aBuy:buy,aHold:hold,aSell:sell,targetPrice:targetMean,targetHigh,targetLow,quarterly,annualRev};
+}
+
+function currSym(c){
+  return{USD:'$',EUR:'€',GBP:'£',JPY:'¥',CAD:'C$',AUD:'A$',CHF:'Fr.',HKD:'HK$',KRW:'₩',INR:'₹',BRL:'R$',MXN:'$',SEK:'kr',NOK:'kr',DKK:'kr',SGD:'S$',NZD:'NZ$'}[c]||c+' ';
 }
 
 // ── FMP FETCH ────────────────────────────────────────────────────────────────
@@ -1077,8 +1143,8 @@ async function fetchFH(ticker){
 }
 
 // ── MERGE DATA ────────────────────────────────────────────────────────────────
-function mergeData(ticker, av, fh, fmp){
-  // Precio — Finnhub tiene tiempo real, AV puede tener retraso
+function mergeData(ticker, av, fh, fmp, yf){
+  // Precio — Finnhub tiene tiempo real, AV puede tener retraso, YF como fallback global
   let price, change, changePct, priceSource;
   if(fh&&fh.quote.c>0){
     price=fh.quote.c; change=fh.quote.d||0; changePct=fh.quote.dp||0;
@@ -1089,9 +1155,13 @@ function mergeData(ticker, av, fh, fmp){
     change=parseFloat(gq['09. change']||0);
     changePct=parseFloat((gq['10. change percent']||'0%').replace('%',''));
     priceSource='Cierre reciente (Alpha Vantage)';
+  } else if(yf&&yf.price>0){
+    price=yf.price; change=yf.change||0; changePct=yf.changePct||0;
+    priceSource='Yahoo Finance';
   } else {
     price=0; change=0; changePct=0; priceSource='Cierre reciente (FMP)';
   }
+  const currency = yf?.currency || 'USD';
 
   // Fundamentales — AV es mejor fuente si disponible
   let name, sector, exchange, eps, per, evEb, mktCap, high52, low52;
@@ -1118,6 +1188,22 @@ function mergeData(ticker, av, fh, fmp){
     if(!per||per===0) per=parseFloat(m.peBasicExclExtraTTM||20);
     if(!high52) high52=parseFloat(m['52WeekHigh']||0);
     if(!low52)  low52=parseFloat(m['52WeekLow']||0);
+  }
+  // Yahoo Finance — rellena datos faltantes para cualquier ticker global
+  if(yf){
+    if(!name||name===ticker) name=yf.name||ticker;
+    if(!sector||sector==='N/A') sector=yf.sector||'N/A';
+    if(!exchange) exchange=yf.exchange||'';
+    if(!eps||eps===0) eps=yf.eps||0;
+    if(!high52||high52===0) high52=yf.w52High||0;
+    if(!low52||low52===0)   low52=yf.w52Low||0;
+    if(!mktCap||mktCap===0) mktCap=(yf.mktCap||0)/1e9;
+    if(yf.beta&&yf.beta>0&&yf.beta<=3.5) { /* beta overridden below */ }
+    if(!per||per===0) per=yf.forwardPE||0;
+    if(yf.annualRev&&yf.annualRev.length>0&&annualRev.length===0) annualRev=yf.annualRev;
+    if(yf.quarterly&&yf.quarterly.length>0&&quarterly.length===0) quarterly=yf.quarterly;
+    if(!aBuy&&!aHold&&!aSell&&yf.aBuy!=null){ aBuy=yf.aBuy; aHold=yf.aHold; aSell=yf.aSell; }
+    if(!targetPrice&&yf.targetPrice>0){ targetPrice=yf.targetPrice; targetHigh=yf.targetHigh||0; targetLow=yf.targetLow||0; }
   }
 
   // Analistas — Finnhub tiene datos de precio objetivo más precisos
@@ -1186,21 +1272,22 @@ function mergeData(ticker, av, fh, fmp){
     'Industrials':14,'Basic Materials':10,'Materials':10,
   };
 
-  // Tasa de crecimiento real — prioridad: YoY AV > métricas FH > PEG > default conservador
+  // Tasa de crecimiento real — prioridad: YoY AV > métricas FH > YF > PEG > default conservador
   let epsGrowthYoy=0;
   if(av) epsGrowthYoy=parseFloat(av.ov.QuarterlyEarningsGrowthYOY||0);
   if(!epsGrowthYoy&&fh){const m=fh.metrics?.metric||{};epsGrowthYoy=(parseFloat(m.epsGrowth3Y||m.revenueGrowthTTMYoy||0))/100;}
+  if(!epsGrowthYoy&&yf) epsGrowthYoy=yf.earningsGrowth||yf.revenueGrowth||0;
   let pegRatio=av?parseFloat(av.ov.PEGRatio||0):0;
   if(pegRatio<=0&&fh) pegRatio=parseFloat(fh.metrics?.metric?.pegNormalizedAnnual||0);
   const pegGrowth=(pegRatio>0&&per>0)?(per/pegRatio/100):0;
   const g=Math.min(0.30,Math.max(0.02,epsGrowthYoy||pegGrowth||0.06));
 
   // WACC ajustado por Beta real (risk-free 4.5% + beta × prima 5.5%)
-  // pf() evita el bug parseFloat("None"||fallback) — "None" es truthy y parseFloat("None")=NaN
   const pf=(v,d=0)=>{ const n=parseFloat(v); return isFinite(n)?n:d; };
   let beta=av?pf(av.ov.Beta,1.0):1.0;
   if(beta<=0||beta>3.5) beta=1.0;
   if(fh){ const fb=pf(fh.metrics?.metric?.beta,0); if(fb>0&&fb<=3.5) beta=fb; }
+  if(beta===1.0&&yf?.beta>0&&yf.beta<=3.5) beta=yf.beta;
   const wacc=Math.min(0.15,Math.max(0.07,0.045+beta*0.055));
 
   // DCF con crecimiento real y WACC real
@@ -1228,6 +1315,10 @@ function mergeData(ticker, av, fh, fmp){
   // P/B Justificado — Valor libro × (ROE / WACC)
   let bookValue=av?pf(av.ov.BookValue,0):(fh?pf(fh.metrics?.metric?.bookValuePerShareQuarterly,0):0);
   let roe=av?pf(av.ov.ReturnOnEquityTTM,0):(fh?pf(fh.metrics?.metric?.roeTTM,0)/100:0);
+  if(!bookValue&&yf?.bookValue>0) bookValue=yf.bookValue;
+  if(!roe&&yf?.roe>0) roe=yf.roe;
+  if(!ebitdaAbs&&yf?.ebitdaAbs>0){ ebitdaAbs=yf.ebitdaAbs; sharesOut=yf.sharesOut||sharesOut; }
+  if(!fcf&&yf?.fcf>0) fcf=yf.fcf;
   let pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
 
   // ── FMP overrides y complementos (/stable/ API) ───────────────────────────
@@ -1294,6 +1385,7 @@ function mergeData(ticker, av, fh, fmp){
   if(fmp) sources.push('FMP');
   if(av) sources.push('Alpha Vantage');
   if(fh) sources.push('Finnhub');
+  if(yf) sources.push('Yahoo Finance');
 
   return {
     ticker, name, sector, exchange,
@@ -1317,8 +1409,8 @@ function mergeData(ticker, av, fh, fmp){
     divPerShare: av?pf(av.ov.DividendPerShare,0):0,
     exDivDate: av?(av.ov.ExDividendDate||''):'',
     revGrowthYoy: av?pf(av.ov.QuarterlyRevenueGrowthYOY,0):(fh?pf(fh.metrics?.metric?.revenueGrowthTTMYoy,0)/100:0),
-    sources,
-    hasFH: !!fh, hasAV: !!av, hasFMP: !!fmp,
+    sources, currency,
+    hasFH: !!fh, hasAV: !!av, hasFMP: !!fmp, hasYF: !!yf,
   };
 }
 
@@ -1502,6 +1594,7 @@ function renderSourceStatus(){
   const bar=document.getElementById('sourceStatusBar');
   if(!bar) return;
   const items=[
+    {label:'Yahoo Finance', key:'yf',     color:'#A78BFA'},
     {label:'Alpha Vantage', key:'av',     color:'#60A5FA'},
     {label:'Finnhub',       key:'fh',     color:'#C084FC'},
     {label:'Gemini IA',     key:'gemini', color:'var(--teal)'},
@@ -1514,7 +1607,7 @@ function renderSourceStatus(){
       : s.ok===true  ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;flex-shrink:0"></span>`
       : s.ok===false ? `<span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>`
       :                `<span style="width:9px;height:9px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0"></span>`;
-    const hasKey = it.key==='av'?!!avKey:it.key==='fh'?!!fhKey:it.key==='gemini'?!!geminiKey:!!groqKey;
+    const hasKey = it.key==='yf'?true:it.key==='av'?!!avKey:it.key==='fh'?!!fhKey:it.key==='gemini'?!!geminiKey:!!groqKey;
     const msg = s ? s.msg : hasKey ? 'Key configurada — no utilizada en esta búsqueda' : 'Sin key';
     const col = s?.ok===true ? 'var(--text2)' : s?.ok===false ? 'var(--red)' : 'var(--text3)';
     return `<div style="display:flex;align-items:center;gap:7px;font-size:12px">${dot}<span style="color:${it.color};font-weight:700">${it.label}</span><span style="color:${col}">${msg}</span></div>`;
@@ -1729,7 +1822,8 @@ function mosHTML(d){
   else if(mos>0){verdict='PRECIO JUSTO';col='var(--amber)';bgCol='#F59E0B22';zone='Margen minimo';}
   else{verdict='SOBREVALORADA';col='var(--red)';bgCol='#FF4D6A22';zone='Sin margen de seguridad';}
   const barW=Math.min(100,Math.max(0,mos>0?Math.min(mos/50*100,100):0));
-  const srcBadges=d.sources.map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='DEMO'?'src-demo':'src-ai'}">${s}</span>`).join('');
+  const srcBadges=d.sources.map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='Yahoo Finance'?'src-yf':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Yahoo Finance'?'YF':s}</span>`).join('');
+  const cs=currSym(d.currency||'USD'); const isUSD=!d.currency||d.currency==='USD';
   const methodLabel={'avg':'MEDIA','dcf':'DCF','per':'PER','eveb':'EV/EBITDA','graham':'GRAHAM','pb':'P/B'}[valMethod]||'MEDIA';
   const allMethods=[
     {k:'avg',  l:'MEDIA',    v:avgVal(d)},
@@ -1762,8 +1856,8 @@ function mosHTML(d){
     ${sugRow}
     <div class="mos-left">
       <div class="mos-label">Precio actual</div>
-      <div class="mos-price" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">$${fmt(d.price)}</div>
-      ${priceEur?`<div class="mos-eur">€${fmt(priceEur)}</div>`:''}
+      <div class="mos-price" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">${cs}${fmt(d.price)}</div>
+      ${isUSD&&priceEur?`<div class="mos-eur">€${fmt(priceEur)}</div>`:''}
       <div style="font-size:10px;color:var(--text3);margin-top:4px">${d.priceSource}<br>${srcBadges}</div>
     </div>
     <div class="mos-center">
@@ -1793,8 +1887,8 @@ function mosHTML(d){
           <span style="font-size:11px">Activa Alpha Vantage o Finnhub<br>y busca de nuevo</span>
         </div>
       ` : `
-        <div class="mos-price" style="color:var(--teal);text-align:right">$${fmt(avg)}</div>
-        ${avgEur?`<div class="mos-eur" style="text-align:right">€${fmt(avgEur)}</div>`:''}
+        <div class="mos-price" style="color:var(--teal);text-align:right">${cs}${fmt(avg)}</div>
+        ${isUSD&&avgEur?`<div class="mos-eur" style="text-align:right">€${fmt(avgEur)}</div>`:''}
         <div style="font-size:10px;color:var(--text3);margin-top:10px;text-align:right;line-height:2.1">
           ${allMethods.filter(m=>m.k!=='avg').map(m=>`<span style="color:${valMethod===m.k?'var(--accent)':'var(--text3)'};font-weight:${valMethod===m.k?'700':'400'}">${m.l}: $${fmt(m.v)}</span>`).join('<br>')}
         </div>
@@ -1805,7 +1899,8 @@ function mosHTML(d){
 // ── OVERVIEW ──────────────────────────────────────────────────────────────────
 function renderOverview(){
   const d=data;
-  const priceEur=toEur(d.price);
+  const cs=currSym(d.currency||'USD'); const isUSD=!d.currency||d.currency==='USD';
+  const priceEur=isUSD?toEur(d.price):null;
 
   document.getElementById('tickerHeader').innerHTML=`
     <div>
@@ -1814,14 +1909,14 @@ function renderOverview(){
     </div>
     <div class="price-block">
       <div class="price-big" style="color:${d.changePct>=0?'var(--teal)':'var(--red)'}">
-        $${fmt(d.price)}${priceEur?` <span style="font-size:16px;color:var(--text2)">/ €${fmt(priceEur)}</span>`:''}
+        ${cs}${fmt(d.price)}${priceEur?` <span style="font-size:16px;color:var(--text2)">/ €${fmt(priceEur)}</span>`:''}
       </div>
       <span class="price-chg ${d.changePct>=0?'pos':'neg'}">${sign(d.change)}${fmt(d.change)} (${sign(d.changePct)}${fmt(d.changePct,2)}%)</span>
     </div>
     <div class="ticker-metas">
       <div class="meta-item"><div class="meta-label">Mkt Cap</div><div class="meta-value">${fmtB(d.mktCap)}</div></div>
-      <div class="meta-item"><div class="meta-label">EPS</div><div class="meta-value">$${fmt(d.eps)}</div></div>
-      <div class="meta-item"><div class="meta-label">PER</div><div class="meta-value">${fmt(d.per,1)}x</div></div>
+      <div class="meta-item"><div class="meta-label">EPS</div><div class="meta-value">${d.eps>0?cs+fmt(d.eps):'$N/A'}</div></div>
+      <div class="meta-item"><div class="meta-label">PER</div><div class="meta-value">${d.per>0?fmt(d.per,1)+'x':'N/Ax'}</div></div>
     </div>`;
 
   document.getElementById('mosCard').innerHTML = mosHTML(d);
