@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.8</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.9</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -303,6 +303,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
     <div class="sidebar-item"        id="nav-ia"         onclick="showPanel('ia')"><div class="sidebar-icon"><i class="ti ti-robot"></i></div> Analisis IA</div>
     <div class="sidebar-section">PRO</div>
     <div class="sidebar-item" id="nav-watchlist"  onclick="showPanel('watchlist')"><div class="sidebar-icon"><i class="ti ti-star"></i></div> Watchlist <span id="wlBadge" style="display:none;margin-left:auto;background:var(--teal);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
+    <div class="sidebar-item" id="nav-historial"  onclick="showPanel('historial');renderHistorial()"><div class="sidebar-icon"><i class="ti ti-history"></i></div> Historial <span id="histBadge" style="display:none;margin-left:auto;background:var(--accent);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px"></span></div>
     <div class="sidebar-item" id="nav-noticias"   onclick="showPanel('noticias');loadNoticias()"><div class="sidebar-icon"><i class="ti ti-news"></i></div> Noticias</div>
     <div class="sidebar-item" id="nav-comparador" onclick="showPanel('comparador')"><div class="sidebar-icon"><i class="ti ti-scale"></i></div> Comparar</div>
     <div class="sidebar-section">Config</div>
@@ -424,6 +425,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
           <button class="btn" style="margin-left:auto;padding:6px 14px;font-size:12px" onclick="addToWatchlist()"><i class="ti ti-plus"></i> Añadir actual</button>
         </div>
         <div id="watchlistWrap"></div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="panel" id="panel-historial">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-history"></i> Historial de valoraciones
+          <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:3px 10px" onclick="clearHistorial()"><i class="ti ti-trash"></i> Borrar todo</button>
+        </div>
+        <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+          <input type="text" id="histFilter" class="settings-input" placeholder="Filtrar por ticker…" style="max-width:180px;padding:5px 10px;font-size:12px" oninput="renderHistorial()">
+          <span id="histCount" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
+        </div>
+        <div id="historialWrap"></div>
       </div>
     </div>
 
@@ -1488,7 +1503,97 @@ function renderAll(){
   renderValoracion();
   renderAnalistas();
   renderAnalysis();
+  saveHistorial(data);
   showPanel('overview');
+}
+
+// ── HISTORIAL ─────────────────────────────────────────────────────────────────
+function saveHistorial(d){
+  const v=getValForMethod(d,valMethod);
+  const pot=v>0?(v-d.price)/d.price*100:0;
+  const entry={
+    ts:Date.now(), ticker:d.ticker, name:d.name, sector:d.sector,
+    price:d.price, method:valMethod, val:v, pot:pot,
+    dcf:d.dcfVal||0, per:d.perVal||0, eveb:d.evEbVal||0,
+    graham:d.grahamVal||0, pb:d.pbVal||0, avg:avgVal(d)||0,
+    eps:d.eps||0, mktCap:d.mktCap||0, beta:d.beta||0,
+    targetPrice:d.targetPrice||0, sources:d.sources||[],
+  };
+  let hist=JSON.parse(localStorage.getItem('valterm_hist')||'[]');
+  hist.unshift(entry);
+  if(hist.length>300) hist=hist.slice(0,300);
+  localStorage.setItem('valterm_hist',JSON.stringify(hist));
+  updateHistBadge();
+}
+
+function updateHistBadge(){
+  const hist=JSON.parse(localStorage.getItem('valterm_hist')||'[]');
+  const b=document.getElementById('histBadge');
+  if(b){ b.textContent=hist.length; b.style.display=hist.length?'':'none'; }
+}
+
+function renderHistorial(){
+  const filterEl=document.getElementById('histFilter');
+  const filter=(filterEl?.value||'').trim().toUpperCase();
+  let hist=JSON.parse(localStorage.getItem('valterm_hist')||'[]');
+  if(filter) hist=hist.filter(e=>e.ticker.toUpperCase().includes(filter)||(e.name||'').toUpperCase().includes(filter));
+  const wrap=document.getElementById('historialWrap');
+  const countEl=document.getElementById('histCount');
+  if(countEl) countEl.textContent=hist.length+' registro'+(hist.length!==1?'s':'');
+  if(!hist.length){
+    wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)"><i class="ti ti-history" style="font-size:32px;display:block;margin-bottom:12px"></i>'+(filter?'Sin resultados para "'+filter+'"':'Aún no hay búsquedas guardadas.<br>Cada valoración se guarda automáticamente.')+' </div>';
+    return;
+  }
+  const ML={avg:'MEDIA',dcf:'DCF',per:'PER',eveb:'EV/EB',graham:'GRAHAM',pb:'P/B'};
+  const MC={avg:'var(--accent)',dcf:'var(--teal)',per:'var(--purple)',eveb:'var(--amber)',graham:'#4ade80',pb:'#60a5fa'};
+  const rows=hist.map(e=>{
+    const pot=e.pot||0;
+    const col=pot>25?'var(--teal)':pot>10?'var(--teal)':pot>0?'var(--amber)':'var(--red)';
+    const verdict=pot>25?'COMPRA':pot>10?'INFRA':pot>0?'JUSTO':'SOBRE';
+    const d=new Date(e.ts);
+    const ds=d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const ts=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    const meth=e.method||'avg';
+    const mc=MC[meth]||'var(--text3)';
+    const detail=[
+      e.dcf>0?'DCF: $'+fmt(e.dcf):'',
+      e.per>0?'PER: $'+fmt(e.per):'',
+      e.eveb>0?'EV/EB: $'+fmt(e.eveb):'',
+      e.graham>0?'Graham: $'+fmt(e.graham):'',
+      e.pb>0?'P/B: $'+fmt(e.pb):'',
+    ].filter(Boolean).join('  ·  ');
+    const srcBadges=(e.sources||[]).map(s=>`<span class="source-tag ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='DEMO'?'src-demo':'src-ai'}" style="font-size:9px">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s}</span>`).join(' ');
+    const uid='hr'+e.ts;
+    return `<tr style="border-bottom:1px solid var(--bd);cursor:pointer" onclick="document.getElementById('${uid}').style.display=document.getElementById('${uid}').style.display==='none'?'table-row':'none'">
+      <td style="padding:8px 6px;white-space:nowrap;color:var(--text3);font-size:11px">${ds}<br><span style="font-size:10px">${ts}</span></td>
+      <td style="padding:8px 6px"><span style="font-family:var(--mono);font-weight:700;color:var(--text);font-size:13px">${e.ticker}</span><br><span style="font-size:10px;color:var(--text3)">${(e.name||'').slice(0,24)}</span></td>
+      <td style="padding:8px 6px;font-family:var(--mono);text-align:right;font-size:13px">$${fmt(e.price)}</td>
+      <td style="padding:8px 6px;text-align:center"><span style="font-size:10px;font-weight:700;color:${mc};background:${mc}22;padding:2px 7px;border-radius:4px">${ML[meth]||meth.toUpperCase()}</span></td>
+      <td style="padding:8px 6px;font-family:var(--mono);text-align:right;color:var(--teal);font-size:13px">${e.val>0?'$'+fmt(e.val):'—'}</td>
+      <td style="padding:8px 6px;text-align:right"><span style="font-size:12px;font-weight:700;color:${col}">${pot>=0?'+':''}${fmt(pot,1)}%</span><br><span style="font-size:9px;color:${col}">${verdict}</span></td>
+    </tr>
+    <tr id="${uid}" style="display:none;background:var(--bg2)"><td colspan="6" style="padding:8px 14px">
+      <div style="font-size:11px;color:var(--text3);line-height:2">${detail||'—'}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">EPS: $${fmt(e.eps||0)} · Beta: ${fmt(e.beta||1,2)} · Target: ${e.targetPrice>0?'$'+fmt(e.targetPrice):'—'} · ${srcBadges}</div>
+    </td></tr>`;
+  });
+  wrap.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="border-bottom:1px solid var(--bd)">
+      <th style="padding:6px;text-align:left;color:var(--text3);font-size:10px;font-weight:500">FECHA</th>
+      <th style="padding:6px;text-align:left;color:var(--text3);font-size:10px;font-weight:500">EMPRESA</th>
+      <th style="padding:6px;text-align:right;color:var(--text3);font-size:10px;font-weight:500">PRECIO</th>
+      <th style="padding:6px;text-align:center;color:var(--text3);font-size:10px;font-weight:500">MÉTODO</th>
+      <th style="padding:6px;text-align:right;color:var(--text3);font-size:10px;font-weight:500">VALOR INT.</th>
+      <th style="padding:6px;text-align:right;color:var(--text3);font-size:10px;font-weight:500">POTENCIAL</th>
+    </tr></thead>
+    <tbody>${rows.join('')}</tbody>
+  </table>`;
+}
+
+function clearHistorial(){
+  if(!confirm('¿Borrar todo el historial de valoraciones?')) return;
+  localStorage.removeItem('valterm_hist');
+  renderHistorial(); updateHistBadge();
 }
 
 function mosHTML(d){
@@ -2164,6 +2269,7 @@ updateKeyUI();
 updateReqUI();
 fetchEurRate();
 renderWatchlist();
+updateHistBadge();
 renderStartupSources();
 </script>
 </body>
