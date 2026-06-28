@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.4</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.5</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -561,7 +561,7 @@ let groqEnabled   = localStorage.getItem('valterm_gq_on')==='true';
 let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":false,"per":false,"eveb":false,"graham":false,"pb":false}');
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
-const FMP_B   = 'https://financialmodelingprep.com/api/v3';
+const FMP_B   = 'https://financialmodelingprep.com/stable';
 const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
@@ -664,7 +664,7 @@ async function verificarFMP(){
   if(!fmpKey){el.innerHTML='<span style="color:var(--amber)">Sin key guardada.</span>';return;}
   el.innerHTML='<span style="color:var(--text3)">Verificando...</span>';
   try{
-    const r=await fetch(`${FMP_B}/profile/AAPL?apikey=${fmpKey}`);
+    const r=await fetch(`${FMP_B}/profile?symbol=AAPL&apikey=${fmpKey}`);
     const d=await r.json();
     if(d['Error Message']||d['message']){
       el.innerHTML=`<span style="color:var(--red)">${d['Error Message']||d['message']}</span>`;
@@ -929,13 +929,12 @@ async function fetchFMP(ticker){
   const k=fmpKey;
   const safe=r=>r.json().catch(()=>({}));
   const [profile,metrics,dcfRaw,incomeRaw,ptarget] = await Promise.all([
-    fetch(`${FMP_B}/profile/${ticker}?apikey=${k}`).then(safe),
-    fetch(`${FMP_B}/key-metrics/${ticker}?limit=1&apikey=${k}`).then(safe),
-    fetch(`${FMP_B}/discounted-cash-flow/${ticker}?apikey=${k}`).then(safe),
-    fetch(`${FMP_B}/income-statement/${ticker}?limit=8&period=quarter&apikey=${k}`).then(safe),
-    fetch(`${FMP_B}/price-target-consensus/${ticker}?apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/profile?symbol=${ticker}&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/key-metrics?symbol=${ticker}&limit=1&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/discounted-cash-flow?symbol=${ticker}&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/income-statement?symbol=${ticker}&limit=8&period=quarterly&apikey=${k}`).then(safe),
+    fetch(`${FMP_B}/price-target-consensus?symbol=${ticker}&apikey=${k}`).then(safe),
   ]);
-  // Detectar error real de FMP (devuelve objeto, no array, cuando falla)
   const profileErr=!Array.isArray(profile)||!profile[0];
   if(profileErr){
     const msg=profile['Error Message']||profile.message||profile['error']||'Ticker no encontrado o key inválida';
@@ -943,7 +942,6 @@ async function fetchFMP(ticker){
   }
   keyStatus.fmp={ok:true,msg:'FMP OK'};
   addReqFor('fmp',5);
-  // Endpoints secundarios pueden ser de pago — si fallan, se usan como vacíos
   const safeObj=v=>(Array.isArray(v)?v[0]||{}:(v&&!v['Error Message']?v:{}));
   return {
     profile: profile[0],
@@ -1031,7 +1029,7 @@ function mergeData(ticker, av, fh, fmp){
     changePct=parseFloat((gq['10. change percent']||'0%').replace('%',''));
     priceSource='Cierre reciente (Alpha Vantage)';
   } else {
-    price=100; change=0; changePct=0; priceSource='N/A';
+    price=0; change=0; changePct=0; priceSource='FMP';
   }
 
   // Fundamentales — AV es mejor fuente si disponible
@@ -1156,8 +1154,8 @@ function mergeData(ticker, av, fh, fmp){
 
   // EV/EBITDA — EBITDA absoluto real × múltiplo sectorial / acciones
   const sectorEVEB=SECTOR_EVEB[sector]||13;
-  const ebitdaAbs=av?pf(av.ov.EBITDA,0):0;
-  const sharesOut=av?pf(av.ov.SharesOutstanding,0):0;
+  let ebitdaAbs=av?pf(av.ov.EBITDA,0):0;
+  let sharesOut=av?pf(av.ov.SharesOutstanding,0):0;
   let evEbVal=0;
   if(ebitdaAbs>0&&sharesOut>0) evEbVal=(ebitdaAbs*sectorEVEB)/sharesOut;
   else if(eps>0) evEbVal=eps*sectorEVEB;
@@ -1166,32 +1164,51 @@ function mergeData(ticker, av, fh, fmp){
   const grahamVal=calcGraham(eps,g*100,4.5);
 
   // P/B Justificado — Valor libro × (ROE / WACC)
-  const bookValue=av?pf(av.ov.BookValue,0):(fh?pf(fh.metrics?.metric?.bookValuePerShareQuarterly,0):0);
-  const roe=av?pf(av.ov.ReturnOnEquityTTM,0):(fh?pf(fh.metrics?.metric?.roeTTM,0)/100:0);
-  const pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
+  let bookValue=av?pf(av.ov.BookValue,0):(fh?pf(fh.metrics?.metric?.bookValuePerShareQuarterly,0):0);
+  let roe=av?pf(av.ov.ReturnOnEquityTTM,0):(fh?pf(fh.metrics?.metric?.roeTTM,0)/100:0);
+  let pbVal=(bookValue>0&&roe>0&&roe<2)?bookValue*(roe/wacc):0;
 
-  // ── FMP overrides y complementos ──────────────────────────────────────────
+  // ── FMP overrides y complementos (/stable/ API) ───────────────────────────
   let dcfValFMP=0;
   if(fmp){
     const fp=fmp.profile, fm=fmp.metrics, fd=fmp.dcf, fi=fmp.income, ft=fmp.ptarget;
-    // DCF real de FMP (ya calculado por ellos con datos reales de la empresa)
-    if(fd?.dcf>0) dcfValFMP=parseFloat(fd.dcf);
-    // Fundamentales de FMP si faltan de AV/FH
-    if(!eps||eps===0) eps=parseFloat(fm?.eps||fm?.netIncomePerShareTTM||0);
-    if(!per||per===0) per=parseFloat(fm?.peRatio||0);
-    if(!evEb||evEb===0) evEb=parseFloat(fm?.evToEbitda||0);
-    if(!bookValue||bookValue===0) bookValue=parseFloat(fm?.bookValuePerShareTTM||0);
-    if(!roe||roe===0) roe=parseFloat(fm?.roeTTM||0);
-    if(!beta||beta===1.0) beta=parseFloat(fp?.beta||1.0);
-    if(!mktCap||mktCap===0) mktCap=parseFloat(fp?.mktCap||0)/1e9;
-    // Precio de FMP si no hay otra fuente
-    if(!price||price===0){ price=parseFloat(fp?.price||0); change=parseFloat(fp?.changes||0); changePct=parseFloat(fp?.changesPercentage||0); }
-    // Analistas de FMP si no hay FH/AV
-    if(!targetPrice&&ft?.targetMedian){ targetPrice=parseFloat(ft.targetMedian); targetHigh=parseFloat(ft.targetHigh||0); targetLow=parseFloat(ft.targetLow||0); }
-    // Earnings trimestrales de FMP si no hay AV
-    if(quarterly.length===0&&fi.length>0){
-      quarterly=fi.slice(0,8).map(q=>({ period:q.date?.slice(0,7)||'', actual:parseFloat(q.epsdiluted||q.eps||0), estimated:parseFloat(q.epsdiluted||q.eps||0)*0.97, surprise:0, surprisePct:0 }));
+    // Datos de empresa cuando FMP es la única fuente
+    if(!name||name===ticker) name=fp?.companyName||ticker;
+    if(!sector||sector==='N/A') sector=fp?.sector||'N/A';
+    if(!exchange) exchange=fp?.exchange||'';
+    // Precio — fp.change y fp.changePercentage son los campos correctos en /stable/
+    if(!price||price===0){ price=pf(fp?.price,0); change=pf(fp?.change,0); changePct=pf(fp?.changePercentage,0); }
+    // DCF real calculado por FMP
+    if(fd?.dcf>0) dcfValFMP=pf(fd.dcf);
+    // EPS TTM desde income statement (suma 4 trimestres) — /stable/ usa epsDiluted
+    const fmpTtmEps=fi.length>0?fi.slice(0,4).reduce((s,q)=>s+pf(q.epsDiluted||q.eps,0),0):0;
+    if((!eps||eps===0)&&fmpTtmEps>0) eps=fmpTtmEps;
+    // PER — earningsYield en /stable/ key-metrics = 1/PER
+    const ey=pf(fm?.earningsYield,0);
+    if((!per||per===0)&&ey>0) per=Math.min(200,1/ey);
+    // EV/EBITDA — campo evToEBITDA (mayúsculas) en /stable/
+    if(!evEb||evEb===0) evEb=pf(fm?.evToEBITDA,0);
+    // ROE — returnOnEquity en /stable/ (no roeTTM)
+    if(!roe||roe===0){ roe=pf(fm?.returnOnEquity,0); if(bookValue>0&&roe>0&&roe<2) pbVal=bookValue*(roe/wacc); }
+    // Beta
+    if(!beta||beta===1.0){ const b=pf(fp?.beta,0); if(b>0&&b<=3.5) beta=b; }
+    // Market cap — marketCap en /stable/ (no mktCap)
+    if(!mktCap||mktCap===0) mktCap=pf(fp?.marketCap,0)/1e9;
+    // 52W range — /stable/ devuelve string "low-high" en fp.range
+    if((!high52||!low52)&&fp?.range){
+      const rp=(fp.range||'').split('-');
+      if(rp.length===2){ low52=pf(rp[0],0); high52=pf(rp[1],0); }
     }
+    // Precio objetivo
+    if(!targetPrice&&ft?.targetMedian){ targetPrice=pf(ft.targetMedian,0); targetHigh=pf(ft.targetHigh,0); targetLow=pf(ft.targetLow,0); }
+    // Earnings trimestrales — /stable/ usa epsDiluted (no epsdiluted)
+    if(quarterly.length===0&&fi.length>0){
+      quarterly=fi.slice(0,8).map(q=>({ period:q.date?.slice(0,7)||'', actual:pf(q.epsDiluted||q.eps,0), estimated:pf(q.epsDiluted||q.eps,0)*0.97, surprise:0, surprisePct:0 }));
+    }
+    // EBITDA y acciones para evEbVal cuando FMP es única fuente
+    const fmpTtmEbitda=fi.length>0?fi.slice(0,4).reduce((s,q)=>s+pf(q.ebitda,0),0):0;
+    const fmpShares=pf(fi[0]?.weightedAverageShsOutDil,0);
+    if(!ebitdaAbs&&fmpTtmEbitda>0){ ebitdaAbs=fmpTtmEbitda; sharesOut=fmpShares; if(fmpShares>0) evEbVal=(fmpTtmEbitda*sectorEVEB)/fmpShares; }
   }
 
   // DCF final: usar FMP si disponible y método DCF activo, sino el calculado
