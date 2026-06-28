@@ -322,7 +322,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.8</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -2540,21 +2540,73 @@ async function searchSymbol(q){
   dd.style.display='block';
   try{
     let results=[];
-    if(fhKey){
-      const r=await fetch(`${FH}/search?q=${encodeURIComponent(q)}&token=${fhKey}`);
-      const d=await r.json();
-      results=(d.result||[]).filter(x=>x.type==='Common Stock'||x.type==='').slice(0,9);
-      results=results.map(x=>({symbol:x.displaySymbol||x.symbol, name:x.description, meta:x.type}));
-    } else if(avKey){
-      const r=await fetch(`${AV}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(q)}&apikey=${avKey}`);
-      const d=await r.json(); addReq(1);
-      results=(d.bestMatches||[]).slice(0,9).map(m=>({symbol:m['1. symbol'],name:m['2. name'],meta:m['3. type']+' · '+m['4. region']}));
+
+    // Yahoo Finance search — sin key, cobertura global, tickers 100% compatibles con nuestra API
+    try{
+      const url=`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0&enableFuzzyQuery=false`;
+      let r;
+      try{ r=await fetch(url,{signal:AbortSignal.timeout(4000)}); if(!r.ok) throw new Error(); }
+      catch(e){ r=await fetch('https://corsproxy.io/?url='+encodeURIComponent(url)); }
+      if(r.ok){
+        const d=await r.json();
+        results=(d.quotes||[])
+          .filter(x=>x.quoteType==='EQUITY'||x.quoteType==='ETF')
+          .slice(0,8)
+          .map(x=>({symbol:x.symbol, name:x.longname||x.shortname||x.symbol, meta:(x.exchDisp||x.exchange||'')+(x.typeDisp?' · '+x.typeDisp:'')}));
+      }
+    }catch(e){}
+
+    // Complemento con Finnhub si hay key y pocos resultados de YF
+    if(results.length<3 && fhKey){
+      try{
+        const r=await fetch(`${FH}/search?q=${encodeURIComponent(q)}&token=${fhKey}`);
+        const d=await r.json();
+        const fhRes=(d.result||[]).filter(x=>x.type==='Common Stock'||x.type==='').slice(0,5)
+          .map(x=>({symbol:x.displaySymbol||x.symbol, name:x.description, meta:x.type||'Acción'}));
+        // Añadir solo los que no estén ya en YF results
+        const existing=new Set(results.map(r=>r.symbol));
+        fhRes.forEach(r=>{ if(!existing.has(r.symbol)) results.push(r); });
+      }catch(e){}
     }
+
+    // Fallback a Alpha Vantage si no hay nada
+    if(!results.length && avKey){
+      try{
+        const r=await fetch(`${AV}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(q)}&apikey=${avKey}`);
+        const d=await r.json(); addReq(1);
+        results=(d.bestMatches||[]).slice(0,8).map(m=>({symbol:m['1. symbol'],name:m['2. name'],meta:m['3. type']+' · '+m['4. region']}));
+      }catch(e){}
+    }
+
     if(!results.length){ dd.innerHTML=`<div class="ticker-dd-empty">Sin resultados para "<strong>${q}</strong>"</div>`; return; }
+
+    // Dedup: misma empresa en múltiples bolsas → mostrar la más relevante
+    const seen=new Map();
+    const deduped=[];
+    for(const r of results){
+      const key=(r.name||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,20);
+      if(!key){ deduped.push(r); continue; }
+      if(!seen.has(key)){
+        seen.set(key,r);
+        deduped.push(r);
+      } else {
+        // Preferir el ticker que más se parezca a la búsqueda
+        const prev=seen.get(key);
+        const qUp=q.toUpperCase();
+        const prevScore=(prev.symbol.toUpperCase()===qUp?3:prev.symbol.toUpperCase().startsWith(qUp)?2:prev.symbol.toUpperCase().includes(qUp)?1:0);
+        const curScore=(r.symbol.toUpperCase()===qUp?3:r.symbol.toUpperCase().startsWith(qUp)?2:r.symbol.toUpperCase().includes(qUp)?1:0);
+        if(curScore>prevScore){
+          const idx=deduped.indexOf(prev);
+          deduped[idx]=r;
+          seen.set(key,r);
+        }
+      }
+    }
+
     dd.innerHTML=`<div class="ticker-dd-head">Resultados para "${q}"</div>`+
-      results.map((r,i)=>`<div class="ticker-opt" data-i="${i}" onmousedown="selectSymbol('${r.symbol.replace(/'/g,"\\'")}')"><span class="ticker-pill">${r.symbol}</span><div><div class="ticker-opt-name">${r.name}</div><div class="ticker-opt-meta">${r.meta}</div></div></div>`).join('');
+      deduped.slice(0,7).map((r,i)=>`<div class="ticker-opt" data-i="${i}" onmousedown="selectSymbol('${r.symbol.replace(/'/g,"\\'")}')"><span class="ticker-pill">${r.symbol}</span><div><div class="ticker-opt-name">${r.name}</div><div class="ticker-opt-meta">${r.meta}</div></div></div>`).join('');
     ddIdx=-1;
-  }catch(e){ dd.innerHTML=`<div class="ticker-dd-empty">Error de busqueda</div>`; }
+  }catch(e){ dd.innerHTML=`<div class="ticker-dd-empty">Error de búsqueda</div>`; }
 }
 
 function selectSymbol(sym){
