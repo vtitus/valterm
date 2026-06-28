@@ -322,7 +322,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.6</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.7</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -987,13 +987,27 @@ async function buscarConFuentes(ticker){
   if(useFH) proms.push(fetchFH(ticker).then(d=>{ fhData=d; }).catch(()=>{}));
   if(!useFH) keyStatus.fh={ok:null,msg:'No seleccionada'};
   // Yahoo Finance — siempre activo, sin key, cobertura global
+  let yfQuote=null;
   proms.push(fetchYFChart(ticker).then(d=>{ yfChart=d; }).catch(()=>{}));
+  proms.push(fetchYFQuote(ticker).then(d=>{ yfQuote=d; }).catch(()=>{}));
   proms.push(fetchYFData(ticker).then(d=>{ yfSum=d; }).catch(()=>{}));
   await Promise.all(proms);
-  const yfData = processYFData(yfChart, yfSum);
-  if(yfData) keyStatus.yf={ok:true,msg:yfSum?'Activo — precio y fundamentales cargados':'Activo — solo precio (inicia sesión en Yahoo para fundamentales)'};
+  const yfData = processYFData(yfChart, yfSum||yfQuote, !!yfSum);
+  if(yfData) keyStatus.yf={ok:true,msg:yfSum?'Activo — precio y fundamentales completos':yfQuote?'Activo — precio y fundamentales básicos (cobertura global)':'Activo — solo precio'};
   else keyStatus.yf={ok:false,msg:'No disponible'};
-  if(!avData&&!fhData&&!fmpData&&!yfData){ showMsg('No se pudo cargar datos de <strong>'+ticker+'</strong>. Verifica el ticker.','error'); return; }
+  if(!avData&&!fhData&&!fmpData&&!yfData){
+    showMsg(`No se pudo cargar datos de <strong>${ticker}</strong>.<br><br>
+<span style="font-size:12px;color:var(--text3);line-height:2">
+Para acciones internacionales usa el sufijo de la bolsa:<br>
+🇪🇸 Madrid: <code>BBVA.MC</code> · <code>SAN.MC</code> · <code>ITX.MC</code><br>
+🇬🇧 Londres: <code>HSBA.L</code> · <code>VOD.L</code> · <code>BP.L</code><br>
+🇫🇷 París: <code>AIR.PA</code> · <code>OR.PA</code> · <code>MC.PA</code><br>
+🇩🇪 Frankfurt: <code>SAP.DE</code> · <code>BMW.DE</code> · <code>DBK.DE</code><br>
+🇯🇵 Tokio: <code>7203.T</code> · <code>6758.T</code><br>
+🇺🇸 EE.UU.: <code>AAPL</code> · <code>META</code> · <code>MSFT</code>
+</span>`,'error');
+    return;
+  }
   data = mergeData(ticker, avData, fhData, fmpData, yfData);
   renderAll();
 }
@@ -1002,18 +1016,33 @@ async function buscarConFuentes(ticker){
 let yfCrumb = null;
 
 async function fetchYFChart(ticker){
-  try{
-    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d&includePrePost=false`,{credentials:'include'});
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d&includePrePost=false`;
+  const parseChart=async r=>{
     if(!r.ok) return null;
     const j=await r.json();
     const meta=j?.chart?.result?.[0]?.meta;
     if(!meta||!meta.regularMarketPrice) return null;
     const prev=meta.chartPreviousClose||meta.regularMarketPreviousClose||meta.regularMarketPrice;
     return{price:meta.regularMarketPrice,prev,change:meta.regularMarketPrice-prev,changePct:(meta.regularMarketPrice-prev)/prev*100,currency:meta.currency||'USD',name:meta.longName||meta.shortName||ticker,exchange:meta.exchangeName||'',w52High:meta.fiftyTwoWeekHigh||0,w52Low:meta.fiftyTwoWeekLow||0,mktCap:meta.marketCap||0};
+  };
+  // Intento directo
+  try{const r=await fetch(url,{signal:AbortSignal.timeout(5000)});const res=await parseChart(r);if(res) return res;}catch(e){}
+  // Fallback via CORS proxy (cubre bloqueos CORS de Yahoo Finance)
+  try{const r=await fetch('https://corsproxy.io/?url='+encodeURIComponent(url));return await parseChart(r);}catch(e){return null;}
+}
+
+async function fetchYFQuote(ticker){
+  // v7 quote — sin crumb, sin cookies, cobertura global, fundamentales básicos
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(ticker)}`);
+    if(!r.ok) return null;
+    const j=await r.json();
+    return j?.quoteResponse?.result?.[0]||null;
   }catch(e){return null;}
 }
 
 async function fetchYFData(ticker){
+  // quoteSummary con crumb — datos detallados si el usuario tiene sesión en Yahoo Finance
   try{
     if(!yfCrumb){
       const cr=await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb',{credentials:'include'});
@@ -1028,7 +1057,7 @@ async function fetchYFData(ticker){
   }catch(e){return null;}
 }
 
-function processYFData(chart,sum){
+function processYFData(chart,sum,isQuoteSummary){
   if(!chart) return null;
   const pf=(v,d=0)=>{const n=parseFloat(v);return isFinite(n)?n:d;};
   const raw=(obj,d=0)=>pf(obj?.raw,d);
@@ -1037,20 +1066,48 @@ function processYFData(chart,sum){
   const currency=isGBp?'GBP':cur;
   const base={price:chart.price*mult,change:chart.change*mult,changePct:chart.changePct,name:chart.name,exchange:chart.exchange,w52High:chart.w52High*mult,w52Low:chart.w52Low*mult,mktCap:chart.mktCap,currency,priceSource:'Yahoo Finance'};
   if(!sum) return base;
-  const ks=sum.defaultKeyStatistics||{};const fd=sum.financialData||{};const ap=sum.assetProfile||{};
-  const rt=sum.recommendationTrend?.trend?.[0]||{};
-  const is=(sum.incomeStatementHistory?.incomeStatementHistory||[]);
-  const isQ=(sum.incomeStatementHistoryQuarterly?.incomeStatementHistory||[]);
-  const eps=(raw(ks.trailingEps)||raw(ks.forwardEps))*mult;
-  const sharesOut=raw(ks.sharesOutstanding)||raw(ks.impliedSharesOutstanding)||0;
-  const ebitdaAbs=raw(fd.ebitda);
-  const fcfRaw=raw(fd.freeCashflow);
-  const fcfPerShare=sharesOut>0?fcfRaw/sharesOut*mult:eps*0.65;
-  const quarterly=isQ.slice(0,8).map(q=>({period:new Date(raw(q.endDate)*1000).toISOString().slice(0,7),actual:raw(q.netIncome)/(sharesOut||1)*mult,estimated:raw(q.netIncome)/(sharesOut||1)*mult*0.97,surprise:0,surprisePct:0})).filter(q=>q.actual!==0);
-  const annualRev=is.slice(0,5).map(s=>({period:new Date(raw(s.endDate)*1000).getFullYear().toString(),revenue:raw(s.totalRevenue)/1e9,netIncome:raw(s.netIncome)/1e9})).filter(r=>r.revenue>0);
-  const targetMean=raw(fd.targetMeanPrice)*mult,targetHigh=raw(fd.targetHighPrice)*mult,targetLow=raw(fd.targetLowPrice)*mult;
-  const buy=(rt.strongBuy||0)+(rt.buy||0),hold=rt.hold||0,sell=(rt.sell||0)+(rt.strongSell||0);
-  return{...base,sector:ap.sector||'N/A',industry:ap.industry||'',eps,forwardPE:raw(ks.forwardPE),beta:raw(ks.beta)||1,bookValue:raw(ks.bookValue)*mult,roe:raw(fd.returnOnEquity),fcf:fcfPerShare>0?fcfPerShare:eps*0.65,ebitdaAbs,sharesOut,revenueGrowth:raw(fd.revenueGrowth),earningsGrowth:raw(fd.earningsGrowth),profitMargin:raw(fd.profitMargins),operatingMargin:raw(fd.operatingMargins),debtToEquity:raw(fd.debtToEquity),currentRatio:raw(fd.currentRatio),aBuy:buy,aHold:hold,aSell:sell,targetPrice:targetMean,targetHigh,targetLow,quarterly,annualRev};
+
+  // quoteSummary (datos completos con crumb)
+  if(isQuoteSummary){
+    const ks=sum.defaultKeyStatistics||{};const fd=sum.financialData||{};const ap=sum.assetProfile||{};
+    const rt=sum.recommendationTrend?.trend?.[0]||{};
+    const is=(sum.incomeStatementHistory?.incomeStatementHistory||[]);
+    const isQ=(sum.incomeStatementHistoryQuarterly?.incomeStatementHistory||[]);
+    const eps=(raw(ks.trailingEps)||raw(ks.forwardEps))*mult;
+    const sharesOut=raw(ks.sharesOutstanding)||raw(ks.impliedSharesOutstanding)||0;
+    const ebitdaAbs=raw(fd.ebitda);
+    const fcfRaw=raw(fd.freeCashflow);
+    const fcfPerShare=sharesOut>0?fcfRaw/sharesOut*mult:eps*0.65;
+    const quarterly=isQ.slice(0,8).map(q=>({period:new Date(raw(q.endDate)*1000).toISOString().slice(0,7),actual:raw(q.netIncome)/(sharesOut||1)*mult,estimated:raw(q.netIncome)/(sharesOut||1)*mult*0.97,surprise:0,surprisePct:0})).filter(q=>q.actual!==0);
+    const annualRev=is.slice(0,5).map(s=>({period:new Date(raw(s.endDate)*1000).getFullYear().toString(),revenue:raw(s.totalRevenue)/1e9,netIncome:raw(s.netIncome)/1e9})).filter(r=>r.revenue>0);
+    const targetMean=raw(fd.targetMeanPrice)*mult,targetHigh=raw(fd.targetHighPrice)*mult,targetLow=raw(fd.targetLowPrice)*mult;
+    const buy=(rt.strongBuy||0)+(rt.buy||0),hold=rt.hold||0,sell=(rt.sell||0)+(rt.strongSell||0);
+    return{...base,sector:ap.sector||'N/A',industry:ap.industry||'',eps,forwardPE:raw(ks.forwardPE),beta:raw(ks.beta)||1,bookValue:raw(ks.bookValue)*mult,roe:raw(fd.returnOnEquity),fcf:fcfPerShare>0?fcfPerShare:eps*0.65,ebitdaAbs,sharesOut,revenueGrowth:raw(fd.revenueGrowth),earningsGrowth:raw(fd.earningsGrowth),profitMargin:raw(fd.profitMargins),operatingMargin:raw(fd.operatingMargins),debtToEquity:raw(fd.debtToEquity),currentRatio:raw(fd.currentRatio),aBuy:buy,aHold:hold,aSell:sell,targetPrice:targetMean,targetHigh,targetLow,quarterly,annualRev};
+  }
+
+  // v7 quote (fundamentales básicos, cobertura global, sin crumb)
+  const q=sum;
+  const eps=pf(q.epsTrailingTwelveMonths||q.trailingEps)*mult;
+  const bookValue=pf(q.bookValue)*mult;
+  const beta=pf(q.beta)||1;
+  const forwardPE=pf(q.forwardPE);
+  const sharesOut=pf(q.sharesOutstanding)||0;
+  const mktCapQ=pf(q.marketCap)||chart.mktCap;
+  const targetMean=pf(q.targetMeanPrice||q.analystTargetMeanPrice)*mult;
+  return{...base,
+    mktCap:mktCapQ,
+    w52High:pf(q.fiftyTwoWeekHigh)*mult||base.w52High,
+    w52Low:pf(q.fiftyTwoWeekLow)*mult||base.w52Low,
+    sector:q.sector||'N/A',industry:q.industry||q.longName||'',
+    eps,forwardPE,beta,bookValue,
+    fcf:eps>0?eps*0.65:0,
+    roe:0,ebitdaAbs:0,sharesOut,
+    revenueGrowth:0,earningsGrowth:0,profitMargin:0,operatingMargin:0,
+    debtToEquity:0,currentRatio:0,
+    aBuy:0,aHold:0,aSell:0,
+    targetPrice:targetMean,targetHigh:0,targetLow:0,
+    quarterly:[],annualRev:[]
+  };
 }
 
 function currSym(c){
@@ -2543,26 +2600,29 @@ function applyMode(){
 
 function renderLightResult(){
   const d = data;
+  const cs = currSym(d.currency||'USD');
+  const isUSD = (d.currency||'USD') === 'USD';
+  const priceEur = isUSD ? toEur(d.price) : null;
+  const chgCol = d.changePct >= 0 ? 'var(--teal)' : 'var(--red)';
+  const srcBadges = (d.sources||[]).map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='Yahoo Finance'?'src-yf':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s==='Yahoo Finance'?'YF':s}</span>`).join(' ');
   const sug = suggestMethod(d);
   const val = getValForMethod(d, sug.method);
-  const pot = val > 0 ? (val - d.price) / d.price * 100 : 0;
-  const mos = val > 0 ? (val - d.price) / val * 100 : 0;
+  const hasFundamentals = val > 0;
+  const pot = hasFundamentals ? (val - d.price) / d.price * 100 : 0;
+  const mos = hasFundamentals ? (val - d.price) / val * 100 : 0;
   let verdict, col, bgCol, icon;
-  if(mos > 25){verdict='ZONA DE COMPRA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
+  if(!hasFundamentals){verdict='SIN VALORACIÓN';col='var(--text3)';bgCol='var(--bg3)';icon='ti-circle-dashed';}
+  else if(mos > 25){verdict='ZONA DE COMPRA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
   else if(mos > 10){verdict='INFRAVALORADA';col='var(--teal)';bgCol='var(--teal-dim)';icon='ti-trending-up';}
   else if(mos > 0){verdict='PRECIO JUSTO';col='var(--amber)';bgCol='#F59E0B22';icon='ti-minus';}
   else{verdict='SOBREVALORADA';col='var(--red)';bgCol='#FF4D6A22';icon='ti-trending-down';}
-  const cs = currSym(d.currency||'USD');
-  const isUSD = (d.currency||'USD') === 'USD';
-  const valEur = isUSD ? toEur(val) : null, priceEur = isUSD ? toEur(d.price) : null;
-  const chgCol = d.changePct >= 0 ? 'var(--teal)' : 'var(--red)';
-  const srcBadges = (d.sources||[]).map(s=>`<span class="src-badge ${s==='Alpha Vantage'?'src-av':s==='Finnhub'?'src-fh':s==='Yahoo Finance'?'src-yf':s==='DEMO'?'src-demo':'src-ai'}">${s==='Alpha Vantage'?'AV':s==='Finnhub'?'FH':s==='Yahoo Finance'?'YF':s}</span>`).join(' ');
+  const valEur = (hasFundamentals && isUSD) ? toEur(val) : null;
   document.getElementById('light-result').innerHTML = `
     <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;overflow:hidden">
       <div style="padding:22px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
           <div style="font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text)">${d.ticker}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px">${(d.name||'').slice(0,32)} · ${d.sector||''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">${(d.name||'').slice(0,40)} · ${d.exchange||''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:26px;font-weight:800;font-family:var(--mono);color:${chgCol}">${cs}${fmt(d.price)}</div>
@@ -2570,6 +2630,7 @@ function renderLightResult(){
           <div style="font-size:11px;color:${chgCol};margin-top:2px">${d.changePct>=0?'+':''}${fmt(d.changePct,2)}% hoy</div>
         </div>
       </div>
+      ${hasFundamentals ? `
       <div style="padding:12px 24px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <i class="ti ${sug.icon}" style="color:#A855F7;font-size:15px;flex-shrink:0"></i>
         <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Método recomendado</span>
@@ -2578,11 +2639,9 @@ function renderLightResult(){
       </div>
       <div style="padding:36px 24px;text-align:center;border-bottom:1px solid var(--border2)">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--text3);font-weight:700;margin-bottom:14px">Valor intrínseco · ${sug.label}</div>
-        ${val > 0 ? `
-          <div style="font-size:48px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1">${cs}${fmt(val)}</div>
-          ${valEur?`<div style="font-size:18px;color:var(--text3);margin-top:6px">€${fmt(valEur)}</div>`:''}
-          <div style="font-size:15px;font-weight:700;color:${col};margin-top:14px">${pot>=0?'+':''}${fmt(pot,1)}% vs precio actual</div>
-        ` : `<div style="font-size:16px;color:var(--text3);padding:12px">Datos insuficientes — prueba otro método</div>`}
+        <div style="font-size:48px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1">${cs}${fmt(val)}</div>
+        ${valEur?`<div style="font-size:18px;color:var(--text3);margin-top:6px">€${fmt(valEur)}</div>`:''}
+        <div style="font-size:15px;font-weight:700;color:${col};margin-top:14px">${pot>=0?'+':''}${fmt(pot,1)}% vs precio actual</div>
       </div>
       <div style="padding:28px 24px;background:${bgCol};text-align:center;border-bottom:1px solid var(--border2)">
         <div style="display:inline-flex;align-items:center;gap:12px;padding:14px 32px;border-radius:14px;background:${col}1a;border:2px solid ${col}">
@@ -2591,6 +2650,20 @@ function renderLightResult(){
         </div>
         ${mos > 0 ? `<div style="font-size:11px;color:var(--text3);margin-top:10px">Margen de seguridad: ${fmt(mos,1)}%</div>` : ''}
       </div>
+      ` : `
+      <div style="padding:28px 24px;text-align:center;border-bottom:1px solid var(--border2);background:var(--bg3)">
+        ${d.high52>0?`<div style="display:flex;gap:24px;justify-content:center;margin-bottom:18px">
+          <div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Máx 52 sem</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--text)">${cs}${fmt(d.high52)}</div></div>
+          <div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Mín 52 sem</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--text)">${cs}${fmt(d.low52)}</div></div>
+          ${d.mktCap>0?`<div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Cap. mercado</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--text)">${fmtB(d.mktCap)}</div></div>`:''}
+        </div>`:''}
+        <div style="display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-radius:12px;background:var(--amber-dim);border:1px solid var(--amber)">
+          <i class="ti ti-info-circle" style="color:var(--amber);font-size:18px"></i>
+          <span style="font-size:13px;font-weight:600;color:var(--amber)">Sin fundamentales — no se puede calcular valor intrínseco</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:10px">Configura una clave <strong>FMP</strong> en API Keys para acciones internacionales</div>
+      </div>
+      `}
       <div style="padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div style="font-size:11px">${srcBadges}</div>
         <button onclick="setAppMode('pro')" style="background:transparent;border:1px solid var(--teal);color:var(--teal);border-radius:8px;padding:7px 18px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">◆ Ver análisis completo PRO</button>
