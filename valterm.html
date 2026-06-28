@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.2</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.3</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -282,7 +282,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
     <button class="btn-ghost" onclick="cargarDemo()">DEMO</button>
   </div>
   <div class="topbar-right">
-    <div class="req-pill" id="reqPill" onclick="showPanel('settings')">AV <span id="reqUsed">0</span>/25</div>
+    <div class="req-pill" id="reqPill" onclick="showPanel('settings')" style="font-size:11px;letter-spacing:0">—</div>
     <div class="dots-row">
       <div class="dot-item"><div class="dot" id="dotAV"></div><span>AV</span></div>
       <div class="dot-item"><div class="dot" id="dotFH"></div><span>FH</span></div>
@@ -593,17 +593,32 @@ async function fetchEurRate(){
   renderQuickToggles();
 }
 
-// ── CONTADOR AV ──────────────────────────────────────────────────────────────
-function todayKey(){ return 'valterm_req_'+new Date().toISOString().slice(0,10); }
+// ── CONTADORES DE USO POR FUENTE ─────────────────────────────────────────────
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayKey(){ return 'valterm_req_'+todayStr(); }                // AV — compat
+function getReqFor(src){ return parseInt(localStorage.getItem('valterm_req_'+src+'_'+todayStr())||'0'); }
+function addReqFor(src,n=1){ localStorage.setItem('valterm_req_'+src+'_'+todayStr(),getReqFor(src)+n); updateReqUI(); }
 function getReq(){ return parseInt(localStorage.getItem(todayKey())||'0'); }
 function addReq(n){ localStorage.setItem(todayKey(),getReq()+n); updateReqUI(); }
-function resetCounter(){ localStorage.setItem(todayKey(),'0'); updateReqUI(); toast('Contador reseteado'); }
+function resetCounter(){ localStorage.setItem(todayKey(),'0'); updateReqUI(); toast('Contador AV reseteado'); }
+function resetCounterFor(src){ localStorage.setItem('valterm_req_'+src+'_'+todayStr(),'0'); updateReqUI(); toast('Contador '+src.toUpperCase()+' reseteado'); }
+const LIMITS={ av:25, fmp:250, gemini:1500 };
 function updateReqUI(){
-  const u=getReq();
+  const av=getReq(), fmp=getReqFor('fmp'), gm=getReqFor('gemini');
+  // Topbar pill — muestra la fuente con más uso relativo
   const el=document.getElementById('reqPill');
-  if(el){ el.className='req-pill'+(u>=20?' danger':u>=15?' warn':''); }
-  const r=document.getElementById('reqUsed'); if(r) r.textContent=u;
-  const r2=document.getElementById('avReqInfo'); if(r2) r2.textContent=`${u}/25 hoy`;
+  if(el){
+    const parts=[];
+    if(avKey)     parts.push(`AV ${av}/25`);
+    if(fmpKey)    parts.push(`FMP ${fmp}/250`);
+    if(geminiKey) parts.push(`GM ${gm}/1500`);
+    el.textContent=parts.join(' · ')||'—';
+    const danger=(av>=20)||(fmp>=220)||(gm>=1400);
+    const warn=(av>=15)||(fmp>=200)||(gm>=1200);
+    el.className='req-pill'+(danger?' danger':warn?' warn':'');
+  }
+  const r2=document.getElementById('avReqInfo'); if(r2) r2.textContent=`${av}/25 hoy`;
+  renderStartupSources();
 }
 
 // ── KEYS UI ──────────────────────────────────────────────────────────────────
@@ -658,12 +673,13 @@ function setToggle(src,val){
 function renderStartupSources(){
   const el=document.getElementById('startupSources');
   if(!el)return;
+  const avU=getReq(), fmpU=getReqFor('fmp'), gmU=getReqFor('gemini');
   const srcs=[
-    {key:'fmp',    label:'FMP',            icon:'ti-chart-candle', hasKey:!!fmpKey,    enabled:fmpEnabled,    cost:'Gratis',  limit:'250 peticiones/día',  col:'#34D399', what:'Fundamentales + DCF real calculado por FMP'},
-    {key:'av',     label:'Alpha Vantage', icon:'ti-database',     hasKey:!!avKey,     enabled:avEnabled,     cost:'Gratis',  limit:'25 peticiones/día',   col:'#F59E0B', what:'Datos fundamentales: EPS, PER, EBITDA, earnings, revenue'},
-    {key:'fh',     label:'Finnhub',       icon:'ti-chart-dots',   hasKey:!!fhKey,     enabled:fhEnabled,     cost:'Gratis',  limit:'60 peticiones/min',   col:'#A855F7', what:'Precio en tiempo real, analistas, precio objetivo'},
-    {key:'gemini', label:'Gemini',        icon:'ti-robot',        hasKey:!!geminiKey, enabled:geminiEnabled, cost:'Gratis',  limit:'1.500 análisis/día',  col:'var(--teal)', what:'Análisis cualitativo generado por IA'},
-    {key:'groq',   label:'Groq',          icon:'ti-bolt',         hasKey:!!groqKey,   enabled:groqEnabled,   cost:'Gratis',  limit:'Sin límite estricto', col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma)'},
+    {key:'fmp',    label:'FMP',           hasKey:!!fmpKey,    enabled:fmpEnabled,    col:'#34D399', what:'Fundamentales + DCF real calculado por FMP',        used:fmpU, max:250},
+    {key:'av',     label:'Alpha Vantage', hasKey:!!avKey,     enabled:avEnabled,     col:'#F59E0B', what:'Datos fundamentales: EPS, PER, EBITDA, earnings',   used:avU,  max:25},
+    {key:'fh',     label:'Finnhub',       hasKey:!!fhKey,     enabled:fhEnabled,     col:'#A855F7', what:'Precio tiempo real, analistas, precio objetivo',    used:null, max:null},
+    {key:'gemini', label:'Gemini IA',     hasKey:!!geminiKey, enabled:geminiEnabled, col:'var(--teal)', what:'Análisis cualitativo generado por IA (Gemini)', used:gmU,  max:1500},
+    {key:'groq',   label:'Groq IA',       hasKey:!!groqKey,   enabled:groqEnabled,   col:'#F97316', what:'Análisis IA alternativo (Llama, Gemma) — gratis',  used:null, max:null},
   ];
   if(srcs.every(s=>!s.hasKey)){
     el.innerHTML=`<div style="text-align:center;color:var(--text3);font-size:13px;margin-top:8px">
@@ -674,21 +690,36 @@ function renderStartupSources(){
   const noKey=srcs.filter(s=>!s.hasKey);
   el.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:14px">Fuentes — pulsa para activar / desactivar</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:${noKey.length?'18px':'0'}">
-    ${configured.map(s=>`
-    <div onclick="setToggle('${s.key}',${!s.enabled});renderStartupSources()"
+    ${configured.map(s=>{
+      const pct=s.max?Math.min(100,Math.round(s.used/s.max*100)):null;
+      const nearLimit=pct>=80, atLimit=pct>=100;
+      const usageCol=atLimit?'var(--red)':nearLimit?'var(--amber)':s.col;
+      const usageBar=s.max?`
+        <div style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:10px;color:${usageCol};font-family:var(--mono);font-weight:700">${s.used}/${s.max} hoy</span>
+            <span style="font-size:10px;color:var(--text3)">${s.max-s.used} restantes</span>
+          </div>
+          <div style="height:3px;background:var(--bg4);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${usageCol};border-radius:2px;transition:width .3s"></div>
+          </div>
+        </div>`:
+        `<div style="font-size:10px;color:var(--text3);margin-top:10px;font-family:var(--mono)">Sin límite diario</div>`;
+      return`<div onclick="setToggle('${s.key}',${!s.enabled});renderStartupSources()"
          style="cursor:pointer;padding:16px 18px;border-radius:12px;border:2px solid ${s.enabled?s.col+'60':'var(--border)'};background:${s.enabled?s.col+'0D':'var(--bg3)'};transition:all .18s;user-select:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="width:9px;height:9px;border-radius:50%;background:${s.enabled?s.col:'var(--text3)'};flex-shrink:0;transition:background .18s"></span>
-          <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.enabled?'var(--text)':'var(--text3)'}">${s.label}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:9px;height:9px;border-radius:50%;background:${s.enabled?s.col:'var(--text3)'};flex-shrink:0;transition:background .18s"></span>
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.enabled?'var(--text)':'var(--text3)'}">${s.label}</span>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${s.enabled?s.col+'22':'var(--bg4)'};color:${s.enabled?s.col:'var(--text3)'}">
+            ${s.enabled?'ON':'OFF'}
+          </span>
         </div>
-        <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${s.enabled?s.col+'22':'var(--bg4)'};color:${s.enabled?s.col:'var(--text3)'}">
-          ${s.enabled?'ON':'OFF'}
-        </span>
-      </div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:8px">${s.what}</div>
-      <div style="font-size:10px;color:${s.enabled?s.col:'var(--text3)'};opacity:.8;font-family:var(--mono)">${s.limit}</div>
-    </div>`).join('')}
+        <div style="font-size:11px;color:var(--text3);line-height:1.5">${s.what}</div>
+        ${usageBar}
+      </div>`;
+    }).join('')}
   </div>
   ${noKey.length?`<div style="font-size:11px;color:var(--text3)">Sin key: ${noKey.map(s=>`<span onclick="showPanel('settings')" style="cursor:pointer;color:var(--text2);text-decoration:underline;text-underline-offset:3px">${s.label}</span>`).join(', ')} — <span onclick="showPanel('settings')" style="cursor:pointer;color:var(--teal)">configurar en API Keys</span></div>`:''}
   `;
@@ -888,6 +919,7 @@ async function fetchFMP(ticker){
   const errMsg=profile['Error Message']||profile.message||'';
   if(errMsg) throw new Error('FMP: '+errMsg);
   keyStatus.fmp={ok:true,msg:'FMP: datos cargados correctamente'};
+  addReqFor('fmp',5);
   return {
     profile: profile[0]||{},
     metrics: Array.isArray(metrics)?metrics[0]||{}:metrics||{},
@@ -1763,6 +1795,7 @@ Cubre en tu analisis: (1) calidad del negocio y ventaja competitiva, (2) si la v
     const text=json.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Respuesta vacía de Gemini');
     keyStatus.gemini={ok:true,msg:'Análisis generado correctamente'};
+    addReqFor('gemini',1);
     aiResults.gemini={
       text,
       badge:`<span class="src-badge src-ai">GEMINI AI</span>`,
