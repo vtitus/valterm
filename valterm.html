@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.6</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.7</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -1219,8 +1219,8 @@ function mergeData(ticker, av, fh, fmp){
     if(!ebitdaAbs&&fmpTtmEbitda>0){ ebitdaAbs=fmpTtmEbitda; sharesOut=fmpShares; if(fmpShares>0) evEbVal=(fmpTtmEbitda*sectorEVEB)/fmpShares; }
   }
 
-  // DCF final: usar FMP si disponible y método DCF activo, sino el calculado
-  const dcfFinal = (dcfValFMP>0 && methodPicker.dcf!==false) ? dcfValFMP : (methodPicker.dcf!==false ? dcfVal : 0);
+  // DCF final: usar FMP si disponible, sino el calculado (sin gate de methodPicker — avgVal lo aplica)
+  const dcfFinal = dcfValFMP>0 ? dcfValFMP : dcfVal;
 
   const sources=[];
   if(fmp) sources.push('FMP');
@@ -1235,10 +1235,10 @@ function mergeData(ticker, av, fh, fmp){
     analysts: buildAnalysts(targetPrice||price*1.1, aBuy, aHold, aSell, targetHigh, targetLow),
     dcfVal: dcfFinal,
     dcfValFMP,
-    perVal:   methodPicker.per!==false   ? perVal   : 0,
-    evEbVal:  methodPicker.eveb!==false  ? evEbVal  : 0,
-    grahamVal:methodPicker.graham!==false? grahamVal: 0,
-    pbVal:    methodPicker.pb!==false    ? pbVal     : 0,
+    perVal,
+    evEbVal,
+    grahamVal,
+    pbVal,
     quarterly, annualRev, g, wacc, fcf, beta,
     forwardPE, refPER, sectorPER, sectorEVEB,
     epsGrowthYoy, ebitdaAbs, sharesOut, bookValue, roe,
@@ -1275,7 +1275,15 @@ function calcDCF(fcf,g,wacc,gp){
 }
 function calcGraham(eps,gPct,y){ return eps>0?eps*(8.5+2*gPct)*4.4/y:0; }
 function avgVal(d){
-  const vals=[d.dcfVal,d.perVal,d.evEbVal,d.grahamVal,d.pbVal].filter(v=>v>0&&isFinite(v)&&v<d.price*15&&v>d.price*0.1);
+  const mp=methodPicker;
+  const candidates=[
+    mp.dcf!==false    ? d.dcfVal    : 0,
+    mp.per!==false    ? d.perVal    : 0,
+    mp.eveb!==false   ? d.evEbVal   : 0,
+    mp.graham!==false ? d.grahamVal : 0,
+    mp.pb!==false     ? d.pbVal     : 0,
+  ];
+  const vals=candidates.filter(v=>v>0&&isFinite(v)&&v<d.price*15&&v>d.price*0.1);
   return vals.length>0?vals.reduce((a,b,_,arr)=>a+b/arr.length,0):0;
 }
 function getValForMethod(d,method){
