@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.7</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v5.8</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -460,7 +460,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
           <button class="btn" onclick="guardarAV()">GUARDAR</button>
           <button class="btn-ghost" onclick="borrarAV()">BORRAR</button>
         </div>
-        <div class="status-note"><div class="dot" id="avDot"></div><span id="avNote">Sin key</span>&nbsp;&nbsp;<span id="avReqInfo" style="font-family:var(--mono)"></span></div>
+        <div class="status-note"><div class="dot" id="avDot"></div><span id="avNote">Sin key</span>&nbsp;&nbsp;<span id="avReqInfo" style="font-family:var(--mono)"></span>&nbsp;&nbsp;<button class="btn-ghost" style="font-size:11px;padding:2px 8px" onclick="resetCounter()">Reset contador</button></div>
         <div class="toggle-row"><span class="toggle-label">Usar Alpha Vantage en búsquedas</span><label class="toggle"><input type="checkbox" id="avToggle" onchange="setToggle('av',this.checked)"><div class="toggle-slider"></div></label></div>
       </div>
       <div class="card">
@@ -838,7 +838,7 @@ async function buscarConFuentes(ticker){
   const useFMP = fmpKey && fmpEnabled;
   const useAV  = avKey  && avEnabled;
   const useFH  = fhKey  && fhEnabled;
-  const avLimited = useAV && (getReq()>=25 || avBlockedThisSession);
+  const avLimited = useAV && avBlockedThisSession;
   if(useFMP) proms.push(fetchFMP(ticker).then(d=>{ fmpData=d; }).catch(e=>{ keyStatus.fmp={ok:false,msg:e.message}; }));
   if(useAV && !avLimited) proms.push(fetchAV(ticker).then(d=>{ avData=d; }).catch(()=>{}));
   if(useAV && avLimited) keyStatus.av={ok:false,msg:'Limite diario alcanzado'};
@@ -2029,10 +2029,12 @@ inp.addEventListener('keydown',e=>{
 inp.addEventListener('blur',()=>setTimeout(closeDD,150));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDD(); });
 // Migración v5.7: resetear toggles de fuentes (ahora defecto = desactivado)
-if(localStorage.getItem('valterm_migration')<'5.7'){
+if(localStorage.getItem('valterm_migration')<'5.8'){
   ['valterm_av_on','valterm_fmp_on','valterm_fh_on','valterm_gm_on','valterm_gq_on'].forEach(k=>localStorage.removeItem(k));
   avEnabled=false; fmpEnabled=false; fhEnabled=false; geminiEnabled=false; groqEnabled=false;
-  localStorage.setItem('valterm_migration','5.7');
+  localStorage.removeItem(todayKey());
+  avBlockedThisSession=false;
+  localStorage.setItem('valterm_migration','5.8');
 }
 document.getElementById('tickerInput').value='';
 updateKeyUI();
