@@ -293,7 +293,7 @@ body.mode-light .proonly{display:none!important}
 <div id="modeSplash" style="display:none">
   <div style="text-align:center;margin-bottom:48px">
     <div style="font-size:30px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.10</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.11</div>
     <div style="font-size:14px;color:var(--text3);margin-top:8px;letter-spacing:.5px">¿Cómo quieres usar la app hoy?</div>
   </div>
   <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
@@ -323,7 +323,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.10</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.11</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -631,7 +631,7 @@ let methodPicker = JSON.parse(localStorage.getItem('valterm_mth2')||'{"dcf":true
 const AV      = 'https://www.alphavantage.co/query';
 const FH      = 'https://finnhub.io/api/v1';
 const FMP_B   = 'https://financialmodelingprep.com/stable';
-const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 const GROQ    = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS=['llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'];
 
@@ -1933,9 +1933,10 @@ function mosHTML(d){
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0">
           <i class="ti ti-database-off" style="font-size:28px;color:var(--text3)"></i>
           <div class="mos-verdict" style="color:var(--text3);background:var(--bg3);font-size:12px">SIN DATOS</div>
-          <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;max-width:200px">
-            ${isIntl?`Empresa en ${INTL_MKT[intlSuffix]}. Las APIs gratuitas no incluyen datos fundamentales para acciones no-US.`:'No se obtuvieron EPS, FCF ni EBITDA de las fuentes activas.'}
+          <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;max-width:220px">
+            ${isIntl?`Empresa en ${INTL_MKT[intlSuffix]}. Activa <strong style="color:var(--text2)">Finnhub</strong> o <strong style="color:var(--text2)">Alpha Vantage</strong> para obtener EPS y valoraciones.`:'No se obtuvieron EPS, FCF ni EBITDA de las fuentes activas.'}
           </div>
+          ${isIntl?`<button onclick="showPanel('panel-settings')" style="margin-top:6px;background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal);border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px">⚙ Configurar API Keys</button>`:''}
         </div>
       ` : `
         <div class="mos-pct" style="color:${col}">${pot>=0?'+':''}${fmt(pot,1)}%</div>
