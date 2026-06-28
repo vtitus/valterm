@@ -274,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 </head>
 <body>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.0</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v6.1</span></div>
   <div class="search-wrap">
     <input type="text" id="tickerInput" placeholder="Ticker o empresa..." maxlength="40" autocomplete="off" />
     <div id="tickerDropdown" class="ticker-dd"></div>
@@ -670,26 +670,28 @@ function renderStartupSources(){
       Configura tus API keys en <strong style="color:var(--teal);cursor:pointer" onclick="showPanel('settings')">API Keys</strong> para empezar a valorar acciones.</div>`;
     return;
   }
-  el.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:12px">Fuentes configuradas — activa las que quieras usar</div>`+
-    srcs.map(s=>{
-      const statusCol=s.hasKey?(s.enabled?s.col:'var(--text3)'):'var(--border2)';
-      const statusTxt=s.hasKey?(s.enabled?'Activa':'Desactivada'):'Sin key';
-      const clickable=s.hasKey?`onclick="setToggle('${s.key}',${!s.enabled});renderStartupSources()" style="cursor:pointer"`:'';
-      return`<div ${clickable} style="display:flex;align-items:center;gap:14px;padding:11px 16px;margin-bottom:6px;background:var(--bg2);border:1px solid ${s.hasKey&&s.enabled?'var(--border2)':'var(--border)'};border-left:3px solid ${statusCol};border-radius:10px;opacity:${s.hasKey?1:.4};transition:opacity .15s">
-        <i class="ti ${s.icon}" style="font-size:18px;color:${statusCol};flex-shrink:0"></i>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
-            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.hasKey?'var(--text)':'var(--text3)'}">${s.label}</span>
-            <span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;background:${s.hasKey&&s.enabled?'#00D4AA18':'var(--bg4)'};color:${s.hasKey&&s.enabled?'var(--teal)':'var(--text3)'};">${statusTxt}</span>
-          </div>
-          <div style="font-size:12px;color:var(--text3);line-height:1.6">${s.what}</div>
+  const configured=srcs.filter(s=>s.hasKey);
+  const noKey=srcs.filter(s=>!s.hasKey);
+  el.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:14px">Fuentes — pulsa para activar / desactivar</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:${noKey.length?'18px':'0'}">
+    ${configured.map(s=>`
+    <div onclick="setToggle('${s.key}',${!s.enabled});renderStartupSources()"
+         style="cursor:pointer;padding:16px 18px;border-radius:12px;border:2px solid ${s.enabled?s.col+'60':'var(--border)'};background:${s.enabled?s.col+'0D':'var(--bg3)'};transition:all .18s;user-select:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:9px;height:9px;border-radius:50%;background:${s.enabled?s.col:'var(--text3)'};flex-shrink:0;transition:background .18s"></span>
+          <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.enabled?'var(--text)':'var(--text3)'}">${s.label}</span>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:11px;color:var(--text3)">${s.limit}</div>
-          ${s.hasKey?`<label class="toggle" style="margin-top:6px" onclick="event.stopPropagation()"><input type="checkbox" ${s.enabled?'checked':''} onchange="setToggle('${s.key}',this.checked);renderStartupSources()"><div class="toggle-slider"></div></label>`:'<div style="font-size:11px;color:var(--text3);margin-top:4px">Sin key</div>'}
-        </div>
-      </div>`;
-    }).join('');
+        <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${s.enabled?s.col+'22':'var(--bg4)'};color:${s.enabled?s.col:'var(--text3)'}">
+          ${s.enabled?'ON':'OFF'}
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:8px">${s.what}</div>
+      <div style="font-size:10px;color:${s.enabled?s.col:'var(--text3)'};opacity:.8;font-family:var(--mono)">${s.limit}</div>
+    </div>`).join('')}
+  </div>
+  ${noKey.length?`<div style="font-size:11px;color:var(--text3)">Sin key: ${noKey.map(s=>`<span onclick="showPanel('settings')" style="cursor:pointer;color:var(--text2);text-decoration:underline;text-underline-offset:3px">${s.label}</span>`).join(', ')} — <span onclick="showPanel('settings')" style="cursor:pointer;color:var(--teal)">configurar en API Keys</span></div>`:''}
+  `;
 }
 function renderQuickToggles(){
   const el=document.getElementById('quickToggles');if(!el)return;
