@@ -274,9 +274,107 @@ body.mode-light .proonly{display:none!important}
 .mode-opt.active-light{background:var(--accent-dim);color:var(--accent);pointer-events:none}
 .mode-opt.active-pro{background:var(--teal-dim);color:var(--teal);pointer-events:none}
 /* ── SPLASH ── */
-#modeSplash{position:fixed;inset:0;z-index:9999;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+#modeSplash{position:fixed;inset:0;z-index:9999;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;overflow-y:auto}
 .splash-card{cursor:pointer;background:var(--bg2);border:2px solid var(--border2);border-radius:18px;padding:32px 28px;flex:1;min-width:220px;max-width:300px;transition:all .25s;display:flex;flex-direction:column}
 .splash-card:hover{transform:translateY(-3px)}
+/* ── MOBILE HAMBURGER ── */
+#mobileMenuBtn{display:none;align-items:center;justify-content:center;background:none;border:none;color:var(--text2);font-size:22px;padding:6px 8px;cursor:pointer;flex-shrink:0;border-radius:8px;transition:all .2s}
+#mobileMenuBtn:hover{background:var(--bg3);color:var(--text)}
+/* ── SIDEBAR OVERLAY (mobile) ── */
+#sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:498;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#sidebarOverlay.open{display:block}
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  html,body{height:auto!important;overflow:visible!important;min-height:100vh}
+  body{display:flex;flex-direction:column;min-height:100vh}
+  .topbar{height:auto;flex-wrap:wrap;padding:10px 12px 10px;gap:6px 8px;position:sticky;top:0;z-index:100}
+  #mobileMenuBtn{display:flex;order:0}
+  .logo{order:1;font-size:11px;letter-spacing:2px}
+  .logo i{font-size:15px}
+  .mode-toggle{order:2;margin-left:auto}
+  .mode-opt{padding:5px 10px;font-size:10px;letter-spacing:.5px}
+  .search-wrap{order:3;width:100%;margin-left:0;gap:6px}
+  .search-wrap input{flex:1;width:auto;min-width:0;font-size:13px;padding:10px 12px;letter-spacing:1px}
+  .btn{padding:10px 14px;font-size:12px;gap:4px}
+  .btn-ghost{display:none}
+  .topbar-right{display:none}
+  .sidebar{position:fixed;top:0;left:-290px;height:100%;width:280px;z-index:499;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:6px 0 32px rgba(0,0,0,.7)}
+  .sidebar.mob-open{left:0}
+  .main{flex:1;display:block;overflow:visible}
+  .content{overflow:visible;padding:12px 12px;gap:12px;min-height:0}
+  .panel.active{display:flex}
+  .ticker-header{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 14px}
+  .ticker-sym{font-size:20px}
+  .price-big{font-size:26px;letter-spacing:0}
+  .price-chg{font-size:11px;padding:3px 9px}
+  .ticker-metas{margin-left:0;gap:8px;width:100%}
+  .meta-item{flex:1;text-align:center;min-width:0;padding:6px 8px}
+  .meta-value{font-size:15px}
+  .meta-label{font-size:9px}
+  .mos-card{grid-template-columns:1fr!important;gap:14px;padding:16px 14px;text-align:center}
+  .mos-price{font-size:36px!important;letter-spacing:-1px}
+  .mos-eur{font-size:18px}
+  .mos-pct{font-size:50px!important;letter-spacing:-2px}
+  .mos-left{align-items:center}
+  .mos-right{text-align:center}
+  .mos-label{letter-spacing:1px}
+  .mos-verdict{font-size:12px;padding:6px 14px;letter-spacing:2px}
+  .grid2,.grid3,.grid4{grid-template-columns:1fr!important;gap:12px}
+  .card{padding:14px 12px}
+  .card-title{font-size:11px;margin-bottom:12px;padding-bottom:10px}
+  .stat-num{font-size:22px}
+  .tbl th{font-size:11px;padding:8px 8px;letter-spacing:.5px}
+  .tbl td{font-size:12px;padding:9px 8px}
+  .val-method{width:76px;font-size:11px}
+  .val-price{width:90px;font-size:12px}
+  .val-pot{width:48px;font-size:11px}
+  .analyst-house{width:100px;font-size:12px}
+  .analyst-tp{font-size:12px}
+  .ticker-dd{width:calc(100vw - 28px);left:0;max-height:250px}
+  .score-wrap{flex-direction:column;gap:12px}
+  .score-ring-outer{width:64px;height:64px}
+  .ai-box{font-size:13px;line-height:1.8;padding:14px 14px}
+  .ai-tabs{gap:4px}
+  .ai-tab{padding:6px 12px;font-size:11px}
+  .sec-btn{font-size:10px;padding:10px 12px;letter-spacing:1px}
+  .val-select-wrap{flex-wrap:wrap;gap:10px}
+  .val-select-label{font-size:9px}
+  .qt-bar{gap:5px;padding:10px 12px}
+  .qt-btn{padding:5px 10px;font-size:10px}
+  .picker-chip{padding:7px 12px;font-size:12px}
+  .picker-chips{gap:6px}
+  .analyst-row{flex-wrap:wrap;gap:5px}
+  .source-status-bar,#sourceStatusBar{flex-direction:column!important;gap:6px!important;padding:10px 12px!important}
+  .toast{bottom:14px;left:12px;right:12px;text-align:center;font-size:12px}
+  .input-row{flex-wrap:wrap}
+  .settings-input{font-size:12px}
+  .empty{padding:36px 14px}
+  .empty i{font-size:40px}
+  .empty p{font-size:13px}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;flex-wrap:nowrap}
+  .tab{white-space:nowrap;padding:8px 14px;font-size:12px}
+  .range52-labels{font-size:11px}
+  .range52-legend{gap:10px;font-size:11px}
+  .mos-methods{font-size:11px;line-height:2}
+  .score-bar-label{font-size:11px;width:70px}
+  .score-bar-pts{font-size:11px;width:32px}
+  .val-explain{padding:12px 14px;font-size:12px}
+  #sourceStatusBar div{font-size:11px!important}
+}
+@media(max-width:400px){
+  .ticker-sym{font-size:17px}
+  .price-big{font-size:22px}
+  .mos-pct{font-size:42px!important}
+  .mos-price{font-size:30px!important}
+  .content{padding:10px 10px}
+  .card{padding:12px 10px}
+}
+@media(max-width:768px){
+  #splashCards{flex-direction:column;gap:14px;max-width:360px}
+  .splash-card{min-width:unset;max-width:100%;flex:none}
+  #modeSplash>div:first-child{margin-bottom:28px}
+  .splash-card{padding:22px 20px}
+}
 .splash-card.light:hover{border-color:var(--accent);background:#1a1322}
 .splash-card.pro:hover{border-color:var(--teal);background:#0d1a1a}
 .val-explain{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--teal);border-radius:10px;padding:16px 20px;margin-bottom:4px}
@@ -293,7 +391,7 @@ body.mode-light .proonly{display:none!important}
 <div id="accessGate" style="position:fixed;inset:0;z-index:10000;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px">
   <div style="text-align:center;margin-bottom:36px">
     <div style="font-size:28px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.14</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.15</div>
     <div style="font-size:13px;color:var(--text3);margin-top:10px">Acceso restringido — introduce tu clave</div>
   </div>
   <div style="background:var(--bg2);border:1.5px solid var(--border2);border-radius:14px;padding:32px 36px;width:100%;max-width:360px">
@@ -310,10 +408,10 @@ body.mode-light .proonly{display:none!important}
 <div id="modeSplash" style="display:none">
   <div style="text-align:center;margin-bottom:48px">
     <div style="font-size:30px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.14</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.15</div>
     <div style="font-size:14px;color:var(--text3);margin-top:8px;letter-spacing:.5px">¿Cómo quieres usar la app hoy?</div>
   </div>
-  <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
+  <div id="splashCards" style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
     <div class="splash-card light" onclick="setAppMode('light')">
       <div style="font-size:30px;margin-bottom:14px">⚡</div>
       <div style="font-size:17px;font-weight:900;color:var(--text);font-family:var(--mono);margin-bottom:8px">LIGHT</div>
@@ -340,7 +438,8 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.14</span></div>
+  <button id="mobileMenuBtn" onclick="openSidebar()" aria-label="Menú"><i class="ti ti-menu-2"></i></button>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.15</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -363,6 +462,7 @@ body.mode-light .proonly{display:none!important}
     <button class="btn-ghost" onclick="showPanel('settings')" style="padding:4px 8px"><i class="ti ti-settings"></i></button>
   </div>
 </div>
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="main">
   <nav class="sidebar">
     <div class="sidebar-section">Analisis</div>
@@ -896,11 +996,22 @@ async function verificarAV(){
 }
 
 // ── NAVEGACION ───────────────────────────────────────────────────────────────
+function openSidebar(){
+  document.querySelector('.sidebar').classList.add('mob-open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
 function showPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   const nav=document.getElementById('nav-'+name); if(nav) nav.classList.add('active');
+  if(window.innerWidth<=768) closeSidebar();
 }
 function toggleSec(id){
   const el=document.getElementById(id);
