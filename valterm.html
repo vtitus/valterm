@@ -293,7 +293,7 @@ body.mode-light .proonly{display:none!important}
 <div id="accessGate" style="position:fixed;inset:0;z-index:10000;background:#070a0f;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px">
   <div style="text-align:center;margin-bottom:36px">
     <div style="font-size:28px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.13</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.14</div>
     <div style="font-size:13px;color:var(--text3);margin-top:10px">Acceso restringido — introduce tu clave</div>
   </div>
   <div style="background:var(--bg2);border:1.5px solid var(--border2);border-radius:14px;padding:32px 36px;width:100%;max-width:360px">
@@ -310,7 +310,7 @@ body.mode-light .proonly{display:none!important}
 <div id="modeSplash" style="display:none">
   <div style="text-align:center;margin-bottom:48px">
     <div style="font-size:30px;font-weight:900;letter-spacing:4px;font-family:var(--mono);color:var(--text)"><i class="ti ti-chart-line" style="color:var(--teal)"></i> VALTERM</div>
-    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.13</div>
+    <div style="font-size:11px;color:var(--teal);font-family:var(--mono);font-weight:600;letter-spacing:2px;margin-top:6px">v7.14</div>
     <div style="font-size:14px;color:var(--text3);margin-top:8px;letter-spacing:.5px">¿Cómo quieres usar la app hoy?</div>
   </div>
   <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:640px">
@@ -340,7 +340,7 @@ body.mode-light .proonly{display:none!important}
   <div style="font-size:11px;color:var(--text3);margin-top:32px;opacity:.6">Puedes cambiar de modo en cualquier momento desde la barra superior</div>
 </div>
 <div class="topbar">
-  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.13</span></div>
+  <div class="logo"><i class="ti ti-chart-line"></i> VALTERM <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0">v7.14</span></div>
   <div class="mode-toggle">
     <button id="modeBtnLight" class="mode-opt" onclick="setAppMode('light')">⚡ LIGHT</button>
     <button id="modeBtnPro" class="mode-opt" onclick="setAppMode('pro')">◆ PRO</button>
@@ -2859,7 +2859,6 @@ async function checkAccess(){
   const val = document.getElementById('accessInput').value;
   const h = await hashStr(val);
   if(h === ACCESS_HASH){
-    localStorage.setItem('valterm_access', h);
     document.getElementById('accessGate').style.display = 'none';
     showModeSplash();
   } else {
@@ -2884,17 +2883,11 @@ function showModeSplash(){
   }
 }
 
-// Comprobar si ya tiene acceso
-const storedAccess = localStorage.getItem('valterm_access');
-if(storedAccess === ACCESS_HASH){
-  document.getElementById('accessGate').style.display = 'none';
-  showModeSplash();
-} else {
-  // Mostrar gate, ocultar splash hasta que pase
-  document.getElementById('modeSplash').style.display = 'none';
-  document.getElementById('accessGate').style.display = 'flex';
-  setTimeout(()=> document.getElementById('accessInput')?.focus(), 100);
-}
+// Siempre mostrar el gate al cargar
+localStorage.removeItem('valterm_access');
+document.getElementById('modeSplash').style.display = 'none';
+document.getElementById('accessGate').style.display = 'flex';
+setTimeout(()=> document.getElementById('accessInput')?.focus(), 100);
 </script>
 </body>
 </html>
